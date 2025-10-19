@@ -2,27 +2,20 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import "leaflet/dist/leaflet.css";
+// Leaflet CSS is imported globally in layout (keep it there) or here if necessary
+// import "leaflet/dist/leaflet.css";
 
 type FullScreenMapProps = {
   center: [number, number];
   zoom?: number;
   className?: string;
-  onProfileClick?: () => void; // Optional handler if you want it to be clickable
+  onProfileClick?: () => void;
 };
 
-/**
- * Use a single fixed container for a true fullscreen map. This avoids stacked
- * h-screen/w-screen elements causing overflow and unwanted scrolling.
- *
- * If you need the map not to be fullscreen, pass a className and remove the
- * "fullscreen-fixed" class or render another wrapper instead.
- */
 export default function FullScreenMap({
   center,
   zoom = 13,
   className = '',
-  onProfileClick,
 }: FullScreenMapProps) {
   const circleIcon = L.divIcon({
     className: 'custom-circle-icon',
@@ -36,33 +29,27 @@ export default function FullScreenMap({
   React.useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = `
-      .leaflet-control-attribution svg {
-        display: none !important;
-      }
+      .leaflet-control-attribution svg { display: none !important; }
     `;
     document.head.appendChild(style);
-
     return () => {
       document.head.removeChild(style);
+      return; // Ensure the return type is void
     };
   }, []);
 
   return (
-    // Use the utility class from globals.css to pin the map to the viewport.
-    // If you want a non-fullscreen map, remove "fullscreen-fixed" and supply a different className.
-    <div>
+    // Make sure parent (page/main) is h-full so this wrapper can be h-full too
+    <div className={`${className} h-full w-full`}>
       <MapContainer
         center={center}
-        className="h-full w-full"
         zoom={zoom}
         scrollWheelZoom={true}
+        style={{ height: '100%', width: '100%' }} // explicit sizing for robustness
       >
         <TileLayer
           url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-          attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors,
-          <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy;
-          <a href="https://opentopomap.org">OpenTopoMap</a>
-          (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+          attribution='Map data: &copy; OpenStreetMap contributors'
           maxZoom={17}
         />
         <Marker position={center} icon={circleIcon}>
