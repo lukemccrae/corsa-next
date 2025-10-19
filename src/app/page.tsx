@@ -1,4 +1,10 @@
-import FullScreenMap from "../components/BasicMap";
+// app/page.tsx
+"use client";
+import dynamic from "next/dynamic";
+
+const FullScreenMap = dynamic(() => import("../components/BasicMap"), {
+  ssr: false,
+});
 
 export default function Home() {
   return (

@@ -3,8 +3,6 @@ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import "leaflet/dist/leaflet.css";
-import ProfileButton from './ProfileButton';
-import ProfileDropdown from './ProfileButton';
 
 type FullScreenMapProps = {
   center: [number, number];
@@ -36,11 +34,14 @@ export default function FullScreenMap({
       }
     `;
     document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
   }, []);
 
   return (
     <div className={`relative h-screen w-screen`}>
-      <ProfileButton></ProfileButton>
       <MapContainer
         center={center}
         className="h-full w-full"
@@ -62,8 +63,6 @@ export default function FullScreenMap({
           </Popup>
         </Marker>
       </MapContainer>
-
-
     </div>
   );
 }
