@@ -10,11 +10,11 @@ export default function TemplateDemo() {
   const menuRef = useRef<Menu>(null);
   const { openLogin } = useModal();
 
-  const items = [
-    { label: "Home", icon: "pi pi-home", command: () => (window.location.pathname = "/") },
-    { label: "Features", icon: "pi pi-star" },
-    { label: "Login", icon: "pi pi-sign-in", command: () => openLogin() },
-  ];
+//   const items = [
+//     { label: "Home", icon: "pi pi-home", command: () => (window.location.pathname = "/") },
+//     { label: "Features", icon: "pi pi-star" },
+//     { label: "Login", icon: "pi pi-sign-in", command: () => openLogin() },
+//   ];
 
   const start = (
     <img
@@ -37,15 +37,15 @@ export default function TemplateDemo() {
       <Button
         className="p-button-rounded p-button-text p-button-plain"
         onClick={(e) => menuRef.current?.toggle(e)}
+        icon="pi pi-user"
       >
-        <i className="pi pi-user" style={{ fontSize: '2.5rem' }}></i>
       </Button>
     </div>
   );
 
   return (
     <div className="card">
-      <Menubar model={items} start={start} end={end} />
+      <Menubar start={start} end={end} />
     </div>
   );
 }

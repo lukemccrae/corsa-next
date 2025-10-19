@@ -53,7 +53,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
       onHide={onHide}
       modal
       dismissableMask
-      className="w-full max-w-md"
+      className="w-half max-w-md"
       footer={footer}
     >
       <form
