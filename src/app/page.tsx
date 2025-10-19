@@ -1,9 +1,9 @@
-import FrontPageMap from "@/components/FrontPage";
+import FullScreenMap from "../components/BasicMap";
 
 export default function Home() {
   return (
-    <div className="min-h-screen w-screen relative flex flex-col items-center justify-center bg-gray-100">
-<FrontPageMap></FrontPageMap>
+    <div className="relative h-screen w-screen bg-gray-100">
+      <FullScreenMap center={[51.505, -0.09]} zoom={3} />
     </div>
   );
 }
