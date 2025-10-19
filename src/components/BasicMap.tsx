@@ -11,6 +11,13 @@ type FullScreenMapProps = {
   onProfileClick?: () => void; // Optional handler if you want it to be clickable
 };
 
+/**
+ * Use a single fixed container for a true fullscreen map. This avoids stacked
+ * h-screen/w-screen elements causing overflow and unwanted scrolling.
+ *
+ * If you need the map not to be fullscreen, pass a className and remove the
+ * "fullscreen-fixed" class or render another wrapper instead.
+ */
 export default function FullScreenMap({
   center,
   zoom = 13,
@@ -41,13 +48,14 @@ export default function FullScreenMap({
   }, []);
 
   return (
-    <div className={`relative h-screen w-screen`}>
+    // Use the utility class from globals.css to pin the map to the viewport.
+    // If you want a non-fullscreen map, remove "fullscreen-fixed" and supply a different className.
+    <div>
       <MapContainer
         center={center}
         className="h-full w-full"
         zoom={zoom}
         scrollWheelZoom={true}
-        style={{ height: '100%', width: '100%', borderRadius: 8 }}
       >
         <TileLayer
           url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"

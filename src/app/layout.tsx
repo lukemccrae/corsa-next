@@ -1,14 +1,27 @@
-import './globals.css';
+// app/layout.tsx
+import "primereact/resources/themes/lara-dark-blue/theme.css";
+import "primereact/resources/primereact.min.css";
+import "primeicons/primeicons.css";
+import "./globals.css";
+import Header from "../components/Header";
+import { Footer } from "../components/Footer";
 
 export const metadata = {
-  title: 'My App',
-  description: 'Map app using Leaflet and Next.js',
+  title: "My App",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Header></Header>
+        {children}
+        {/* <Footer></Footer> */}
+      </body>
     </html>
   );
 }
