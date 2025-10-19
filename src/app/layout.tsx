@@ -5,8 +5,9 @@ import "primeicons/primeicons.css";
 import "./globals.css";
 import Header from "../components/Header";
 import { Footer } from "../components/Footer";
-import "leaflet/dist/leaflet.css"; // <-- ensure Leaflet CSS is loaded globally
-import "./globals.css";
+import "leaflet/dist/leaflet.css";
+import Providers from "../components/Providers";
+
 export const metadata = {
   title: "My App",
 };
@@ -18,12 +19,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      {/* Make the page a column flex container limited to viewport height */}
       <body className="flex flex-col h-screen">
-        <Header />
-        <main className="flex-1 min-h-0 overflow-hidden">
-          {children}
-        </main>
+        <Providers>
+          <Header />
+          <main className="flex-1 min-h-0 overflow-hidden">
+            {children}
+          </main>
+          {/* <Footer /> */}
+        </Providers>
       </body>
     </html>
   );

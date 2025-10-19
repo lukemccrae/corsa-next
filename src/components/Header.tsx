@@ -1,17 +1,19 @@
 'use client';
 
 import React, { useRef } from "react";
-import { Avatar } from "primereact/avatar";
 import { Menubar } from "primereact/menubar";
 import { Menu } from "primereact/menu";
 import { Button } from "primereact/button";
+import { useModal } from "./ModalProvider";
 
 export default function TemplateDemo() {
   const menuRef = useRef<Menu>(null);
+  const { openLogin } = useModal();
 
   const items = [
-    { label: "Home", icon: "pi pi-home" },
+    { label: "Home", icon: "pi pi-home", command: () => (window.location.pathname = "/") },
     { label: "Features", icon: "pi pi-star" },
+    { label: "Login", icon: "pi pi-sign-in", command: () => openLogin() },
   ];
 
   const start = (
@@ -25,25 +27,18 @@ export default function TemplateDemo() {
 
   // Dropdown options
   const profileItems = [
-    { label: "Sign In", icon: "pi pi-sign-in", command: () => console.log("Sign In clicked") },
+    { label: "Sign In", icon: "pi pi-sign-in", command: () => openLogin() },
     { label: "Register", icon: "pi pi-user-plus", command: () => console.log("Register clicked") },
   ];
 
   const end = (
     <div className="flex align-items-center gap-2">
-      {/* Menu component for dropdown */}
       <Menu model={profileItems} popup ref={menuRef} />
-      {/* Avatar wrapped in button */}
       <Button
         className="p-button-rounded p-button-text p-button-plain"
         onClick={(e) => menuRef.current?.toggle(e)}
       >
         <i className="pi pi-user" style={{ fontSize: '2.5rem' }}></i>
-        {/* <Avatar
-          image="https://primefaces.org/cdn/primereact/images/avatar/amyelsner.png"
-          shape="circle"
-          size="large"
-        /> */}
       </Button>
     </div>
   );
