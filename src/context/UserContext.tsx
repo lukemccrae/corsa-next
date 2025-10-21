@@ -252,7 +252,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   };
 
   const loginUser = async (event: any) => {
-    console.log(event, "<< ev");
     const data = new FormData(event.currentTarget);
 
     const email = data.get("email")?.toString();
