@@ -2,7 +2,7 @@
 import React from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-import ThemeProvider, { useTheme } from "./ThemeProvider";
+import { useTheme } from "./ThemeProvider";
 // Leaflet CSS is imported globally in layout (keep it there) or here if necessary
 // import "leaflet/dist/leaflet.css";
 
@@ -18,7 +18,6 @@ export default function FullScreenMap({
   zoom = 13,
   className = "",
 }: FullScreenMapProps) {
-
   const { theme } = useTheme();
 
   const circleIcon = L.divIcon({
@@ -38,35 +37,30 @@ export default function FullScreenMap({
     document.head.appendChild(style);
     return () => {
       document.head.removeChild(style);
-      return; // Ensure the return type is void
     };
   }, []);
 
-  const themeWrapperClass =
-  theme === 'dark' ? 'dark-topo' : '';
-  console.log(themeWrapperClass, '<< themeWrapperClass')
+  const themeWrapperClass = theme === "dark" ? "dark-topo" : "";
 
   return (
-    <ThemeProvider>
-      <div className={`${className} h-full w-full ${themeWrapperClass}`}>
-        <MapContainer
-          center={center}
-          zoom={zoom}
-          scrollWheelZoom={true}
-          style={{ height: "100%", width: "100%" }} // explicit sizing for robustness
-        >
-          <TileLayer
-            url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-            attribution="Map data: &copy; OpenStreetMap contributors"
-            maxZoom={17}
-          />
-          <Marker position={center} icon={circleIcon}>
-            <Popup>
-              A basic Leaflet marker — center: {center[0]}, {center[1]}
-            </Popup>
-          </Marker>
-        </MapContainer>
-      </div>
-    </ThemeProvider>
+    <div className={`${className} h-full w-full ${themeWrapperClass}`}>
+      <MapContainer
+        center={center}
+        zoom={zoom}
+        scrollWheelZoom={true}
+        style={{ height: "100%", width: "100%" }} // explicit sizing for robustness
+      >
+        <TileLayer
+          url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+          attribution="Map data: &copy; OpenStreetMap contributors"
+          maxZoom={17}
+        />
+        <Marker position={center} icon={circleIcon}>
+          <Popup>
+            A basic Leaflet marker — center: {center[0]}, {center[1]}
+          </Popup>
+        </Marker>
+      </MapContainer>
+    </div>
   );
 }

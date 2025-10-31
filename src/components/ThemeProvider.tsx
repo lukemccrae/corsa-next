@@ -30,24 +30,15 @@ export default function ThemeProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [theme, setThemeState] = useState<Theme>("light");
-
-  useEffect(() => {
-    // determine initial theme:
-    const saved =
-      typeof window !== "undefined" ? localStorage.getItem("theme") : null;
-    if (saved === "dark" || saved === "light") {
-      setThemeState(saved);
-    } else if (
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-    ) {
-      setThemeState("dark");
-    } else {
-      setThemeState("light");
+  // Initialize theme synchronously to avoid mount mismatches
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("theme");
+      if (saved === "dark" || saved === "light") return saved as Theme;
+      if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
     }
-  }, []);
+    return "light";
+  });
 
   useEffect(() => {
     // apply Tailwind dark class to root element
