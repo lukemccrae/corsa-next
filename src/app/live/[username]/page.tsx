@@ -3,7 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import BasicMap from "../../../components/BasicMap";
-import { getPublishedUserInfo, getLivestreamByUserId, retrieveMapResource } from "../../../services/anon.service";
+import {
+  getPublishedUserInfo,
+  getLivestreamByUserId,
+  retrieveMapResource,
+} from "../../../services/anon.service";
 import { useUser } from "../../../context/UserContext";
 import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
@@ -57,8 +61,12 @@ export default function LivePage() {
 
         // The GraphQL responses are returned with a top-level data property
         // but the anonFetch wrapper returns whatever the API returns, so guard carefully.
-        const pubData = pub?.data?.getPublishedUserInfo ?? pub?.getPublishedUserInfo ?? null;
-        const liveData = liveRes?.data?.getLiveStreamByUserId ?? liveRes?.getLiveStreamByUserId ?? null;
+        const pubData =
+          pub?.data?.getPublishedUserInfo ?? pub?.getPublishedUserInfo ?? null;
+        const liveData =
+          liveRes?.data?.getLiveStreamByUserId ??
+          liveRes?.getLiveStreamByUserId ??
+          null;
 
         if (!mounted) return;
         setPublished(pubData);
@@ -110,6 +118,16 @@ export default function LivePage() {
     return `${n}`;
   };
 
+  // Shared card classes for consistent elevation and outline
+  const cardBase =
+    theme === "dark"
+      ? "rounded-xl border p-3 bg-gray-800 dark:border-white/6 shadow"
+      : "rounded-xl border p-3 bg-white border-gray-200 shadow-lg";
+
+  const sectionHeaderClass =
+    "p-3 border-b " +
+    (theme === "dark" ? "dark:border-white/6" : "border-gray-100");
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       {/* Profile header (Twitter-like)
@@ -119,36 +137,49 @@ export default function LivePage() {
       */}
       <div className="relative">
         <div
-          className={`h-40 w-full rounded-lg overflow-hidden bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 ${
-            theme === "dark" ? "filter brightness-90" : ""
-          }`}
+          className={`h-60 w-full rounded-lg overflow-hidden ${
+            theme === "dark"
+              ? "bg-gradient-to-r from-gray-800 to-gray-900 filter brightness-90"
+              : "bg-gradient-to-r from-white to-gray-100"
+          } `}
           aria-hidden
         >
           {/* Use deviceLogo / profile image as faint cover if available */}
-          {live?.deviceLogo && (
+          {
             <img
-              src={live.deviceLogo}
+              src={"https://i.imgur.com/h5fqzGG.png"}
               alt={`${username} cover`}
-              className="w-full h-full object-cover opacity-30"
+              className="w-full h-full object-cover"
             />
-          )}
+          }
         </div>
 
         {/* Avatar + follow button — positioned so it overlaps the cover but is not clipped */}
-        <div className="absolute inset-x-0 -bottom-12 flex items-end justify-between px-6 pointer-events-none">
+        <div className="absolute inset-x-0 -bottom-15 flex items-end justify-between px-6 pointer-events-none">
           <div className="pointer-events-auto">
             <Avatar
-              image={published?.profilePicture ?? live?.profilePicture}
-              label={(!published?.profilePicture && !live?.profilePicture) ? username?.charAt(0).toUpperCase() : undefined}
+              image={"https://i.imgur.com/iOtuPi3.jpeg"}
+              label={
+                !published?.profilePicture && !live?.profilePicture
+                  ? username?.charAt(0).toUpperCase()
+                  : undefined
+              }
               size="xlarge"
               shape="circle"
-              className="!w-28 !h-28 ring-4 ring-white dark:ring-gray-900 shadow"
+              className="!w-28 !h-28 ring-2 ring-white dark:ring-gray-900 shadow"
             />
           </div>
 
           <div className="pointer-events-auto flex items-center gap-2">
-            <Button icon="pi pi-ellipsis-h" className="p-button-rounded p-button-text" />
-            <Button label="Follow" icon="pi pi-user-plus" className="p-button-outlined" />
+            {/* <Button
+              icon="pi pi-ellipsis-h"
+              className="p-button-rounded p-button-text"
+            /> */}
+            <Button
+              label="Follow"
+              icon="pi pi-user-plus"
+              className="p-button-outlined"
+            />
           </div>
         </div>
       </div>
@@ -158,7 +189,9 @@ export default function LivePage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">{username}</h1>
-            <div className="text-sm text-gray-500 dark:text-gray-400">@{username}</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              @{username}
+            </div>
             <p className="mt-3 text-sm text-gray-700 dark:text-gray-300 max-w-2xl">
               {published?.bio ?? "No bio provided."}
             </p>
@@ -178,58 +211,41 @@ export default function LivePage() {
             {/* Stats row like Twitter */}
             <div className="mt-4 flex items-center gap-6">
               <div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Following</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Following
+                </div>
                 <div className="font-semibold">{prettyNumber(151)}</div>
               </div>
               <div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Followers</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Followers
+                </div>
                 <div className="font-semibold">{prettyNumber(2264)}</div>
               </div>
             </div>
           </div>
 
           {/* Right column: live summary */}
-          <div className="w-full md:w-64">
-            <div className="rounded-xl border p-3 bg-white dark:bg-gray-800 dark:border-white/6">
-              <div className="text-xs text-gray-500 dark:text-gray-400">Live status</div>
-              <div className="mt-2 flex items-center gap-2">
-                <span className={`inline-block w-2 h-2 rounded-full ${live ? "bg-red-500" : "bg-gray-400"}`} />
-                <div className="text-sm font-medium">{live ? "Live now" : "Offline"}</div>
-              </div>
-
-              <Divider className="my-2" />
-
-              <div className="text-xs text-gray-500 dark:text-gray-400">Stream</div>
-              <div className="font-semibold">{live?.title ?? "No active stream"}</div>
-
-              <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <div className="text-xs text-gray-400">Distance</div>
-                  <div className="font-medium">{live?.mileMarker ? `${live.mileMarker} mi` : "—"}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-400">Vert</div>
-                  <div className="font-medium">{live?.cumulativeVert ? `${live.cumulativeVert} m` : "—"}</div>
-                </div>
-              </div>
-
-              <div className="mt-3 flex gap-2">
-                <Button label="Open GPX" icon="pi pi-download" onClick={openGPX} loading={gpxLoading} disabled={!live?.routeGpxUrl} />
-                <Button label="View Live" icon="pi pi-map" className="p-button-text" onClick={() => { /* could open map modal */ }} />
-              </div>
-            </div>
-          </div>
+          
         </div>
 
         {/* Main content: map + posts (left), stats / sidebar (right) */}
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left column (main) */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="rounded-xl overflow-hidden shadow">
-              <div className="p-3 border-b bg-white dark:bg-gray-800 dark:border-white/6">
+            <div
+              className={`${
+                theme === "dark"
+                  ? "rounded-xl overflow-hidden shadow"
+                  : "rounded-xl overflow-hidden shadow-lg border border-gray-100"
+              }`}
+            >
+              <div className={sectionHeaderClass}>
                 <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium">Map</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">{live?.username}</div>
+                  <div className="text-sm font-medium">Entries</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {live?.username}
+                  </div>
                 </div>
               </div>
               <div className="h-96">
@@ -238,8 +254,8 @@ export default function LivePage() {
             </div>
 
             {/* Posts / tweets-style feed (placeholder) */}
-            <div className="rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow">
-              <div className="p-3 border-b dark:border-white/6">
+            <div className={`${cardBase} overflow-hidden`}>
+              <div className={sectionHeaderClass}>
                 <div className="text-sm font-medium">Posts</div>
               </div>
 
@@ -249,19 +265,33 @@ export default function LivePage() {
                 ) : (
                   <>
                     <article className="flex gap-3">
-                      <Avatar image={published?.profilePicture} size="large" shape="circle" className="!w-12 !h-12" />
+                      <Avatar
+                        image={published?.profilePicture}
+                        size="large"
+                        shape="circle"
+                        className="!w-12 !h-12"
+                      />
                       <div className="flex-1">
                         <div className="text-sm">
                           <strong>{username}</strong>{" "}
-                          <span className="text-xs text-gray-500 dark:text-gray-400">@{username} · 5h</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            @{username} · 5h
+                          </span>
                         </div>
                         <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                          Live tracking demo post — position updates, stats and GPX download available on the right.
+                          Live tracking demo post — position updates, stats and
+                          GPX download available on the right.
                         </p>
                         <div className="mt-2 flex items-center gap-6 text-xs text-gray-500">
-                          <div className="flex items-center gap-1"><i className="pi pi-comment" /> 3</div>
-                          <div className="flex items-center gap-1"><i className="pi pi-retweet" /> 12</div>
-                          <div className="flex items-center gap-1"><i className="pi pi-heart" /> 88</div>
+                          <div className="flex items-center gap-1">
+                            <i className="pi pi-comment" /> 3
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <i className="pi pi-retweet" /> 12
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <i className="pi pi-heart" /> 88
+                          </div>
                         </div>
                       </div>
                     </article>
@@ -270,29 +300,6 @@ export default function LivePage() {
               </div>
             </div>
           </div>
-
-          {/* Right column (sidebar) */}
-          <aside className="space-y-4">
-            <div className="rounded-xl border p-3 bg-white dark:bg-gray-800 dark:border-white/6">
-              <div className="text-sm font-medium">About</div>
-              <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">{published?.bio ?? "No bio available."}</div>
-              <Divider className="my-2" />
-              <div className="text-xs text-gray-500">Metadata</div>
-              <div className="mt-2 text-sm">
-                <div className="flex justify-between"><span>Started</span><span className="font-medium">{live?.startTime ?? "—"}</span></div>
-                <div className="flex justify-between"><span>Last seen</span><span className="font-medium">{live?.lastSeen ?? "—"}</span></div>
-                <div className="flex justify-between"><span>Timezone</span><span className="font-medium">{live?.timezone ?? "—"}</span></div>
-              </div>
-            </div>
-
-            <div className="rounded-xl border p-3 bg-white dark:bg-gray-800 dark:border-white/6">
-              <div className="text-sm font-medium">Activity</div>
-              <div className="mt-2 text-sm">
-                <div className="flex justify-between text-gray-500"><span>Streams</span><span className="font-medium">1</span></div>
-                <div className="flex justify-between text-gray-500 mt-1"><span>Plans</span><span className="font-medium">{published?.plans?.length ?? 0}</span></div>
-              </div>
-            </div>
-          </aside>
         </div>
       </div>
     </div>

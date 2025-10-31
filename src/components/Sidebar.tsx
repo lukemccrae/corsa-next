@@ -24,14 +24,14 @@ function ChannelItem({ channel }: { channel: Channel }) {
   const router = useRouter();
   const { theme } = useTheme();
 
-  const itemHoverClass = theme === 'dark' ? 'hover:bg-white/6' : 'hover:bg-gray-100';
+  const itemHoverClass = theme === 'dark' ? 'hover:bg-white/6' : 'hover:bg-gray-50';
   const subtitleClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-500';
   const viewersClass = theme === 'dark' ? 'text-gray-200' : 'text-gray-600';
 
   return (
     <li
       key={channel.id}
-      className={`flex items-center justify-between px-1 py-2 rounded cursor-pointer ${itemHoverClass}`}
+      className={`flex items-center justify-between px-1 py-2 rounded cursor-pointer ${itemHoverClass} transition-colors`}
       role="button"
       onClick={() => router.push(`/live/${channel.name}`)}
     >
@@ -119,7 +119,7 @@ export default function Sidebar({
   const live = useMemo<Channel[]>(
     () =>
       liveChannels ?? [
-        { id: 'a', name: 'Ninja +2', subtitle: 'ARC Raiders', avatar: '/demo/ninja.png', live: true, viewers: 13000 },
+        { id: 'a', name: 'Ninja', subtitle: 'ARC Raiders', avatar: 'https://i.imgur.com/iOtuPi3.jpeg', live: true, viewers: 13000 },
         { id: 'b', name: 'aPG', subtitle: 'Halo Infinite', avatar: '/demo/apg.png', live: true, viewers: 303 },
         { id: 'c', name: 'scump', subtitle: 'Battlefield REDSEC', avatar: '/demo/scump.png', live: true, viewers: 2800 },
         { id: 'd', name: 'Echidna', subtitle: 'Halo Infinite', avatar: '/demo/echidna.png', live: true, viewers: 34 },
@@ -131,7 +131,7 @@ export default function Sidebar({
   if (collapsed) {
     return (
       <aside
-        className={`hidden md:flex flex-col items-center justify-start w-14 ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} ${className}`}
+        className={`hidden md:flex flex-col items-center justify-start w-14 ${theme === 'dark' ? 'bg-gray-900 text-white border-r border-white/6' : 'bg-white text-gray-900 border-r border-gray-100'} ${className}`}
       >
         <button
           onClick={() => setCollapsed(false)}
@@ -146,9 +146,9 @@ export default function Sidebar({
 
   return (
     <aside
-      className={`hidden md:flex flex-col w-72 max-w-[18rem] h-full shadow-xl ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} ${className}`}
+      className={`hidden md:flex flex-col w-72 max-w-[18rem] h-full ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} border-r ${theme === 'dark' ? 'border-white/6' : 'border-gray-100'} shadow-lg ${className}`}
     >
-      <div className={`flex items-center justify-between px-4 py-3 border-b ${theme === 'dark' ? 'border-white/6' : 'border-gray-200'}`}>
+      <div className={`flex items-center justify-between px-4 py-3 border-b ${theme === 'dark' ? 'border-white/6' : 'border-gray-100'}`}>
         <div>
           <h3 className="text-lg font-semibold">Discover</h3>
           <p className="text-xs text-gray-400">Live activity</p>

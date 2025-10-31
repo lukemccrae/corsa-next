@@ -145,9 +145,12 @@ export default function AccountDetailsPage() {
   }
 
   // Theme-aware classes (use Tailwind utilities; Prime theme handles component internals)
-  const cardBase = "rounded-2xl shadow-md p-6 transition-colors";
-  const cardThemeClass = theme === "dark" ? "bg-gray-800 text-gray-100" : "bg-white text-gray-900";
-  const subText = theme === "dark" ? "text-gray-300" : "text-gray-500";
+  const cardBase = "rounded-2xl p-6 transition-colors";
+  const cardThemeClass =
+    theme === "dark"
+      ? "bg-gray-800 text-gray-100 border border-white/6 shadow"
+      : "bg-white text-gray-900 border border-gray-200 shadow-lg hover:shadow-xl";
+  const subText = theme === "dark" ? "text-gray-300" : "text-gray-600";
   const avatarRing = theme === "dark" ? "ring-2 ring-gray-900" : "ring-2 ring-white";
 
   return (
@@ -182,7 +185,7 @@ export default function AccountDetailsPage() {
               </div>
             </div>
 
-            <p className="mt-3 text-sm text-surface-500 dark:text-surface-400">
+            <p className="mt-3 text-sm text-gray-700 dark:text-gray-300 max-w-2xl">
               Manage your profile information, security settings, and notification preferences.
             </p>
           </div>
