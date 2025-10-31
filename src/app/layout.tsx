@@ -1,8 +1,7 @@
 // app/layout.tsx
-import "primereact/resources/themes/lara-light-blue/theme.css";
+import "./globals.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
-import "./globals.css";
 import Header from "../components/Header";
 import { Footer } from "../components/Footer";
 import "leaflet/dist/leaflet.css";

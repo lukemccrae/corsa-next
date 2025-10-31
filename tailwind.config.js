@@ -1,11 +1,12 @@
-// tailwind.config.js
 module.exports = {
-    content: [
-      "./app/**/*.{js,ts,jsx,tsx,mdx}",
-      "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-      "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    ],
-    theme: { extend: {} },
-    plugins: [],
-  }
-  
+  darkMode: 'class', // use 'class' strategy so we can toggle it on html element
+  content: [
+    './src/app/**/*.{ts,tsx,js,jsx}',
+    './src/components/**/*.{ts,tsx,js,jsx}',
+    // add more paths as needed
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};

@@ -24,7 +24,7 @@ export default function AvatarPanel() {
             style={{ cursor: "pointer" }}
           />
           <OverlayPanel ref={userPanelRef}>
-            <div className="flex flex-col gap-2 p-2">
+            <div className="flex flex-col">
               {/* <Button label="Profile" className="p-button-text" icon="pi pi-user" />
               <Button label="Settings" className="p-button-text" icon="pi pi-cog" /> */}
               <Button
@@ -32,6 +32,17 @@ export default function AvatarPanel() {
                 className="p-button-text p-button-danger"
                 icon="pi pi-sign-out"
                 onClick={logoutUser}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                label="Account"
+                className="p-button-text p-button-info"
+                icon="pi pi-user"
+                onClick={() => {
+                  userPanelRef.current?.hide(); // close panel
+                  window.location.href = `/account/${user.preferred_username}`; // go to account page
+                }}
               />
             </div>
           </OverlayPanel>
@@ -44,7 +55,7 @@ export default function AvatarPanel() {
             icon="pi pi-user"
           />
           <OverlayPanel ref={guestPanelRef}>
-            <div className="flex flex-col gap-2 p-2">
+            <div className="flex flex-col gap-2">
               <Button
                 label="Sign In"
                 icon="pi pi-sign-in"

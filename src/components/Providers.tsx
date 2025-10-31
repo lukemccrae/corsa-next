@@ -1,12 +1,15 @@
-'use client';
-import React from 'react';
-import { UserProvider } from '../context/UserContext';
-import ModalProvider from './ModalProvider';
+"use client";
+import React from "react";
+import { UserProvider } from "../context/UserContext";
+import ModalProvider from "./ModalProvider";
+import ThemeProvider from './ThemeProvider';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <UserProvider>
-      <ModalProvider>{children}</ModalProvider>
+      <ThemeProvider>
+        <ModalProvider>{children}</ModalProvider>
+      </ThemeProvider>
     </UserProvider>
   );
 }

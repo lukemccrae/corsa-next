@@ -1,7 +1,8 @@
-'use client';
-import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
+"use client";
+import React from "react";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import ThemeProvider, { useTheme } from "./ThemeProvider";
 // Leaflet CSS is imported globally in layout (keep it there) or here if necessary
 // import "leaflet/dist/leaflet.css";
 
@@ -15,10 +16,13 @@ type FullScreenMapProps = {
 export default function FullScreenMap({
   center,
   zoom = 13,
-  className = '',
+  className = "",
 }: FullScreenMapProps) {
+
+  const { theme } = useTheme();
+
   const circleIcon = L.divIcon({
-    className: 'custom-circle-icon',
+    className: "custom-circle-icon",
     html: `<div style="
       width:12px;height:12px;border-radius:50%;background:#e34a4a;border:2px solid white;
     "></div>`,
@@ -27,7 +31,7 @@ export default function FullScreenMap({
   });
 
   React.useEffect(() => {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.innerHTML = `
       .leaflet-control-attribution svg { display: none !important; }
     `;
@@ -38,26 +42,31 @@ export default function FullScreenMap({
     };
   }, []);
 
+  const themeWrapperClass =
+  theme === 'dark' ? 'dark-topo' : '';
+  console.log(themeWrapperClass, '<< themeWrapperClass')
+
   return (
-    // Make sure parent (page/main) is h-full so this wrapper can be h-full too
-    <div className={`${className} h-full w-full`}>
-      <MapContainer
-        center={center}
-        zoom={zoom}
-        scrollWheelZoom={true}
-        style={{ height: '100%', width: '100%' }} // explicit sizing for robustness
-      >
-        <TileLayer
-          url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-          attribution='Map data: &copy; OpenStreetMap contributors'
-          maxZoom={17}
-        />
-        <Marker position={center} icon={circleIcon}>
-          <Popup>
-            A basic Leaflet marker — center: {center[0]}, {center[1]}
-          </Popup>
-        </Marker>
-      </MapContainer>
-    </div>
+    <ThemeProvider>
+      <div className={`${className} h-full w-full ${themeWrapperClass}`}>
+        <MapContainer
+          center={center}
+          zoom={zoom}
+          scrollWheelZoom={true}
+          style={{ height: "100%", width: "100%" }} // explicit sizing for robustness
+        >
+          <TileLayer
+            url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+            attribution="Map data: &copy; OpenStreetMap contributors"
+            maxZoom={17}
+          />
+          <Marker position={center} icon={circleIcon}>
+            <Popup>
+              A basic Leaflet marker — center: {center[0]}, {center[1]}
+            </Popup>
+          </Marker>
+        </MapContainer>
+      </div>
+    </ThemeProvider>
   );
 }

@@ -184,7 +184,6 @@ export default function AccountDetailsPage() {
                   className="w-full"
                 />
               </div>
-              <div className="bg-red-500 text-white p-4">Tailwind test</div>
               {/* Username (read-only) */}
               <div>
                 <label className="block text-sm font-medium mb-1">Username</label>
