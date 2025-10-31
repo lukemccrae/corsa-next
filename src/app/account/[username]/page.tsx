@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
+import { useParams } from "next/navigation";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { Password } from "primereact/password";
@@ -8,24 +9,15 @@ import { Checkbox } from "primereact/checkbox";
 import { Avatar } from "primereact/avatar";
 import { Divider } from "primereact/divider";
 import { Toast } from "primereact/toast";
+import { useTheme } from "../../../components/ThemeProvider";
+import { useUser } from "../../../context/UserContext";
 
 /**
- * AccountDetails.tsx
- *
- * A React + TypeScript account details management page styled with Tailwind
- * and using PrimeReact components (to match the style used in the attached Vue repo).
+ * Account details page adapted to reflect light/dark theme.
  *
  * Notes:
- * - This is a self-contained component. Wire it into your routing/layout as needed.
- * - Ensure you have PrimeReact + PrimeIcons + a Prime theme installed and Tailwind configured.
- *   e.g.
- *     npm install primereact primeicons
- *   and import a theme in your global CSS:
- *     import "primereact/resources/themes/saga-blue/theme.css";
- *     import "primereact/resources/primereact.min.css";
- *     import "primeicons/primeicons.css";
- *
- * - For production, replace the fake save/delete handlers with real API calls.
+ * - Theme is provided by the app-wide ThemeProvider (Providers in layout).
+ * - Styling uses Tailwind classes and PrimeReact components. No CSS files.
  */
 
 type FormState = {
@@ -42,21 +34,27 @@ type FormState = {
 };
 
 export default function AccountDetailsPage() {
+  const params = useParams();
+  const usernameParam = (params as any)?.username ?? "unknown";
   const toast = useRef<Toast | null>(null);
+  const { theme } = useTheme();
+  const userCtx = useUser();
 
-  const [form, setForm] = useState<FormState>({
-    username: "johndoe",
-    displayName: "John Doe",
-    email: "john@example.com",
+  // seed form from current user when available
+  const initialForm: FormState = {
+    username: usernameParam ?? "johndoe",
+    displayName: userCtx.user?.preferred_username ?? "John Doe",
+    email: userCtx.user?.email ?? "john@example.com",
     avatarFile: null,
-    avatarPreview: null,
+    avatarPreview: userCtx.user?.picture ?? null,
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
     notifyEmail: true,
     notifySms: false,
-  });
+  };
 
+  const [form, setForm] = useState<FormState>(initialForm);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -109,17 +107,10 @@ export default function AccountDetailsPage() {
 
     setLoading(true);
     try {
-      // Replace with real API call
+      // TODO: Replace with real API call(s) for saving
       await new Promise((r) => setTimeout(r, 900));
 
-      // Example: upload avatar if present, send updated fields
-      // const formData = new FormData();
-      // if (form.avatarFile) formData.append("avatar", form.avatarFile);
-      // formData.append("displayName", form.displayName);
-      // ...
-
       toast.current?.show({ severity: "success", summary: "Saved", detail: "Your account details were updated.", life: 3000 });
-      // Clear password fields after successful save
       update("currentPassword", "");
       update("newPassword", "");
       update("confirmPassword", "");
@@ -131,8 +122,8 @@ export default function AccountDetailsPage() {
   }
 
   async function handleCancel() {
-    // Reset to original values or refetch user from API
-    // For demo, just show a toast
+    // Reset to initial values (could refetch real user)
+    setForm(initialForm);
     toast.current?.show({ severity: "info", summary: "Cancelled", detail: "Changes were not saved.", life: 2000 });
   }
 
@@ -142,10 +133,10 @@ export default function AccountDetailsPage() {
 
     setDeleting(true);
     try {
-      // Replace with real API call
+      // TODO: Replace with real delete API
       await new Promise((r) => setTimeout(r, 1000));
       toast.current?.show({ severity: "success", summary: "Deleted", detail: "Your account has been deleted (demo).", life: 3000 });
-      // Redirect or sign out here
+      // optionally sign out or navigate
     } catch {
       toast.current?.show({ severity: "error", summary: "Delete failed", detail: "Unable to delete account.", life: 3500 });
     } finally {
@@ -153,152 +144,168 @@ export default function AccountDetailsPage() {
     }
   }
 
+  // Theme-aware classes (use Tailwind utilities; Prime theme handles component internals)
+  const cardBase = "rounded-2xl shadow-md p-6 transition-colors";
+  const cardThemeClass = theme === "dark" ? "bg-gray-800 text-gray-100" : "bg-white text-gray-900";
+  const subText = theme === "dark" ? "text-gray-300" : "text-gray-500";
+  const avatarRing = theme === "dark" ? "ring-2 ring-gray-900" : "ring-2 ring-white";
+
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6 h-full">
       <Toast ref={toast} />
-      <div className="bg-white dark:bg-surface-900 rounded-2xl shadow-md p-6">
-        <div className="flex items-start gap-6">
+
+      <div className={`${cardBase} ${cardThemeClass}`}>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
           <div className="flex-shrink-0">
-            <Avatar
-              image={form.avatarPreview ?? undefined}
-              label={!form.avatarPreview ? form.displayName?.charAt(0).toUpperCase() : undefined}
-              shape="circle"
-              size="large"
-              className="!w-20 !h-20"
+            <div className={`rounded-full overflow-hidden ${avatarRing}`}>
+              <Avatar
+                image={form.avatarPreview ?? undefined}
+                label={!form.avatarPreview ? form.displayName?.charAt(0).toUpperCase() : undefined}
+                shape="circle"
+                size="xlarge"
+                className="!w-24 !h-24"
+                style={{ cursor: "default" }}
+              />
+            </div>
+          </div>
+
+          <div className="flex-1 w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h2 className="text-2xl font-semibold">{form.displayName}</h2>
+                <div className={`text-sm ${subText}`}>@{form.username}</div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button icon="pi pi-user" label="View Public" className="p-button-text" onClick={() => window.location.href = `/live/${form.username}`} />
+                <Button icon="pi pi-cog" className="p-button-text" onClick={() => toast.current?.show({ severity: "info", summary: "Settings", detail: "Settings opening (demo)", life: 1500 })} />
+              </div>
+            </div>
+
+            <p className="mt-3 text-sm text-surface-500 dark:text-surface-400">
+              Manage your profile information, security settings, and notification preferences.
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          {/* Display name */}
+          <div className="col-span-1 md:col-span-2">
+            <label className="block text-sm font-medium mb-1">Display name</label>
+            <InputText
+              value={form.displayName}
+              onChange={(e) => update("displayName", e.currentTarget.value)}
+              className="w-full"
             />
           </div>
 
-          <div className="flex-1">
-            <h2 className="text-xl font-semibold mb-2">Account details</h2>
-            <p className="text-sm text-surface-500 dark:text-surface-400 mb-4">
-              Manage your profile information, security settings, and notification preferences.
-            </p>
-
-            <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Display name */}
-              <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Display name</label>
-                <InputText
-                  value={form.displayName}
-                  onChange={(e) => update("displayName", e.currentTarget.value)}
-                  className="w-full"
-                />
-              </div>
-              {/* Username (read-only) */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Username</label>
-                <InputText value={form.username} onChange={(e) => update("username", e.currentTarget.value)} className="w-full" disabled />
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <InputText
-                  value={form.email}
-                  onChange={(e) => update("email", e.currentTarget.value)}
-                  className="w-full"
-                />
-                <small className="text-xs text-surface-500 dark:text-surface-400">Used for login and notifications.</small>
-              </div>
-
-              {/* Avatar upload */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Avatar</label>
-                <div className="flex items-center gap-3">
-                  <input
-                    id="avatar"
-                    type="file"
-                    accept="image/*"
-                    onChange={onAvatarChange}
-                    className="hidden"
-                  />
-                  <label htmlFor="avatar">
-                    <Button icon="pi pi-upload" label="Upload" className="p-button-secondary" />
-                  </label>
-                  <Button
-                    icon="pi pi-times"
-                    className="p-button-text"
-                    onClick={() => {
-                      update("avatarFile", null);
-                      update("avatarPreview", null);
-                    }}
-                    disabled={!form.avatarPreview}
-                  />
-                  {form.avatarPreview && <span className="text-sm text-surface-500">{/* file name could go here */}</span>}
-                </div>
-              </div>
-
-              <Divider className="md:col-span-2 my-3" />
-
-              {/* Password change */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Change password</label>
-              </div>
-
-              <div>
-                <label className="block text-xs text-surface-500 mb-1">Current password</label>
-                <Password
-                  value={form.currentPassword}
-                  onChange={(e) => update("currentPassword", e.currentTarget.value)}
-                  toggleMask
-                  feedback={false}
-                  className="w-full"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-surface-500 mb-1">New password</label>
-                <Password
-                  value={form.newPassword}
-                  onChange={(e) => update("newPassword", e.currentTarget.value)}
-                  toggleMask
-                  className="w-full"
-                  feedback={false}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-surface-500 mb-1">Confirm new password</label>
-                <Password
-                  value={form.confirmPassword}
-                  onChange={(e) => update("confirmPassword", e.currentTarget.value)}
-                  toggleMask
-                  className="w-full"
-                  feedback={false}
-                />
-              </div>
-
-              <Divider className="md:col-span-2 my-3" />
-
-              {/* Notifications */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Notifications</label>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex items-center gap-2">
-                    <Checkbox inputId="notify-email" checked={form.notifyEmail} onChange={(e) => update("notifyEmail", e.checked ?? false)} />
-                    <label htmlFor="notify-email" className="text-sm">Email notifications</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox inputId="notify-sms" checked={form.notifySms} onChange={(e) => update("notifySms", e.checked ?? false)} />
-                    <label htmlFor="notify-sms" className="text-sm">SMS notifications</label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action buttons */}
-              <div className="md:col-span-2 flex items-center justify-between mt-4">
-                <div className="flex gap-2">
-                  <Button label="Cancel" severity="secondary" className="p-button-text" onClick={handleCancel} />
-                  <Button label="Save Changes" icon="pi pi-check" onClick={handleSave} loading={loading} />
-                </div>
-
-                <div>
-                  <Button label="Delete account" icon="pi pi-trash" className="p-button-danger p-button-text" onClick={handleDeleteAccount} loading={deleting} />
-                </div>
-              </div>
-            </form>
+          {/* Username (read-only) */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Username</label>
+            <InputText value={form.username} onChange={(e) => update("username", e.currentTarget.value)} className="w-full" disabled />
           </div>
-        </div>
+
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <InputText
+              value={form.email}
+              onChange={(e) => update("email", e.currentTarget.value)}
+              className="w-full"
+            />
+            <small className="text-xs text-gray-400">Used for login and notifications.</small>
+          </div>
+
+          {/* Avatar upload */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1">Avatar</label>
+            <div className="flex items-center gap-3">
+              <input id="avatar" type="file" accept="image/*" onChange={onAvatarChange} className="hidden" />
+              <label htmlFor="avatar">
+                <Button icon="pi pi-upload" label="Upload" className="p-button-secondary" />
+              </label>
+              <Button
+                icon="pi pi-times"
+                className="p-button-text"
+                onClick={() => {
+                  update("avatarFile", null);
+                  update("avatarPreview", null);
+                }}
+                disabled={!form.avatarPreview}
+              />
+              {form.avatarPreview && <span className="text-sm text-gray-400">{/* filename could be shown here */}</span>}
+            </div>
+          </div>
+
+          <Divider className="md:col-span-2 my-3" />
+
+          {/* Password change */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1">Change password</label>
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Current password</label>
+            <Password
+              value={form.currentPassword}
+              onChange={(e) => update("currentPassword", e.currentTarget.value)}
+              toggleMask
+              feedback={false}
+              className="w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">New password</label>
+            <Password
+              value={form.newPassword}
+              onChange={(e) => update("newPassword", e.currentTarget.value)}
+              toggleMask
+              className="w-full"
+              feedback={false}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Confirm new password</label>
+            <Password
+              value={form.confirmPassword}
+              onChange={(e) => update("confirmPassword", e.currentTarget.value)}
+              toggleMask
+              className="w-full"
+              feedback={false}
+            />
+          </div>
+
+          <Divider className="md:col-span-2 my-3" />
+
+          {/* Notifications */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1">Notifications</label>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex items-center gap-2">
+                <Checkbox inputId="notify-email" checked={form.notifyEmail} onChange={(e) => update("notifyEmail", e.checked ?? false)} />
+                <label htmlFor="notify-email" className="text-sm">Email notifications</label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox inputId="notify-sms" checked={form.notifySms} onChange={(e) => update("notifySms", e.checked ?? false)} />
+                <label htmlFor="notify-sms" className="text-sm">SMS notifications</label>
+              </div>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="md:col-span-2 flex items-center justify-between mt-4">
+            <div className="flex gap-2">
+              <Button label="Cancel" severity="secondary" className="p-button-text" onClick={handleCancel} />
+              <Button label="Save Changes" icon="pi pi-check" onClick={handleSave} loading={loading} />
+            </div>
+
+            <div>
+              <Button label="Delete account" icon="pi pi-trash" className="p-button-danger p-button-text" onClick={handleDeleteAccount} loading={deleting} />
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   );
