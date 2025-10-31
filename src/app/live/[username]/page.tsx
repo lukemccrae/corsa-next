@@ -112,10 +112,14 @@ export default function LivePage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
-      {/* Profile header (Twitter-like) */}
-      <div className="relative rounded-lg overflow-hidden">
+      {/* Profile header (Twitter-like)
+          NOTE: avatar was previously being clipped because the cover wrapper used overflow-hidden.
+          Fix: keep the cover element itself rounded/overflow-hidden, but place the avatar in an absolutely
+          positioned sibling so it can overlap the cover without being clipped.
+      */}
+      <div className="relative">
         <div
-          className={`h-40 w-full bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 ${
+          className={`h-40 w-full rounded-lg overflow-hidden bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 ${
             theme === "dark" ? "filter brightness-90" : ""
           }`}
           aria-hidden
@@ -130,19 +134,19 @@ export default function LivePage() {
           )}
         </div>
 
-        {/* Avatar + follow button */}
-        <div className="absolute left-6 -bottom-12 flex items-center gap-4">
-          <Avatar
-            image={published?.profilePicture ?? live?.profilePicture}
-            label={(!published?.profilePicture && !live?.profilePicture) ? username?.charAt(0).toUpperCase() : undefined}
-            size="xlarge"
-            shape="circle"
-            className="!w-28 !h-28 ring-4 ring-white dark:ring-gray-900"
-          />
-        </div>
+        {/* Avatar + follow button — positioned so it overlaps the cover but is not clipped */}
+        <div className="absolute inset-x-0 -bottom-12 flex items-end justify-between px-6 pointer-events-none">
+          <div className="pointer-events-auto">
+            <Avatar
+              image={published?.profilePicture ?? live?.profilePicture}
+              label={(!published?.profilePicture && !live?.profilePicture) ? username?.charAt(0).toUpperCase() : undefined}
+              size="xlarge"
+              shape="circle"
+              className="!w-28 !h-28 ring-4 ring-white dark:ring-gray-900 shadow"
+            />
+          </div>
 
-        <div className="absolute right-6 -bottom-10">
-          <div className="flex items-center gap-2">
+          <div className="pointer-events-auto flex items-center gap-2">
             <Button icon="pi pi-ellipsis-h" className="p-button-rounded p-button-text" />
             <Button label="Follow" icon="pi pi-user-plus" className="p-button-outlined" />
           </div>
@@ -150,7 +154,7 @@ export default function LivePage() {
       </div>
 
       {/* Name / handle / bio / meta */}
-      <div className="mt-16">
+      <div className="mt-20">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">{username}</h1>
