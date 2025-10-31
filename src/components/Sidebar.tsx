@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
 import { useRouter } from 'next/navigation';
+import { useTheme } from './ThemeProvider';
 
 type Channel = {
   id: string;
@@ -21,10 +22,16 @@ const formatViewers = (n?: number) => {
 
 function ChannelItem({ channel }: { channel: Channel }) {
   const router = useRouter();
+  const { theme } = useTheme();
+
+  const itemHoverClass = theme === 'dark' ? 'hover:bg-white/6' : 'hover:bg-gray-100';
+  const subtitleClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-500';
+  const viewersClass = theme === 'dark' ? 'text-gray-200' : 'text-gray-600';
+
   return (
     <li
       key={channel.id}
-      className="flex items-center justify-between px-1 py-2 rounded hover:bg-white/3 cursor-pointer"
+      className={`flex items-center justify-between px-1 py-2 rounded cursor-pointer ${itemHoverClass}`}
       role="button"
       onClick={() => router.push(`/live/${channel.name}`)}
     >
@@ -38,7 +45,7 @@ function ChannelItem({ channel }: { channel: Channel }) {
         />
         <div className="flex flex-col leading-tight">
           <span className="text-sm font-medium">{channel.name}</span>
-          {channel.subtitle && <span className="text-xs text-gray-400">{channel.subtitle}</span>}
+          {channel.subtitle && <span className={`text-xs ${subtitleClass}`}>{channel.subtitle}</span>}
         </div>
       </div>
 
@@ -46,10 +53,10 @@ function ChannelItem({ channel }: { channel: Channel }) {
         {channel.live ? (
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-red-500 block" />
-            <span className="text-xs text-gray-200">{formatViewers(channel.viewers)}</span>
+            <span className={`text-xs ${viewersClass}`}>{formatViewers(channel.viewers)}</span>
           </div>
         ) : (
-          <span className="text-xs text-gray-500">Offline</span>
+          <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Offline</span>
         )}
       </div>
     </li>
@@ -94,6 +101,7 @@ export default function Sidebar({
   liveChannels?: Channel[];
   className?: string;
 }) {
+  const { theme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
 
   const followed = useMemo<Channel[]>(
@@ -122,10 +130,12 @@ export default function Sidebar({
 
   if (collapsed) {
     return (
-      <aside className={`hidden md:flex flex-col items-center justify-start w-14 bg-gray-900 text-white ${className}`}>
+      <aside
+        className={`hidden md:flex flex-col items-center justify-start w-14 ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} ${className}`}
+      >
         <button
           onClick={() => setCollapsed(false)}
-          className="mt-3 text-gray-300 hover:text-white"
+          className={`mt-3 ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
           aria-label="Open sidebar"
         >
           <i className="pi pi-angle-right text-xl" />
@@ -135,25 +145,25 @@ export default function Sidebar({
   }
 
   return (
-    <aside className={`hidden md:flex flex-col w-72 max-w-[18rem] h-full bg-gray-900 text-white shadow-xl ${className}`}>
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/6">
+    <aside
+      className={`hidden md:flex flex-col w-72 max-w-[18rem] h-full shadow-xl ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} ${className}`}
+    >
+      <div className={`flex items-center justify-between px-4 py-3 border-b ${theme === 'dark' ? 'border-white/6' : 'border-gray-200'}`}>
         <div>
-          <h3 className="text-lg font-semibold">For You</h3>
-          <p className="text-xs text-gray-400">Recommended & followed</p>
+          <h3 className="text-lg font-semibold">Discover</h3>
+          <p className="text-xs text-gray-400">Live activity</p>
         </div>
         <Button
           icon="pi pi-angle-left"
-          className="p-button-rounded p-button-text text-gray-300"
+          className={`p-button-rounded p-button-text ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}
           onClick={() => setCollapsed(true)}
           aria-label="Collapse sidebar"
         />
       </div>
 
       <div className="px-3 py-3 overflow-auto space-y-4">
-        <ChannelSection title="Followed Channels" channels={followed} onShowMore={() => console.log('show more followed')} />
-        <ChannelSection title="Live Channels" channels={live} onShowMore={() => console.log('show more live')} />
+        <ChannelSection title="Trackers" channels={live} onShowMore={() => console.log('show more live')} />
       </div>
-
     </aside>
   );
 }
