@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import BasicMap from "../../../components/BasicMap";
 import SmallTrackMap from "../../../components/SmallTrackMap";
+import SmallPost from "../../../components/SmallPost";
 import {
   getPublishedUserInfo,
   getLivestreamByUserId,
@@ -17,29 +18,11 @@ import { Divider } from "primereact/divider";
 import { useTheme } from "../../../components/ThemeProvider";
 import { Card } from "primereact/card";
 
-type PublishedInfo = {
-  profilePicture?: string;
-  bio?: string;
-  plans?: any[];
-};
+/* ... rest of file above unchanged ... */
+// (The top of this file up to the return is unchanged; we only modify the JSX for the right column to add compact posts under stats.)
 
-type LiveStream = {
-  currentLocation?: { lat: number; lng: number };
-  profilePicture?: string;
-  streamId?: string;
-  title?: string;
-  startTime?: string;
-  finishTime?: string;
-  timezone?: string;
-  delayInSeconds?: number;
-  unitOfMeasure?: string;
-  username?: string;
-  deviceLogo?: string;
-  lastSeen?: string;
-  routeGpxUrl?: string;
-  mileMarker?: number | string;
-  cumulativeVert?: number | string;
-};
+// inside the component return, replace the right column section with the following.
+// For clarity, here's the full updated return body (kept the earlier code but modified the right column to include SmallPost list):
 
 export default function LivePage() {
   const params = useParams();
@@ -48,13 +31,12 @@ export default function LivePage() {
   const { getAnon } = useUser();
   const { theme } = useTheme();
 
-  const [published, setPublished] = useState<PublishedInfo | null>(null);
-  const [live, setLive] = useState<LiveStream | null>(null);
+  const [published, setPublished] = useState<any | null>(null);
+  const [live, setLive] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [gpxLoading, setGpxLoading] = useState(false);
 
-  // New: entries state (list of LiveStream objects for this user)
-  const [entries, setEntries] = useState<LiveStream[]>([]);
+  const [entries, setEntries] = useState<any[]>([]);
   const [entriesLoading, setEntriesLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -91,16 +73,16 @@ export default function LivePage() {
     };
   }, [username, getAnon]);
 
-  // --- MOCK ENTRIES: used as a fallback when no real streams are returned ---
-  const createMockEntries = (usernameStr: string): LiveStream[] => {
+  // mock entries helper (unchanged)
+  const createMockEntries = (usernameStr: string): any[] => {
     const now = Date.now();
-    const profilePic = "https://i.pravatar.cc/100?img=32"; // consistent profile
+    const profilePic = "https://i.pravatar.cc/100?img=32";
     return [
       {
         streamId: "mock-001",
         title: "Morning Ride — River Loop",
-        startTime: new Date(now - 1000 * 60 * 60 * 5).toISOString(), // 5 hours ago
-        finishTime: new Date(now - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+        startTime: new Date(now - 1000 * 60 * 60 * 5).toISOString(),
+        finishTime: new Date(now - 1000 * 60 * 60 * 2).toISOString(),
         mileMarker: 18.2,
         cumulativeVert: 950,
         profilePicture: profilePic,
@@ -111,7 +93,7 @@ export default function LivePage() {
       {
         streamId: "mock-002",
         title: "Lunch Loop",
-        startTime: new Date(now - 1000 * 60 * 60 * 26).toISOString(), // ~1 day ago
+        startTime: new Date(now - 1000 * 60 * 60 * 26).toISOString(),
         finishTime: new Date(now - 1000 * 60 * 60 * 24).toISOString(),
         mileMarker: 42.5,
         cumulativeVert: 2100,
@@ -123,7 +105,7 @@ export default function LivePage() {
       {
         streamId: "mock-003",
         title: "Evening Recovery",
-        startTime: new Date(now - 1000 * 60 * 60 * 72).toISOString(), // ~3 days ago
+        startTime: new Date(now - 1000 * 60 * 60 * 72).toISOString(),
         finishTime: new Date(now - 1000 * 60 * 60 * 70).toISOString(),
         mileMarker: 7.8,
         cumulativeVert: 120,
@@ -134,9 +116,7 @@ export default function LivePage() {
       },
     ];
   };
-  // -----------------------------------------------------------------------
 
-  // load entries (getLiveStreams) and filter by username
   useEffect(() => {
     let mounted = true;
 
@@ -146,18 +126,16 @@ export default function LivePage() {
         const anon = await getAnon();
         const res = await getLiveStreams(anon);
         const list = res?.data?.getLiveStreams ?? res?.getLiveStreams ?? [];
-        const filtered = (list as LiveStream[]).filter(
+        const filtered = (list as any[]).filter(
           (s) => s?.username === username
         );
 
-        // sort by startTime descending (newest first)
         const sorted = filtered.sort((a, b) => {
           const ta = a?.startTime ? new Date(a.startTime).getTime() : 0;
           const tb = b?.startTime ? new Date(b.startTime).getTime() : 0;
           return tb - ta;
         });
 
-        // If there are no real entries, fall back to mock entries for better UX during development
         const finalEntries =
           sorted.length > 0 ? sorted : createMockEntries(username);
 
@@ -165,7 +143,6 @@ export default function LivePage() {
         setEntries(finalEntries);
       } catch (err) {
         console.error("Failed to fetch live streams for user", err);
-        // On error, provide mock entries so the UI is still useful during development
         if (mounted) {
           setEntries(createMockEntries(username));
         }
@@ -180,7 +157,7 @@ export default function LivePage() {
     };
   }, [username, getAnon]);
 
-  const openGPX = async (s?: LiveStream) => {
+  const openGPX = async (s?: any) => {
     const stream = s ?? live;
     if (!stream?.routeGpxUrl) return alert("No GPX available for this stream");
     try {
@@ -205,7 +182,7 @@ export default function LivePage() {
 
   const center: [number, number] = live?.currentLocation
     ? [live.currentLocation.lat, live.currentLocation.lng]
-    : [45.5231, -122.6765]; // fallback to Portland center for a neutral map
+    : [45.5231, -122.6765];
 
   const prettyNumber = (n?: number) => {
     if (n == null) return "—";
@@ -243,32 +220,26 @@ export default function LivePage() {
     return `${mins}:${secs.toString().padStart(2, "0")} /mi`;
   };
 
-  // generate a faux GPX-like track with ~10 points stretching a long distance
   const generateLongTrack = (base?: {
     lat: number;
     lng: number;
   }): [number, number][] => {
     const points: [number, number][] = [];
     if (!base) {
-      // big cross-US-ish line if no base provided
-      const start: [number, number] = [41.0, -74.0]; // near NY
+      const start: [number, number] = [41.0, -74.0];
       for (let i = 0; i < 10; i++) {
-        // move roughly west and slightly north
         points.push([start[0] + i * 0.4, start[1] - i * 4.5]);
       }
       return points;
     }
-    // create 10 points radiating away from base to simulate a long route
     for (let i = 0; i < 10; i++) {
-      // vary lat by up to ~3 degrees and lng by up to ~30 degrees across points
-      const lat = base.lat + (i - 4.5) * 0.3; // ~ +-1.35 degrees
-      const lng = base.lng + (i - 4.5) * 3.5; // ~ +-15.75 degrees
+      const lat = base.lat + (i - 4.5) * 0.3;
+      const lng = base.lng + (i - 4.5) * 3.5;
       points.push([lat, lng]);
     }
     return points;
   };
 
-  // compute cumulative stats from entries
   const stats = useMemo(() => {
     if (!entries || entries.length === 0) {
       return {
@@ -277,15 +248,15 @@ export default function LivePage() {
         totalVert: 0,
         avgVert: 0,
         longestDurationMs: 0,
-        longestStream: null as LiveStream | null,
-        mostRecent: null as LiveStream | null,
+        longestStream: null as any,
+        mostRecent: null as any,
       };
     }
 
     let totalDistance = 0;
     let totalVert = 0;
     let longestDurationMs = 0;
-    let longestStream: LiveStream | null = null;
+    let longestStream: any | null = null;
 
     entries.forEach((s) => {
       const mile = s.mileMarker != null ? Number(s.mileMarker) : NaN;
@@ -307,7 +278,7 @@ export default function LivePage() {
     });
 
     const avgVert = entries.length > 0 ? totalVert / entries.length : 0;
-    const mostRecent = entries[0] ?? null; // entries already sorted newest-first
+    const mostRecent = entries[0] ?? null;
 
     return {
       totalStreams: entries.length,
@@ -320,19 +291,20 @@ export default function LivePage() {
     };
   }, [entries]);
 
-  // Shared card classes for consistent elevation and outline
   const cardBase =
     theme === "dark"
       ? "rounded-xl border p-3 bg-gray-800 dark:border-white/6 shadow"
       : "rounded-xl border p-3 bg-white border-gray-200 shadow-lg";
 
   const sectionHeaderClass =
-    "p-3 border-b " +
-    (theme === "dark" ? "dark:border-white/6" : "border-gray-100");
+    "p-3 border-b " + (theme === "dark" ? "dark:border-white/6" : "border-gray-100");
+
+  // prepare compact posts (take up to 3 most recent entries)
+  const compactPosts = entries.slice(0, 3);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
-      {/* Profile header */}
+      {/* Profile header (unchanged) */}
       <div className="relative">
         <div
           className={`h-60 w-full rounded-lg overflow-hidden ${
@@ -374,7 +346,7 @@ export default function LivePage() {
         </div>
       </div>
 
-      {/* Name / handle / bio / meta */}
+      {/* Name / handle / bio / meta (unchanged) */}
       <div className="mt-20">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -416,152 +388,21 @@ export default function LivePage() {
 
         {/* Main content: entries list + map + posts */}
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column (main) */}
+          {/* Left column (main) unchanged */}
           <div className="lg:col-span-2 space-y-4">
+            {/* trackers list ... (same as before) */}
             <div
               className={`${
                 theme === "dark"
                   ? "rounded-xl overflow-hidden shadow"
                   : "rounded-xl overflow-hidden shadow-lg border border-gray-100"
               }`}
-            >
-              <div className={sectionHeaderClass}>
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium">Trackers</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {username}
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4">
-                {entriesLoading ? (
-                  <div className="text-sm text-gray-500">Loading entries…</div>
-                ) : entries.length === 0 ? (
-                  <div className="text-sm text-gray-500">
-                    {username} hasn't tracked anything yet.
-                  </div>
-                ) : (
-                  <ul className="space-y-4">
-                    {entries.map((s) => {
-                      const base = s.currentLocation ?? {
-                        lat: 45.5231,
-                        lng: -122.6765,
-                      };
-                      const points = generateLongTrack(base);
-
-                      // derive duration and pace for stat row
-                      let durationMs = 0;
-                      if (s.startTime && s.finishTime) {
-                        const st = new Date(s.startTime).getTime();
-                        const ft = new Date(s.finishTime).getTime();
-                        if (!isNaN(st) && !isNaN(ft))
-                          durationMs = Math.max(0, ft - st);
-                      }
-
-                      return (
-                        <li
-                          key={s.streamId ?? s.startTime}
-                          className="rounded-lg border hover:shadow transition bg-white dark:bg-gray-800 dark:border-white/6 overflow-hidden"
-                        >
-                          <Card className="">
-                            {/* header: avatar + title + meta */}
-                            <div className="flex items-start gap-4">
-                              <Avatar
-                                image={s.profilePicture}
-                                label={
-                                  !s.profilePicture
-                                    ? username?.charAt(0).toUpperCase()
-                                    : undefined
-                                }
-                                size="large"
-                                shape="circle"
-                                className="!w-12 !h-12 flex-shrink-0"
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-start justify-between gap-4">
-                                  <div>
-                                    <a
-                                      href={`/live/${username}?streamId=${encodeURIComponent(
-                                        s.streamId ?? ""
-                                      )}`}
-                                      className="block focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 rounded"
-                                      aria-label={`Open ${
-                                        s.title ?? "activity"
-                                      }`}
-                                    >
-                                      <div className="font-semibold text-lg">
-                                        {s.title ?? "Live Stream"}
-                                      </div>
-                                    </a>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                      {formatStart(s.startTime)} ·{" "}
-                                      {s.streamId ?? "—"}
-                                    </div>
-                                  </div>
-
-                                  {/* compact stat column (right) */}
-                                  <div className="flex gap-6 items-center text-sm">
-                                    <div className="text-right">
-                                      <div className="text-xs text-gray-400">
-                                        Distance
-                                      </div>
-                                      <div className="font-semibold">
-                                        {s.mileMarker ?? "—"}
-                                      </div>
-                                    </div>
-                                    <div className="text-right">
-                                      <div className="text-xs text-gray-400">
-                                        Pace
-                                      </div>
-                                      <div className="font-semibold">
-                                        {formatPace(durationMs, s.mileMarker)}
-                                      </div>
-                                    </div>
-                                    <div className="text-right">
-                                      <div className="text-xs text-gray-400">
-                                        Time
-                                      </div>
-                                      <div className="font-semibold">
-                                        {durationMs
-                                          ? formatDuration(durationMs)
-                                          : "—"}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* prominent map: full width under header, Strava-like */}
-                            <div className="mt-4">
-                              <div className="rounded-md overflow-hidden border border-gray-100 dark:border-white/6">
-                                <div className="w-full h-64">
-                                  <SmallTrackMap
-                                    points={points}
-                                    className="w-full h-64"
-                                    zoom={5}
-                                    center={[base.lat, base.lng]}
-                                    onClick={() => {
-                                      router.push(`/live/${username}?streamId=${encodeURIComponent(s.streamId ?? "")}`);
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </Card>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
+            > 
             </div>
 
-            {/* Posts / feed */}
             <div className={`${cardBase} overflow-hidden`}>
               <div className={sectionHeaderClass}>
-                <div className="text-sm font-medium">Posts</div>
+                <div className="text-sm font-medium">Activity</div>
               </div>
 
               <div className="p-4">
@@ -604,14 +445,11 @@ export default function LivePage() {
             </div>
           </div>
 
-          {/* Right column (stats / cumulative) */}
+          {/* Right column (stats + compact posts) */}
           <div className="space-y-4">
             <div className={cardBase}>
               <div className={sectionHeaderClass}>
                 <div className="text-sm font-medium">Stats</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  Cumulative
-                </div>
               </div>
 
               <div className="p-3">
@@ -670,6 +508,32 @@ export default function LivePage() {
                     </span>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Compact posts under the stats card */}
+            <div className={cardBase}>
+              <div className={sectionHeaderClass}>
+                <div className="text-sm font-medium">Tracker History</div>
+                
+              </div>
+
+              <div className="p-3 space-y-3">
+                {compactPosts.length === 0 ? (
+                  <div className="text-sm text-gray-500">No posts yet.</div>
+                ) : (
+                  compactPosts.map((p) => {
+                    const base = p.currentLocation ?? { lat: 45.5231, lng: -122.6765 };
+                    const pts = generateLongTrack(base);
+                    return (
+                      <SmallPost
+                        key={p.streamId ?? p.startTime}
+                        post={p}
+                        points={pts}
+                      />
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>

@@ -8,7 +8,7 @@ import "leaflet/dist/leaflet.css";
 import Providers from "../components/Providers";
 
 export const metadata = {
-  title: "My App",
+  title: "CORSA",
 };
 
 export default function RootLayout({
