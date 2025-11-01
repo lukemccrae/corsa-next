@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import BasicMap from "../../../components/BasicMap";
+import SmallTrackMap from "../../../components/SmallTrackMap";
 import {
   getPublishedUserInfo,
   getLivestreamByUserId,
@@ -14,6 +15,7 @@ import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
 import { Divider } from "primereact/divider";
 import { useTheme } from "../../../components/ThemeProvider";
+import { Card } from "primereact/card";
 
 type PublishedInfo = {
   profilePicture?: string;
@@ -89,6 +91,51 @@ export default function LivePage() {
     };
   }, [username, getAnon]);
 
+  // --- MOCK ENTRIES: used as a fallback when no real streams are returned ---
+  const createMockEntries = (usernameStr: string): LiveStream[] => {
+    const now = Date.now();
+    const profilePic = "https://i.pravatar.cc/100?img=32"; // consistent profile
+    return [
+      {
+        streamId: "mock-001",
+        title: "Morning Ride — River Loop",
+        startTime: new Date(now - 1000 * 60 * 60 * 5).toISOString(), // 5 hours ago
+        finishTime: new Date(now - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+        mileMarker: 18.2,
+        cumulativeVert: 950,
+        profilePicture: profilePic,
+        routeGpxUrl: "",
+        username: usernameStr,
+        currentLocation: { lat: 45.525, lng: -122.68 },
+      },
+      {
+        streamId: "mock-002",
+        title: "Lunch Loop",
+        startTime: new Date(now - 1000 * 60 * 60 * 26).toISOString(), // ~1 day ago
+        finishTime: new Date(now - 1000 * 60 * 60 * 24).toISOString(),
+        mileMarker: 42.5,
+        cumulativeVert: 2100,
+        profilePicture: profilePic,
+        routeGpxUrl: "",
+        username: usernameStr,
+        currentLocation: { lat: 45.528, lng: -122.67 },
+      },
+      {
+        streamId: "mock-003",
+        title: "Evening Recovery",
+        startTime: new Date(now - 1000 * 60 * 60 * 72).toISOString(), // ~3 days ago
+        finishTime: new Date(now - 1000 * 60 * 60 * 70).toISOString(),
+        mileMarker: 7.8,
+        cumulativeVert: 120,
+        profilePicture: profilePic,
+        routeGpxUrl: "",
+        username: usernameStr,
+        currentLocation: { lat: 45.522, lng: -122.675 },
+      },
+    ];
+  };
+  // -----------------------------------------------------------------------
+
   // load entries (getLiveStreams) and filter by username
   useEffect(() => {
     let mounted = true;
@@ -98,23 +145,30 @@ export default function LivePage() {
       try {
         const anon = await getAnon();
         const res = await getLiveStreams(anon);
-        const list =
-          res?.data?.getLiveStreams ??
-          res?.getLiveStreams ??
-          [];
-        const filtered = (list as LiveStream[]).filter((s) => s?.username === username);
+        const list = res?.data?.getLiveStreams ?? res?.getLiveStreams ?? [];
+        const filtered = (list as LiveStream[]).filter(
+          (s) => s?.username === username
+        );
 
         // sort by startTime descending (newest first)
-        filtered.sort((a, b) => {
+        const sorted = filtered.sort((a, b) => {
           const ta = a?.startTime ? new Date(a.startTime).getTime() : 0;
           const tb = b?.startTime ? new Date(b.startTime).getTime() : 0;
           return tb - ta;
         });
 
+        // If there are no real entries, fall back to mock entries for better UX during development
+        const finalEntries =
+          sorted.length > 0 ? sorted : createMockEntries(username);
+
         if (!mounted) return;
-        setEntries(filtered);
+        setEntries(finalEntries);
       } catch (err) {
         console.error("Failed to fetch live streams for user", err);
+        // On error, provide mock entries so the UI is still useful during development
+        if (mounted) {
+          setEntries(createMockEntries(username));
+        }
       } finally {
         if (mounted) setEntriesLoading(false);
       }
@@ -176,6 +230,42 @@ export default function LivePage() {
     const mins = Math.floor((seconds % 3600) / 60);
     if (hrs > 0) return `${hrs}h ${mins}m`;
     return `${mins}m`;
+  };
+
+  const formatPace = (durationMs?: number, miles?: number | string) => {
+    if (!durationMs || !miles) return "—";
+    const milesNum = Number(miles);
+    if (!milesNum || milesNum <= 0) return "—";
+    const totalSec = Math.round(durationMs / 1000);
+    const secPerMile = Math.round(totalSec / milesNum);
+    const mins = Math.floor(secPerMile / 60);
+    const secs = secPerMile % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")} /mi`;
+  };
+
+  // generate a faux GPX-like track with ~10 points stretching a long distance
+  const generateLongTrack = (base?: {
+    lat: number;
+    lng: number;
+  }): [number, number][] => {
+    const points: [number, number][] = [];
+    if (!base) {
+      // big cross-US-ish line if no base provided
+      const start: [number, number] = [41.0, -74.0]; // near NY
+      for (let i = 0; i < 10; i++) {
+        // move roughly west and slightly north
+        points.push([start[0] + i * 0.4, start[1] - i * 4.5]);
+      }
+      return points;
+    }
+    // create 10 points radiating away from base to simulate a long route
+    for (let i = 0; i < 10; i++) {
+      // vary lat by up to ~3 degrees and lng by up to ~30 degrees across points
+      const lat = base.lat + (i - 4.5) * 0.3; // ~ +-1.35 degrees
+      const lng = base.lng + (i - 4.5) * 3.5; // ~ +-15.75 degrees
+      points.push([lat, lng]);
+    }
+    return points;
   };
 
   // compute cumulative stats from entries
@@ -328,7 +418,13 @@ export default function LivePage() {
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left column (main) */}
           <div className="lg:col-span-2 space-y-4">
-            <div className={`${theme === "dark" ? "rounded-xl overflow-hidden shadow" : "rounded-xl overflow-hidden shadow-lg border border-gray-100"}`}>
+            <div
+              className={`${
+                theme === "dark"
+                  ? "rounded-xl overflow-hidden shadow"
+                  : "rounded-xl overflow-hidden shadow-lg border border-gray-100"
+              }`}
+            >
               <div className={sectionHeaderClass}>
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">Trackers</div>
@@ -342,44 +438,121 @@ export default function LivePage() {
                 {entriesLoading ? (
                   <div className="text-sm text-gray-500">Loading entries…</div>
                 ) : entries.length === 0 ? (
-                  <div className="text-sm text-gray-500">{username} hasn't tracked anything yet.</div>
+                  <div className="text-sm text-gray-500">
+                    {username} hasn't tracked anything yet.
+                  </div>
                 ) : (
-                  <ul className="space-y-3">
-                    {entries.map((s) => (
-                      <li key={s.streamId ?? s.startTime} className="flex items-center justify-between p-3 rounded-lg border hover:shadow transition">
-                        <div className="flex items-start gap-3">
-                          <Avatar image={s.profilePicture} label={!s.profilePicture ? username?.charAt(0).toUpperCase() : undefined} size="large" shape="circle" className="!w-12 !h-12" />
-                          <div>
-                            <div className="font-semibold">{s.title ?? "Live Stream"}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {formatStart(s.startTime)} · {s.streamId ?? "—"}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              Mile: {s.mileMarker ?? "—"} · Vert: {s.cumulativeVert ?? "—"}
-                            </div>
-                          </div>
-                        </div>
+                  <ul className="space-y-4">
+                    {entries.map((s) => {
+                      const base = s.currentLocation ?? {
+                        lat: 45.5231,
+                        lng: -122.6765,
+                      };
+                      const points = generateLongTrack(base);
 
-                        <div className="flex items-center gap-2">
-                          <Button
-                            label="View"
-                            icon="pi pi-eye"
-                            className="p-button-outlined"
-                            onClick={() => {
-                              router.push(`/live/${username}?streamId=${encodeURIComponent(s.streamId ?? "")}`);
-                            }}
-                          />
-                          <Button
-                            icon="pi pi-download"
-                            className="p-button-text"
-                            onClick={() => {
-                              if (!s.routeGpxUrl) return alert("No GPX available for this stream");
-                              openGPX(s);
-                            }}
-                          />
-                        </div>
-                      </li>
-                    ))}
+                      // derive duration and pace for stat row
+                      let durationMs = 0;
+                      if (s.startTime && s.finishTime) {
+                        const st = new Date(s.startTime).getTime();
+                        const ft = new Date(s.finishTime).getTime();
+                        if (!isNaN(st) && !isNaN(ft))
+                          durationMs = Math.max(0, ft - st);
+                      }
+
+                      return (
+                        <li
+                          key={s.streamId ?? s.startTime}
+                          className="rounded-lg border hover:shadow transition bg-white dark:bg-gray-800 dark:border-white/6 overflow-hidden"
+                        >
+                          <Card className="">
+                            {/* header: avatar + title + meta */}
+                            <div className="flex items-start gap-4">
+                              <Avatar
+                                image={s.profilePicture}
+                                label={
+                                  !s.profilePicture
+                                    ? username?.charAt(0).toUpperCase()
+                                    : undefined
+                                }
+                                size="large"
+                                shape="circle"
+                                className="!w-12 !h-12 flex-shrink-0"
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between gap-4">
+                                  <div>
+                                    <a
+                                      href={`/live/${username}?streamId=${encodeURIComponent(
+                                        s.streamId ?? ""
+                                      )}`}
+                                      className="block focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 rounded"
+                                      aria-label={`Open ${
+                                        s.title ?? "activity"
+                                      }`}
+                                    >
+                                      <div className="font-semibold text-lg">
+                                        {s.title ?? "Live Stream"}
+                                      </div>
+                                    </a>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                      {formatStart(s.startTime)} ·{" "}
+                                      {s.streamId ?? "—"}
+                                    </div>
+                                  </div>
+
+                                  {/* compact stat column (right) */}
+                                  <div className="flex gap-6 items-center text-sm">
+                                    <div className="text-right">
+                                      <div className="text-xs text-gray-400">
+                                        Distance
+                                      </div>
+                                      <div className="font-semibold">
+                                        {s.mileMarker ?? "—"}
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="text-xs text-gray-400">
+                                        Pace
+                                      </div>
+                                      <div className="font-semibold">
+                                        {formatPace(durationMs, s.mileMarker)}
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="text-xs text-gray-400">
+                                        Time
+                                      </div>
+                                      <div className="font-semibold">
+                                        {durationMs
+                                          ? formatDuration(durationMs)
+                                          : "—"}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* prominent map: full width under header, Strava-like */}
+                            <div className="mt-4">
+                              <div className="rounded-md overflow-hidden border border-gray-100 dark:border-white/6">
+                                <div className="w-full h-64">
+                                  <SmallTrackMap
+                                    points={points}
+                                    className="w-full h-64"
+                                    zoom={5}
+                                    center={[base.lat, base.lng]}
+                                    onClick={() => {
+                                      router.push(`/live/${username}?streamId=${encodeURIComponent(s.streamId ?? "")}`);
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
@@ -436,47 +609,69 @@ export default function LivePage() {
             <div className={cardBase}>
               <div className={sectionHeaderClass}>
                 <div className="text-sm font-medium">Stats</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Cumulative</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  Cumulative
+                </div>
               </div>
 
               <div className="p-3">
-
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="flex flex-col">
-                    <span className="text-xs text-gray-400">Total trackers</span>
-                    <span className="font-semibold text-lg">{stats.totalStreams}</span>
+                    <span className="text-xs text-gray-400">
+                      Total trackers
+                    </span>
+                    <span className="font-semibold text-lg">
+                      {stats.totalStreams}
+                    </span>
                   </div>
 
                   <div className="flex flex-col">
                     <span className="text-xs text-gray-400">Total time</span>
-                    <span className="font-semibold text-lg">{stats.totalStreams}</span>
+                    <span className="font-semibold text-lg">
+                      {stats.totalStreams}
+                    </span>
                   </div>
 
                   <div className="flex flex-col">
-                    <span className="text-xs text-gray-400">Total distance (mi)</span>
-                    <span className="font-semibold text-lg">{stats.totalDistance ? stats.totalDistance.toFixed(1) : "—"}</span>
+                    <span className="text-xs text-gray-400">
+                      Total distance (mi)
+                    </span>
+                    <span className="font-semibold text-lg">
+                      {stats.totalDistance
+                        ? stats.totalDistance.toFixed(1)
+                        : "—"}
+                    </span>
                   </div>
 
                   <div className="flex flex-col">
-                    <span className="text-xs text-gray-400">Total elevation (ft)</span>
-                    <span className="font-semibold text-lg">{stats.totalVert ? Math.round(stats.totalVert) : "—"}</span>
+                    <span className="text-xs text-gray-400">
+                      Total elevation (ft)
+                    </span>
+                    <span className="font-semibold text-lg">
+                      {stats.totalVert ? Math.round(stats.totalVert) : "—"}
+                    </span>
                   </div>
 
                   <div className="flex flex-col">
-                    <span className="text-xs text-gray-400">Avg elevation / stream</span>
-                    <span className="font-semibold text-lg">{stats.avgVert ? Math.round(stats.avgVert) : "—"}</span>
+                    <span className="text-xs text-gray-400">
+                      Avg elevation / stream
+                    </span>
+                    <span className="font-semibold text-lg">
+                      {stats.avgVert ? Math.round(stats.avgVert) : "—"}
+                    </span>
                   </div>
 
                   <div className="flex flex-col">
-                    <span className="text-xs text-gray-400">Avg elevation / stream</span>
-                    <span className="font-semibold text-lg">{stats.avgVert ? Math.round(stats.avgVert) : "—"}</span>
+                    <span className="text-xs text-gray-400">
+                      Avg elevation / stream
+                    </span>
+                    <span className="font-semibold text-lg">
+                      {stats.avgVert ? Math.round(stats.avgVert) : "—"}
+                    </span>
                   </div>
                 </div>
-
-
               </div>
             </div>
-
           </div>
         </div>
       </div>
