@@ -530,7 +530,7 @@ export default function LivePage() {
                         key={p.streamId ?? p.startTime}
                         post={p}
                         points={pts}
-                        href={"/live/" + p.username}
+                        href={"/live/" + p.username + '/3'}
                       />
                     );
                   })

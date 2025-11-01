@@ -33,7 +33,7 @@ function ChannelItem({ channel }: { channel: Channel }) {
       key={channel.id}
       className={`flex items-center justify-between px-1 py-2 rounded cursor-pointer ${itemHoverClass} transition-colors`}
       role="button"
-      onClick={() => router.push(`/live/${channel.name}`)}
+      onClick={() => router.push(`/profile/${channel.name}`)}
     >
       <div className="flex items-center gap-3">
         <Avatar
