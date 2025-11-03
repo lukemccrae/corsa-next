@@ -1,11 +1,12 @@
-'use client';
-import LiveMap, { Point } from '@/src/components/LiveMap';
-import LiveStats from '@/src/components/LiveStats';
-import PointsList from '@/src/components/PointsList';
-import { useParams } from 'next/navigation';
-import { Avatar } from 'primereact/avatar';
-import { Button } from 'primereact/button';
-import React from 'react';
+"use client";
+import LiveChat from "@/src/components/LiveChat";
+import LiveMap, { Point } from "@/src/components/LiveMap";
+import LiveStats from "@/src/components/LiveStats";
+import PointsList from "@/src/components/PointsList";
+import { useParams } from "next/navigation";
+import { Avatar } from "primereact/avatar";
+import { Button } from "primereact/button";
+import React from "react";
 
 /**
  * Lightweight "live" page scaffold.
@@ -19,17 +20,42 @@ import React from 'react';
 
 export default function LivePage() {
   const params = useParams();
-  const username = (params as any)?.username ?? 'unknown';
+  const username = (params as any)?.username ?? "unknown";
+
+  // mock messages
+  const now = Date.now();
+  const initialMessages = [
+    {
+      id: "m1",
+      username: username,
+      text: `Welcome to ${username}'s live stream!`,
+      createdAt: new Date(now - 1000 * 60 * 8).toISOString(),
+      profilePicture: null,
+    },
+    {
+      id: "m2",
+      username: "spectator1",
+      text: "Great start — following along 👀",
+      createdAt: new Date(now - 1000 * 60 * 6).toISOString(),
+      profilePicture: null,
+    },
+    {
+      id: "m3",
+      username: "runnerFan",
+      text: "Go go go! 💪",
+      createdAt: new Date(now - 1000 * 60 * 2).toISOString(),
+      profilePicture: null,
+    },
+  ];
 
   // Mock data: simple line of points around a center
   const center: [number, number] = [37.7749, -122.4194]; // SF
-  const now = Date.now();
   const mockedPoints: Point[] = React.useMemo(() => {
     const points: Point[] = [];
     for (let i = 0; i < 24; i++) {
       points.push({
-        lat: center[0] + (Math.sin(i / 3) * 0.02),
-        lng: center[1] + (Math.cos(i / 4) * 0.02) - i * 0.001,
+        lat: center[0] + Math.sin(i / 3) * 0.02,
+        lng: center[1] + Math.cos(i / 4) * 0.02 - i * 0.001,
         timestamp: now - (24 - i) * 60 * 1000, // minute apart
         altitude: 100 + Math.round(Math.sin(i / 2) * 40),
         mileMarker: Number((i * 0.5).toFixed(2)),
@@ -55,30 +81,33 @@ export default function LivePage() {
       <aside className="w-full md:w-96 flex flex-col gap-4">
         <div className="flex items-center justify-between bg-white/80 dark:bg-gray-800/80 rounded-xl p-3 shadow">
           <div className="flex items-center gap-3">
-            <Avatar label={username?.charAt(0)?.toUpperCase()} shape="circle" size="large" />
+            <Avatar
+              label={username?.charAt(0)?.toUpperCase()}
+              shape="circle"
+              size="large"
+            />
             <div className="flex flex-col">
               <div className="font-semibold">{username}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-300">Live • demo data</div>
+              <div className="text-xs text-gray-500 dark:text-gray-300">
+                Live • demo data
+              </div>
             </div>
           </div>
           <div>
             <Button
               icon="pi pi-download"
               className="p-button-text"
-              onClick={() => alert('Download GPX (demo)')}
+              onClick={() => alert("Download GPX (demo)")}
               aria-label="Download GPX"
             />
           </div>
         </div>
-
         <LiveStats points={mockedPoints} selectedIndex={selectedIndex} />
 
-        <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl p-3 shadow overflow-auto">
-          <h3 className="text-sm font-semibold mb-2">Recent Points</h3>
-          <PointsList
-            points={mockedPoints}
-            selectedIndex={selectedIndex}
-            onSelectIndex={(i) => setSelectedIndex(i)}
+        <div className="w-full lg:w-96 flex-shrink-0 rounded-xl overflow-hidden border border-gray-100 dark:border-white/6 shadow bg-white dark:bg-gray-800">
+          <LiveChat
+            streamUsername={username}
+            initialMessages={initialMessages}
           />
         </div>
       </aside>
