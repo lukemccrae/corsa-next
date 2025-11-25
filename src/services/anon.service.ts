@@ -138,6 +138,7 @@ export const getLivestreamByUserId = async (props: GetPublishedUserInfoProps) =>
       }
       profilePicture
       streamId
+      activeStreamId
       title
       startTime
       finishTime

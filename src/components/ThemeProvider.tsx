@@ -23,25 +23,40 @@ export const useTheme = () => {
  * - controls Tailwind dark class on <html>
  * - dynamically loads the PrimeReact theme CSS by adding/updating a <link id="primereact-theme" ...>
  *
- * Note: pick theme names you like; here we use lara-light-blue and lara-dark-blue as examples.
+ * Implementation notes:
+ * - We intentionally default to a stable server-safe value ("light") for initial state so server and initial client render match.
+ * - We then synchronize with localStorage / prefers-color-scheme on mount via useEffect. This avoids hydration mismatches.
  */
 export default function ThemeProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Initialize theme synchronously to avoid mount mismatches
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("theme");
-      if (saved === "dark" || saved === "light") return saved as Theme;
-      if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
-    }
-    return "light";
-  });
+  // Stable server-side default (do NOT access window/localStorage here)
+  const [theme, setThemeState] = useState<Theme>("light");
 
+  // On mount, read persisted user preference or system preference and apply it.
   useEffect(() => {
-    // apply Tailwind dark class to root element
+    if (typeof window === "undefined") return;
+
+    const saved = localStorage.getItem("theme");
+    let initial: Theme = "light";
+
+    if (saved === "dark" || saved === "light") {
+      initial = saved as Theme;
+    } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      initial = "dark";
+    }
+
+    // Only update state if it differs from the current state to avoid an unnecessary render.
+    if (initial !== theme) {
+      setThemeState(initial);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount
+
+  // apply Tailwind dark class to root element and manage PrimeReact theme link whenever theme changes
+  useEffect(() => {
     const root = document.documentElement;
     if (theme === "dark") {
       root.classList.add("dark");
@@ -49,19 +64,14 @@ export default function ThemeProvider({
       root.classList.remove("dark");
     }
 
-    // persist selection
     localStorage.setItem("theme", theme);
 
     // Manage PrimeReact theme css link
     const themeLinkId = "primereact-theme";
-    const existing = document.getElementById(
-      themeLinkId
-    ) as HTMLLinkElement | null;
+    const existing = document.getElementById(themeLinkId) as HTMLLinkElement | null;
 
-    // Choose the PrimeReact theme files you want:
     const themeMap: Record<Theme, string> = {
-      light:
-        "https://unpkg.com/primereact/resources/themes/lara-light-blue/theme.css",
+      light: "https://unpkg.com/primereact/resources/themes/lara-light-blue/theme.css",
       dark: "https://unpkg.com/primereact/resources/themes/lara-dark-blue/theme.css",
     };
 

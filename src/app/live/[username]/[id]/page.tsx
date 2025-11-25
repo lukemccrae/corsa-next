@@ -1,116 +1,84 @@
-"use client";
-import LiveChat from "@/src/components/LiveChat";
-import LiveMap, { Point } from "@/src/components/LiveMap";
-import LiveStats from "@/src/components/LiveStats";
-import PointsList from "@/src/components/PointsList";
-import { useParams } from "next/navigation";
-import { Avatar } from "primereact/avatar";
-import { Button } from "primereact/button";
+"use server";
 import React from "react";
+import LivePageClient from "../../../../components/LivePageClient";
 
-/**
- * Lightweight "live" page scaffold.
- * - No network calls.
- * - Uses local mocked points for display.
- * - Modular components: LiveMap, LiveStats, PointsList.
- *
- * Placeholders and mocks are intentionally simple — replace with real data
- * later (from props or a context) but keep the UI logic here.
- */
+const APPSYNC_ENDPOINT =
+  "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
+const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 
-export default function LivePage() {
-  const params = useParams();
-  const username = (params as any)?.username ?? "unknown";
-
-  // mock messages
-  const now = Date.now();
-  const initialMessages = [
-    {
-      id: "m1",
-      username: username,
-      text: `Welcome to ${username}'s live stream!`,
-      createdAt: new Date(now - 1000 * 60 * 8).toISOString(),
-      profilePicture: null,
-    },
-    {
-      id: "m2",
-      username: "spectator1",
-      text: "Great start — following along 👀",
-      createdAt: new Date(now - 1000 * 60 * 6).toISOString(),
-      profilePicture: null,
-    },
-    {
-      id: "m3",
-      username: "runnerFan",
-      text: "Go go go! 💪",
-      createdAt: new Date(now - 1000 * 60 * 2).toISOString(),
-      profilePicture: null,
-    },
-  ];
-
-  // Mock data: simple line of points around a center
-  const center: [number, number] = [37.7749, -122.4194]; // SF
-  const mockedPoints: Point[] = React.useMemo(() => {
-    const points: Point[] = [];
-    for (let i = 0; i < 24; i++) {
-      points.push({
-        lat: center[0] + Math.sin(i / 3) * 0.02,
-        lng: center[1] + Math.cos(i / 4) * 0.02 - i * 0.001,
-        timestamp: now - (24 - i) * 60 * 1000, // minute apart
-        altitude: 100 + Math.round(Math.sin(i / 2) * 40),
-        mileMarker: Number((i * 0.5).toFixed(2)),
-        message: i % 5 === 0 ? `Checkpoint ${i / 5}` : undefined,
-      });
+async function fetchLiveStream(username: string, streamId: string) {
+  console.log(streamId, "<< id");
+  const query = `
+    query MyQuery {
+      getUserByUserName(username: "${username}") {
+        userId
+        username
+        liveStreams(streamId: "${streamId}") {
+          delayInSeconds
+          deviceLogo
+        }
+      }
     }
-    return points;
-  }, [center, now]);
+  `;
+  console.log(query);
 
-  const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
+  const res = await fetch(APPSYNC_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": APPSYNC_API_KEY,
+    },
+    body: JSON.stringify({ query }),
+    next: { revalidate: 60 },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch live stream");
+  }
+
+  const json = await res.json();
+  console.log(json, "<> hi");
+  // The response shape: json.data.getUserByUserName.liveStreams is an array
+  const streams = json?.data?.getUserByUserName?.liveStreams ?? [];
+  const stream = Array.isArray(streams) ? streams[0] ?? null : streams;
+  return stream;
+}
+
+export default async function LivePage({
+  params,
+}: {
+  params: { username: string; id: string };
+}) {
+  const username = params.username;
+  const streamId = params.id;
+
+  let stream: any = null;
+
+  try {
+    stream = await fetchLiveStream(username, streamId);
+    console.log(stream, username, streamId);
+  } catch (err) {
+    console.error("fetchLiveStream error", err);
+    stream = null;
+  }
+
+  if (!stream) {
+    return <div className="p-6">Stream not found</div>;
+  }
+
+  // Normalize points and chat messages so the client component receives stable props
+  const initialPoints = stream.points ?? stream.waypoints ?? [];
+  const initialMessages = stream.chatMessages ?? [];
 
   return (
-    <div className="h-full w-full p-4 md:p-6 max-w-7xl mx-auto flex flex-col md:flex-row gap-4">
-      <div className="flex-1 min-h-[60vh] md:min-h-[72vh] rounded-2xl overflow-hidden shadow">
-        <LiveMap
-          center={center}
-          points={mockedPoints}
-          selectedIndex={selectedIndex}
-          onSelectIndex={(i) => setSelectedIndex(i)}
-        />
-      </div>
-
-      <aside className="w-full md:w-96 flex flex-col gap-4">
-        <div className="flex items-center justify-between bg-white/80 dark:bg-gray-800/80 rounded-xl p-3 shadow">
-          <div className="flex items-center gap-3">
-            <Avatar
-              label={username?.charAt(0)?.toUpperCase()}
-              shape="circle"
-              size="large"
-            />
-            <div className="flex flex-col">
-              <div className="font-semibold">{username}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-300">
-                Live • demo data
-              </div>
-            </div>
-          </div>
-          <div>
-            <Button
-              icon="pi pi-download"
-              className="p-button-text"
-              onClick={() => alert("Download GPX (demo)")}
-              aria-label="Download GPX"
-            />
-          </div>
-        </div>
-        <LiveStats points={mockedPoints} selectedIndex={selectedIndex} />
-
-        <div className="w-full lg:w-96 flex-shrink-0 rounded-xl overflow-hidden border border-gray-100 dark:border-white/6 shadow bg-white dark:bg-gray-800">
-          <LiveChat
-            streamUsername={username}
-            initialMessages={initialMessages}
-          />
-        </div>
-      </aside>
-    </div>
+    // Pass the server-fetched data to the client component as props.
+    // The client component will hold local state, manage interactions, and render LiveMap / LiveStats / LiveChat.
+    <LivePageClient
+      username={username}
+      streamId={streamId}
+      initialStream={stream}
+      initialPoints={initialPoints}
+      initialMessages={initialMessages}
+    />
   );
 }

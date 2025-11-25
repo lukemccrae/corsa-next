@@ -15,6 +15,7 @@ import { Button } from "primereact/button";
 import { Divider } from "primereact/divider";
 import { useTheme } from "../../../components/ThemeProvider";
 import { Card } from "primereact/card";
+import LiveButton from "@/src/components/LiveButton";
 
 /*
   Simplified LivePage feed
@@ -301,7 +302,8 @@ export default function LivePage() {
       : "rounded-xl border p-3 bg-white border-gray-200 shadow-lg";
 
   const sectionHeaderClass =
-    "p-3 border-b " + (theme === "dark" ? "dark:border-white/6" : "border-gray-100");
+    "p-3 border-b " +
+    (theme === "dark" ? "dark:border-white/6" : "border-gray-100");
 
   // --- New: create comment/text mock helpers so feed can include correspondence and author notes ---
   const createMockComments = (usernameStr: string, streamIds: string[]) => {
@@ -336,7 +338,10 @@ export default function LivePage() {
         id: `t-${now - 1000 * 60 * 60 * 6}`,
         type: "text",
         username: usernameStr,
-        profilePicture: published?.profilePicture ?? live?.profilePicture ?? "https://i.pravatar.cc/100?img=32",
+        profilePicture:
+          published?.profilePicture ??
+          live?.profilePicture ??
+          "https://i.pravatar.cc/100?img=32",
         createdAt: new Date(now - 1000 * 60 * 60 * 6).toISOString(),
         title: "Notes — Pre-ride strategy",
         text: "Planning a steady 50-mile route. Focus on fueling every 30 minutes and keeping cadence above 75.",
@@ -345,7 +350,10 @@ export default function LivePage() {
         id: `t-${now - 1000 * 60 * 60 * 30}`,
         type: "text",
         username: usernameStr,
-        profilePicture: published?.profilePicture ?? live?.profilePicture ?? "https://i.pravatar.cc/100?img=32",
+        profilePicture:
+          published?.profilePicture ??
+          live?.profilePicture ??
+          "https://i.pravatar.cc/100?img=32",
         createdAt: new Date(now - 1000 * 60 * 60 * 30).toISOString(),
         title: "Post-ride reflection",
         text: "Great day on the bike — learned that hydration timing mattered more than I expected.",
@@ -363,7 +371,11 @@ export default function LivePage() {
         id: `wp-${s.streamId ?? s.startTime}`,
         type: "tracker",
         username: s.username ?? username,
-        profilePicture: s.profilePicture ?? published?.profilePicture ?? live?.profilePicture ?? "https://i.pravatar.cc/100?img=32",
+        profilePicture:
+          s.profilePicture ??
+          published?.profilePicture ??
+          live?.profilePicture ??
+          "https://i.pravatar.cc/100?img=32",
         createdAt: s.startTime,
         streamId: s.streamId,
         title: s.title ? `${s.title}` : "Tracker event",
@@ -405,7 +417,9 @@ export default function LivePage() {
 
   // prepare compact posts (author's notes only, up to 3)
   const compactPosts = useMemo(() => {
-    return feed.filter((p) => p.type === "text" && p.username === username).slice(0, 3);
+    return feed
+      .filter((p) => p.type === "text" && p.username === username)
+      .slice(0, 3);
   }, [feed, username]);
 
   // SmallPost callback example (comment click or reply)
@@ -506,6 +520,10 @@ export default function LivePage() {
                 </div>
                 <div className="font-semibold">{prettyNumber(2264)}</div>
               </div>
+              <LiveButton
+                username={username}
+                streamId={"c148a8ce-441c-4ee3-9609-0076229d44ff"}
+              ></LiveButton>
             </div>
           </div>
         </div>
@@ -516,14 +534,18 @@ export default function LivePage() {
           <div className="lg:col-span-2 space-y-4">
             <div className={`${cardBase} overflow-hidden`}>
               <div className={sectionHeaderClass}>
-                <div className="text-sm font-medium">Correspondence & Notes</div>
+                <div className="text-sm font-medium">
+                  Correspondence & Notes
+                </div>
               </div>
 
               <div className="p-4 space-y-4">
                 {loading ? (
                   <div className="text-sm text-gray-500">Loading…</div>
                 ) : feed.length === 0 ? (
-                  <div className="text-sm text-gray-500">No correspondence or notes yet.</div>
+                  <div className="text-sm text-gray-500">
+                    No correspondence or notes yet.
+                  </div>
                 ) : (
                   feed.map((p: any) => {
                     const key = p.id ?? p.createdAt;
@@ -600,7 +622,10 @@ export default function LivePage() {
                       Longest session
                     </span>
                     <span className="font-semibold text-lg">
-                      {stats.longestStream ? stats.longestStream.title ?? stats.longestStream.streamId : "—"}
+                      {stats.longestStream
+                        ? stats.longestStream.title ??
+                          stats.longestStream.streamId
+                        : "—"}
                     </span>
                   </div>
                 </div>
@@ -617,7 +642,10 @@ export default function LivePage() {
                   <div className="text-sm text-gray-500">No posts yet.</div>
                 ) : (
                   compactPosts.map((p) => {
-                    const base = p.currentLocation ?? { lat: 45.5231, lng: -122.6765 };
+                    const base = p.currentLocation ?? {
+                      lat: 45.5231,
+                      lng: -122.6765,
+                    };
                     const pts = generateLongTrack(base);
                     return (
                       <SmallPost
@@ -636,7 +664,7 @@ export default function LivePage() {
                           routeGpxUrl: p.routeGpxUrl,
                         }}
                         points={pts}
-                        href={"/live/" + p.username + '/' + (p.streamId ?? "")}
+                        href={"/live/" + p.username + "/" + (p.streamId ?? "")}
                       />
                     );
                   })
@@ -652,16 +680,12 @@ export default function LivePage() {
 
               <div className="p-3 space-y-3">
                 {compactPosts.length === 0 ? (
-                  <div className="text-sm text-gray-500">No author notes yet.</div>
+                  <div className="text-sm text-gray-500">
+                    No author notes yet.
+                  </div>
                 ) : (
                   compactPosts.map((p) => {
-                    return (
-                      <SmallPost
-                        key={p.id}
-                        post={p}
-                        href={undefined}
-                      />
-                    );
+                    return <SmallPost key={p.id} post={p} href={undefined} />;
                   })
                 )}
               </div>

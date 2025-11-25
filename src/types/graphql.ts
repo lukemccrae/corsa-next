@@ -119,7 +119,13 @@ export type MutationUpsertLiveStreamArgs = {
 
 export type Query = {
   __typename?: 'Query';
+  getStreamsByEntity?: Maybe<Array<Maybe<LiveStream>>>;
   getUserByUserName?: Maybe<User>;
+};
+
+
+export type QueryGetStreamsByEntityArgs = {
+  entity?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -162,7 +168,9 @@ export enum UnitOfMeasure {
  */
 export type User = {
   __typename?: 'User';
+  activeStreamId?: Maybe<Scalars['String']['output']>;
   bio?: Maybe<Scalars['String']['output']>;
+  live?: Maybe<Scalars['Boolean']['output']>;
   liveStreams?: Maybe<Array<Maybe<LiveStream>>>;
   profilePicture?: Maybe<Scalars['String']['output']>;
   userId: Scalars['ID']['output'];
@@ -176,6 +184,8 @@ export type User = {
  *  -----------------------
  */
 export type UserLiveStreamsArgs = {
+  entity?: InputMaybe<Scalars['String']['input']>;
+  imei?: InputMaybe<Scalars['String']['input']>;
   slug?: InputMaybe<Scalars['String']['input']>;
   streamId?: InputMaybe<Scalars['ID']['input']>;
   userId?: InputMaybe<Scalars['String']['input']>;

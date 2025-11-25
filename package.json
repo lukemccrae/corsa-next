@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "codegen": "npx graphql-codegen"
   },
   "dependencies": {
     "@aws-sdk/credential-providers": "^3.913.0",

@@ -119,7 +119,7 @@ export default function Sidebar({
   const live = useMemo<Channel[]>(
     () =>
       liveChannels ?? [
-        { id: 'a', name: 'Ninja', subtitle: 'ARC Raiders', avatar: 'https://i.imgur.com/iOtuPi3.jpeg', live: true, viewers: 13000 },
+        { id: 'a', name: 'aaronyoung', subtitle: 'ARC Raiders', avatar: 'https://i.imgur.com/iOtuPi3.jpeg', live: true, viewers: 13000 },
         { id: 'b', name: 'aPG', subtitle: 'Halo Infinite', avatar: '/demo/apg.png', live: true, viewers: 303 },
         { id: 'c', name: 'scump', subtitle: 'Battlefield REDSEC', avatar: '/demo/scump.png', live: true, viewers: 2800 },
         { id: 'd', name: 'Echidna', subtitle: 'Halo Infinite', avatar: '/demo/echidna.png', live: true, viewers: 34 },

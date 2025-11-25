@@ -148,7 +148,6 @@ export default function SmallPost({ post, points, href, onClick }: SmallPostProp
     }
 
     if(post.type === "tracker"){
-      console.log(post, '<< p')
 
       const tr = post as FeedPost & { trackerName?: string; status?: string; location?: string };
       return (
