@@ -1,18 +1,19 @@
 "use server";
 import React from "react";
 import LivePageClient from "../../../../components/LivePageClient";
+import { User } from "@/src/types/graphql";
 
 const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 
-async function fetchLiveStream(username: string, streamId: string) {
-  console.log(streamId, "<< id");
+async function fetchUserDataForStream(username: string, streamId: string) {
   const query = `
     query MyQuery {
       getUserByUserName(username: "${username}") {
         userId
         username
+        profilePicture
         liveStreams(streamId: "${streamId}") {
           delayInSeconds
           deviceLogo
@@ -48,15 +49,12 @@ async function fetchLiveStream(username: string, streamId: string) {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to fetch live stream");
+    throw new Error("Failed to fetch live stream data");
   }
 
   const json = await res.json();
-  console.log(json, "<> hi");
-  // The response shape: json.data.getUserByUserName.liveStreams is an array
-  const streams = json?.data?.getUserByUserName?.liveStreams ?? [];
-  const stream = Array.isArray(streams) ? streams[0] ?? null : streams;
-  return stream;
+  const user = json?.data?.getUserByUserName;
+  return user;
 }
 
 export default async function LivePage({
@@ -67,23 +65,22 @@ export default async function LivePage({
   const username = params.username;
   const streamId = params.id;
 
-  let stream: any = null;
+  let streamData: User | null = null;
 
   try {
-    stream = await fetchLiveStream(username, streamId);
-    console.log(stream, username, streamId);
+    streamData = await fetchUserDataForStream(username, streamId);
   } catch (err) {
-    console.error("fetchLiveStream error", err);
-    stream = null;
+    console.error("fetchUserDataForStream error", err);
+    streamData = null;
   }
 
-  if (!stream) {
+  if (!streamData) {
     return <div className="p-6">Stream not found</div>;
   }
 
   // Normalize points and chat messages so the client component receives stable props
-  const initialPoints = stream.points ?? stream.waypoints ?? [];
-  const initialMessages = stream.chatMessages ?? [];
+  const initialPoints = streamData.liveStreams?.[0]?.waypoints ?? []
+  const initialMessages = streamData.liveStreams?.[0]?.chatMessages ?? [];
 
   return (
     // Pass the server-fetched data to the client component as props.
@@ -91,7 +88,7 @@ export default async function LivePage({
     <LivePageClient
       username={username}
       streamId={streamId}
-      initialStream={stream}
+      initialStream={streamData}
       initialPoints={initialPoints}
       initialMessages={initialMessages}
     />

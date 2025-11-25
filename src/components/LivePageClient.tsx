@@ -1,160 +1,232 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import LiveMap, { Point } from "./LiveMap";
+import React, { useEffect, useMemo, useState } from "react";
+import LiveMap, { Point as MapPoint } from "./LiveMap";
 import LiveStats from "./LiveStats";
+import PointsList from "./PointsList";
 import LiveChat from "./LiveChat";
 import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
+import { useTheme } from "./ThemeProvider";
 
-type StreamShape = {
-  title?: string;
-  streamId?: string;
-  startTime?: string | number;
-  finishTime?: string | number;
-  currentLocation?: { lat?: number; lng?: number } | null;
-  routeGpxUrl?: string | null;
-  // the server query maps waypoints -> points, but allow either
-  points?: any[];
-  waypoints?: any[];
-  chatMessages?: any[];
-  [k: string]: any;
+type Props = {
+  username: string;
+  streamId: string;
+  initialStream?: any;
+  initialPoints?: any[]; // server-provided raw points (may have lat/long or lat/lng and timestamps as strings)
+  initialMessages?: any[]; // chat messages
 };
 
 export default function LivePageClient({
   username,
   streamId,
-  initialStream,
-  initialPoints,
-  initialMessages,
-}: {
-  username: string;
-  streamId: string;
-  initialStream: StreamShape;
-  initialPoints: any[];
-  initialMessages: any[];
-}) {
-  // Local state for interactive client-side behavior
-  const [stream, setStream] = useState<StreamShape>(initialStream);
-  const [points, setPoints] = useState<Point[]>(
-    (initialPoints ?? []).map((p: any) => normalizePoint(p))
+  initialStream = {},
+  initialPoints = [],
+  initialMessages = [],
+}: Props) {
+  const { theme } = useTheme();
+
+  // profile picture from server stream data (if present)
+  const profilePicture: string | undefined =
+    initialStream?.profilePicture ?? undefined;
+
+  // normalize incoming points to the MapPoint type used by LiveMap/PointsList
+  const normalizePoints = (pts: any[]): MapPoint[] => {
+    return (pts || [])
+      .map((p: any) => {
+        // support several possible shapes: { lat, lng, timestamp }, { lat, long, timestamp }, strings, etc.
+        const latRaw =
+          p.lat ??
+          p.latitude ??
+          (p.currentLocation && p.currentLocation.lat) ??
+          null;
+        const lngRaw =
+          p.lng ??
+          p.longitude ??
+          p.long ??
+          (p.currentLocation && p.currentLocation.lng) ??
+          null;
+        const tsRaw = p.timestamp ?? p.time ?? p.createdAt ?? p.ts ?? null;
+
+        const lat = typeof latRaw === "string" ? parseFloat(latRaw) : latRaw;
+        const lng = typeof lngRaw === "string" ? parseFloat(lngRaw) : lngRaw;
+        let timestamp: number;
+        if (!tsRaw) {
+          timestamp = Date.now();
+        } else if (typeof tsRaw === "number") {
+          timestamp = tsRaw;
+        } else {
+          // try ISO parse or numeric string
+          const parsed = Date.parse(String(tsRaw));
+          timestamp = isNaN(parsed) ? Number(tsRaw) || Date.now() : parsed;
+        }
+
+        const altitude =
+          p.altitude ??
+          p.elevation ??
+          p.elev ??
+          (p.alt
+            ? typeof p.alt === "string"
+              ? parseFloat(p.alt)
+              : p.alt
+            : undefined);
+
+        const mileMarker = p.mileMarker ?? p.mile ?? p.miles ?? undefined;
+
+        return {
+          lat: Number(lat ?? 0),
+          lng: Number(lng ?? 0),
+          timestamp: Number(timestamp),
+          altitude: altitude !== undefined ? Number(altitude) : undefined,
+          mileMarker: mileMarker !== undefined ? Number(mileMarker) : undefined,
+          message: p.message ?? undefined,
+        } as MapPoint;
+      })
+      .filter((pt) => !isNaN(pt.lat) && !isNaN(pt.lng));
+  };
+
+  const [points, setPoints] = useState<MapPoint[]>(() =>
+    normalizePoints(initialPoints)
   );
   const [messages, setMessages] = useState<any[]>(initialMessages ?? []);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [gpxLoading, setGpxLoading] = useState(false);
 
+  // If initialPoints change (server revalidate), update normalized points
   useEffect(() => {
-    // If server passes a new stream object (rare on first render), sync local copy.
-    setStream(initialStream);
-  }, [initialStream]);
-
-  useEffect(() => {
-    setPoints((initialPoints ?? []).map((p: any) => normalizePoint(p)));
+    setPoints(normalizePoints(initialPoints));
   }, [initialPoints]);
 
+  // If initialMessages change, replace (useful if server passes fresh snapshot)
   useEffect(() => {
     setMessages(initialMessages ?? []);
   }, [initialMessages]);
 
-  function normalizePoint(p: any): Point {
-    // Accept different shapes (lat/lng or lat/long)
-    const lat =
-      p.lat != null ? Number(p.lat) : p.latitude != null ? Number(p.latitude) : undefined;
-    const lng =
-      p.lng != null ? Number(p.lng) : p.long != null ? Number(p.long) : p.longitude != null ? Number(p.longitude) : undefined;
-    const timestamp = p.timestamp != null ? Number(p.timestamp) : p.ts ?? undefined;
-    return {
-      lat: lat ?? 0,
-      lng: lng ?? 0,
-      timestamp: timestamp ?? Date.now(),
-      altitude: p.altitude ?? p.elevation ?? null,
-      mileMarker: p.mileMarker ?? p.mile ?? null,
-      message: p.message ?? p.note ?? undefined,
-    };
-  }
+  const headerBg = theme === "dark" ? "bg-gray-900 text-gray-100" : "bg-white";
 
-  const handleSelectIndex = (i: number | null) => {
-    setSelectedIndex(i);
+  const handlePointSelect = (i?: number | null) => {
+    if (typeof i === "number") setSelectedIndex(i);
+    else setSelectedIndex(null);
   };
 
-  const downloadGPX = async () => {
-    const url = stream?.routeGpxUrl;
-    if (!url) {
-      alert("No GPX available for this stream");
-      return;
-    }
-
-    try {
-      setGpxLoading(true);
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch GPX");
-      const text = await res.text();
-      const blob = new Blob([text], { type: "application/gpx+xml" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `${username}-${stream.streamId ?? streamId}.gpx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(a.href);
-    } catch (err) {
-      console.error("GPX download failed", err);
-      alert("Failed to download GPX");
-    } finally {
-      setGpxLoading(false);
-    }
+  // If you want LiveChat to update the parent-level messages (e.g. to show count), you can pass a callback.
+  // LiveChat currently manages its own local send flow; here we'll just keep the initial messages in sync.
+  const onNewLocalMessage = (msg: any) => {
+    setMessages((m) => [...m, msg]);
   };
+
+  const mapCenter = useMemo<[number, number] | undefined>(() => {
+    if (points.length) {
+      const last = points[points.length - 1];
+      return [last.lat, last.lng];
+    }
+    if (initialStream?.currentLocation) {
+      return [
+        initialStream.currentLocation.lat,
+        initialStream.currentLocation.lng,
+      ];
+    }
+    return undefined;
+  }, [points, initialStream]);
 
   return (
-    <div className="h-full w-full p-4 md:p-6 max-w-7xl mx-auto flex flex-col md:flex-row gap-4">
-      <div className="flex-1 min-h-[60vh] md:min-h-[72vh] rounded-2xl overflow-hidden shadow">
-        <LiveMap
-          center={
-            stream?.currentLocation
-              ? [stream.currentLocation.lat ?? 37.7749, stream.currentLocation.lng ?? -122.4194]
-              : [37.7749, -122.4194]
-          }
-          points={points}
-          selectedIndex={selectedIndex}
-          onSelectIndex={(i) => handleSelectIndex(i)}
-        />
-      </div>
-
-      <aside className="w-full md:w-96 flex flex-col gap-4">
-        <div className="flex items-center justify-between bg-white/80 dark:bg-gray-800/80 rounded-xl p-3 shadow">
-          <div className="flex items-center gap-3">
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Header: profile picture + username link */}
+      <div
+        className={`flex items-center justify-between mb-4 ${headerBg} p-3 rounded-lg`}
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0">
             <Avatar
-              label={username?.charAt(0)?.toUpperCase()}
+              image={profilePicture}
+              label={
+                !profilePicture ? username?.charAt(0).toUpperCase() : undefined
+              }
               shape="circle"
-              size="large"
+              size="xlarge"
+              className="!w-16 !h-16"
             />
-            <div className="flex flex-col">
-              <div className="font-semibold">{username}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-300">
-                {stream?.title ? `Live — ${stream.title}` : "Live"}
-              </div>
-            </div>
           </div>
           <div>
-            <Button
-              icon="pi pi-download"
-              className="p-button-text"
-              onClick={downloadGPX}
-              aria-label="Download GPX"
-              loading={gpxLoading}
+            <a
+              href={`/profile/${username}`}
+              className="text-lg font-semibold hover:underline"
+              aria-label={`Open ${username} profile`}
+            >
+              {username}
+            </a>
+            <div className="text-sm text-gray-500">
+              {initialStream?.title ?? "Live stream"}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            icon="pi pi-download"
+            className="p-button-text"
+            onClick={() => {
+              // easy GPX download helper if route exists
+              const url = initialStream?.routeGpxUrl;
+              if (url) {
+                window.open(url, "_blank");
+              } else {
+                alert("No GPX available");
+              }
+            }}
+          />
+          <Button
+            label="View profile"
+            icon="pi pi-user"
+            className="p-button-text"
+            onClick={() => {
+              window.location.href = `/profile/${username}`;
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Main layout: map on left, chat/points/stats on right */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[70vh]">
+        <div className="lg:col-span-2 h-full rounded-lg overflow-hidden border">
+          <div className="h-full">
+            <LiveStats
+              points={points}
+              selectedIndex={selectedIndex}
+            />
+            <LiveMap
+              center={mapCenter}
+              points={points}
+              selectedIndex={selectedIndex ?? undefined}
+              onSelectIndex={(i) => handlePointSelect(i)}
             />
           </div>
         </div>
 
-        <LiveStats points={points} selectedIndex={selectedIndex} />
+        <aside className="flex flex-col gap-4 h-full">
 
-        <div className="w-full lg:w-96 flex-shrink-0 rounded-xl overflow-hidden border border-gray-100 dark:border-white/6 shadow bg-white dark:bg-gray-800">
-          <LiveChat
-            streamUsername={username}
-            initialMessages={messages}
-            onNewMessage={(m: any) => setMessages((s) => [...s, m])}
-          />
-        </div>
-      </aside>
+          {/* <div className="flex-1 rounded-lg overflow-hidden border p-3 bg-white dark:bg-gray-800">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="text-sm font-medium">Waypoints</div>
+              <div className="text-xs text-gray-400">{points.length} points</div>
+            </div>
+            <PointsList
+              points={points}
+              selectedIndex={selectedIndex ?? undefined}
+              onSelectIndex={(i) => {
+                handlePointSelect(i);
+                // also attempt to fly map -> by setting selectedIndex handled above
+              }}
+            />
+          </div> */}
+
+          <div className="col-span-1 row-span-1 rounded-lg overflow-hidden border p-0 h-[72%]">
+            {/* LiveChat takfes initialMessages. It manages its own local message state.
+                If you want LiveChat to push messages back here, you can enhance LiveChat to accept a callback. */}
+            <div className="h-full">
+              <LiveChat streamUsername={username} initialMessages={messages} />
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }
