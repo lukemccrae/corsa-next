@@ -16,10 +16,25 @@ async function fetchLiveStream(username: string, streamId: string) {
         liveStreams(streamId: "${streamId}") {
           delayInSeconds
           deviceLogo
+          chatMessages {
+            text
+            username
+            createdAt
+            profilePicture
+          }
+          waypoints {
+            lat
+            lng
+            altitude
+            mileMarker
+            timestamp
+          }
         }
       }
     }
   `;
+
+  
   console.log(query);
 
   const res = await fetch(APPSYNC_ENDPOINT, {
