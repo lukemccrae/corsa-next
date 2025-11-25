@@ -1,181 +1,205 @@
 "use client";
-import React from "react";
-import { MapContainer, TileLayer, Polyline, CircleMarker } from "react-leaflet";
+import React, { useMemo } from "react";
+import { Avatar } from "primereact/avatar";
+import { Button } from "primereact/button";
+import { Card } from "primereact/card";
 import { useTheme } from "./ThemeProvider";
-import { useRouter } from "next/navigation";
+import SmallTrackMap from "./SmallTrackMap";
+import { FeedPost } from "../types";
+
+/**
+ * SmallPost
+ *
+ * Single compact feed item that can render multiple post types:
+ * - track: small location tracker summary + mini map
+ * - comment: other user comments (text)
+ * - text: user text post (with optional title)
+ *
+ * Props:
+ * - post: FeedPost (see src/types/feed.ts)
+ * - points?: array of [lat, lng] for map preview (optional for track posts)
+ * - href?: string navigate target if clicking the post
+ *
+ * Uses PrimeReact base components and Tailwind for layout/styling.
+ */
 
 type SmallPostProps = {
-  post: any;
+  post: FeedPost;
   points?: [number, number][];
-  onClick?: (e?: React.MouseEvent) => void;
-  href?: string; // pass this to expose a real <a href="..."> in the DOM
+  href?: string;
+  onClick?: (post: FeedPost) => void;
 };
 
 const timeAgo = (iso?: string) => {
   if (!iso) return "—";
-  const then = new Date(iso).getTime();
+  const d = new Date(iso).getTime();
   const now = Date.now();
-  const diff = Math.max(0, now - then);
-  const mins = Math.round(diff / 60000);
-  if (mins < 60) return `${mins}m`;
-  const hours = Math.round(mins / 60);
-  if (hours < 24) return `${hours}h`;
-  const days = Math.round(hours / 24);
-  return `${days}d`;
+  const s = Math.max(1, Math.round((now - d) / 1000));
+  if (s < 60) return `${s}s`;
+  if (s < 3600) return `${Math.floor(s / 60)}m`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h`;
+  return `${Math.floor(s / 86400)}d`;
 };
 
-export default function SmallPost({ post, points = [], onClick, href }: SmallPostProps) {
+export default function SmallPost({ post, points, href, onClick }: SmallPostProps) {
   const { theme } = useTheme();
-  const router = useRouter();
 
-  const center: [number, number] =
-    post?.currentLocation?.lat && post?.currentLocation?.lng
-      ? [post.currentLocation.lat, post.currentLocation.lng]
-      : points.length > 0
-      ? points[Math.floor(points.length / 2)]
-      : [45.5231, -122.6765];
-
-  const mapHeight = 144;
-
-  const containerBase =
+  const cardBg =
     theme === "dark"
-      ? "bg-gray-800 border border-white/6"
-      : "bg-white border border-gray-200";
+      ? "bg-gray-800 border border-white/6 text-gray-100"
+      : "bg-white border border-gray-100 text-gray-900";
 
-  const ArticleInner = (
-    <article
-      className={
-        `rounded-lg overflow-hidden ${containerBase} shadow-sm group ` +
-        "transition-colors transition-shadow duration-150 ease-out cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-400"
-      }
-      aria-label={`post-${post?.streamId ?? post?.startTime ?? "post"}`}
-    >
-      <div className="px-3 py-2 flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium truncate">{post?.streamId ?? post?.title ?? "untitled"}</div>
-          <div className="text-xs mt-1 text-gray-400 dark:text-gray-400 truncate">
-            {post?.title ? post.title : post?.mileMarker ? `${post.mileMarker} mi` : ""}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 flex-shrink-0 ml-3 text-xs text-gray-400 dark:text-gray-400">
-          <div>{timeAgo(post?.startTime ?? post?.createdAt ?? post?.lastSeen)}</div>
-          <i
-            className={
-              "pi pi-chevron-right ml-2 text-xs text-gray-400 dark:text-gray-300 " +
-              "opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-            }
-            aria-hidden
+  const header = useMemo(() => {
+    return (
+      <div className="flex items-center gap-3">
+        <div className="flex-shrink-0">
+          <Avatar
+            image={post.profilePicture ?? undefined}
+            label={!post.profilePicture && post.username ? post.username.charAt(0).toUpperCase() : undefined}
+            shape="circle"
+            size="large"
+            className="!w-9 !h-9"
           />
         </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <div className="text-sm font-medium truncate">{post.username ?? "unknown"}</div>
+            <div className="text-xs text-gray-400 truncate">{timeAgo(post.createdAt)}</div>
+          </div>
+          {/* subtitle / meta */}
+          {post.type === "track" && (post as any).title && (
+            <div className="text-xs text-gray-400 truncate">{(post as any).title}</div>
+          )}
+        </div>
       </div>
+    );
+  }, [post]);
 
-      <div className="p-3">
-        <div className="rounded-md overflow-hidden border" style={{ borderColor: theme === "dark" ? "rgba(255,255,255,0.04)" : undefined }}>
-          <div className="w-full" style={{ height: `${mapHeight}px` }}>
-            <MapContainer
-              center={center}
-              zoom={8}
-              scrollWheelZoom={false}
-              dragging={false}
-              doubleClickZoom={false}
-              zoomControl={false}
-              style={{ height: "100%", width: "100%" }}
-              attributionControl={false}
-              // keep pointer-events-none so the map tiles don't swallow contextmenu events
-              className="pointer-events-none filter group-hover:brightness-110 transition-filter duration-150"
-            >
-              <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" maxZoom={17} />
-              {points && points.length > 0 && (
-                <>
-                  <Polyline positions={points.map((p) => [p[0], p[1]])} pathOptions={{ color: "#2b6cb0", weight: 3 }} />
-                  <CircleMarker center={points[0]} radius={4} pathOptions={{ color: "#e34a4a", fillColor: "#e34a4a", fillOpacity: 1 }} />
-                  <CircleMarker center={points[points.length - 1]} radius={4} pathOptions={{ color: "#1f9d55", fillColor: "#1f9d55", fillOpacity: 1 }} />
-                </>
-              )}
-            </MapContainer>
+  const renderBody = () => {
+    if (post.type === "track") {
+      const p = post as FeedPost & { startTime?: string; finishTime?: string; mileMarker?: number | string; cumulativeVert?: number | string };
+      const duration = p.startTime && p.finishTime ? (() => {
+        const s = new Date(p.startTime).getTime();
+        const f = new Date(p.finishTime).getTime();
+        if (!isNaN(s) && !isNaN(f) && f > s) {
+          const mins = Math.round((f - s) / 60000);
+          if (mins >= 60) return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+          return `${mins}m`;
+        }
+        return undefined;
+      })() : undefined;
+
+      return (
+        <div className="space-y-3">
+          {/* title / description */}
+          {(p.title || p.text) && <div className="text-sm text-gray-700 dark:text-gray-300">{p.title ?? p.text}</div>}
+
+          {/* small map preview if points provided or currentLocation */}
+          <div className="h-32 rounded overflow-hidden border border-gray-100">
+            {points && points.length > 0 ? (
+              <SmallTrackMap points={points} className="h-32 w-full" />
+            ) : p.currentLocation ? (
+              // SmallTrackMap should accept center fallback as single point
+              <SmallTrackMap points={[[p.currentLocation.lat, p.currentLocation.lng]]} center={[p.currentLocation.lat, p.currentLocation.lng]} className="h-32 w-full" />
+            ) : (
+              <div className="flex items-center justify-center h-full text-xs text-gray-400">
+                No preview available
+              </div>
+            )}
+          </div>
+
+          {/* stats row */}
+          <div className="flex items-center gap-4 text-xs text-gray-500">
+            <div>
+              <div className="text-xxs text-gray-400">Distance</div>
+              <div className="font-semibold">{p.mileMarker != null ? Number(p.mileMarker).toFixed(2) + " mi" : "—"}</div>
+            </div>
+            <div>
+              <div className="text-xxs text-gray-400">Elapsed</div>
+              <div className="font-semibold">{duration ?? "—"}</div>
+            </div>
+            <div>
+              <div className="text-xxs text-gray-400">Elevation</div>
+              <div className="font-semibold">{p.cumulativeVert != null ? `${Math.round(Number(p.cumulativeVert))} ft` : "—"}</div>
+            </div>
           </div>
         </div>
+      );
+    }
+
+    if (post.type === "comment") {
+      const c = post as FeedPost & { text: string };
+      return (
+        <div className="text-sm text-gray-700 dark:text-gray-300 break-words whitespace-pre-wrap">
+          {c.text}
+        </div>
+      );
+    }
+
+    // text post (fallback)
+    if (post.type === "text") {
+      const t = post as FeedPost & { title?: string; text: string };
+      return (
+        <div className="space-y-2">
+          {t.title && <div className="text-sm font-semibold">{t.title}</div>}
+          <div className="text-sm text-gray-700 dark:text-gray-300 break-words whitespace-pre-wrap">{t.text}</div>
+        </div>
+      );
+    }
+
+    if(post.type === "tracker"){
+      console.log(post, '<< p')
+
+      const tr = post as FeedPost & { trackerName?: string; status?: string; location?: string };
+      return (
+        <div className="space-y-1">
+          {post.text}
+        </div>
+      );
+    }
+
+    // unknown shape
+    return <div className="text-sm text-gray-700 dark:text-gray-300">Unsupported post</div>;
+  };
+
+  const actions = (
+    <div className="flex items-center justify-between mt-3">
+      <div className="flex items-center gap-2">
+        <Button icon="pi pi-comment" className="p-button-text p-button-sm" onClick={() => onClick?.(post)} aria-label="Comment" />
+        <Button icon="pi pi-heart" className="p-button-text p-button-sm" onClick={() => console.log("like", post)} aria-label="Like" />
+        <Button icon="pi pi-share-alt" className="p-button-text p-button-sm" onClick={() => console.log("share", post)} aria-label="Share" />
       </div>
-    </article>
+      {post.type === "track" && (post as any).routeGpxUrl && (
+        <div>
+          <Button icon="pi pi-download" className="p-button-sm p-button-text" onClick={() => {
+            // small convenience: open gpx in new tab (download handled elsewhere)
+            const g = (post as any).routeGpxUrl;
+            if (g) window.open(g, "_blank");
+          }} />
+        </div>
+      )}
+    </div>
   );
 
-  // If href is provided, render a real anchor so right-click/copy link context menu is available.
-  // Problem addressed: browsers will show page context menu if an element covering the card (e.g. leaflet tiles)
-  // prevents the anchor from being the target. To guarantee link semantics and context-menu support we:
-  // - render a real <a href="..."> (so "Copy link" appears)
-  // - add a transparent, full-size overlay element inside the <a> that sits on top of the card to ensure
-  //   right-click / middle-click / ctrl+click hit the anchor itself even if the map or other children have layered elements.
-  if (href) {
-    const isExternal = /^https?:\/\//i.test(href);
-
-    const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-      // allow parent to intercept navigation and call e.preventDefault()
-      if (onClick) {
-        try {
-          onClick(e);
-        } catch (err) {
-          console.error("SmallPost onClick error", err);
-        }
-        if (e.defaultPrevented) return;
-      }
-
-      // If user used meta/middle keys, allow default behaviour (open in new tab)
-      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
-        return;
-      }
-
-      // For internal links, do SPA navigation to avoid full reload
-      if (!isExternal) {
-        e.preventDefault();
-        try {
-          router.push(href);
-        } catch (err) {
-          window.location.href = href;
-        }
-      }
-    };
-
-    return (
-      <a
-        href={href}
-        onClick={handleAnchorClick}
-        className="relative block no-underline" /* make anchor relative so overlay can position */
-        {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        aria-label={`open-${post?.streamId ?? post?.title ?? "post"}`}
-      >
-        {/* Transparent overlay placed above all card content so the anchor is the actual target for pointer/context events.
-            This guarantees browser context menu shows anchor actions (Copy link / Open in new tab). */}
-        <span
-          aria-hidden
-          className="absolute inset-0 z-20"
-          style={{ display: "block", background: "transparent" }}
-        />
-        {/* render the visual card under the overlay */}
-        <div className="relative z-10 pointer-events-none">
-          {/* pointer-events-none here keeps inner elements non-interactive because overlay handles clicks.
-              If you need internal interactive controls inside SmallPost later (e.g., buttons),
-              remove pointer-events-none and adjust overlay to exclude those areas. */}
-          {ArticleInner}
-        </div>
-      </a>
-    );
-  }
-
-  // Fallback behaviour: behave like a button if no href given
-  const handleDivClick = (e?: React.MouseEvent) => {
-    if (onClick) onClick(e);
-  };
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      handleDivClick();
+  const rootOnClick = (e: React.MouseEvent) => {
+    // navigate only if href passed
+    if (href) {
+      // allow default anchor-like behavior
+      window.location.href = href;
+      return;
     }
+    // fallback notify parent
+    onClick?.(post);
   };
 
   return (
-    <div role="button" tabIndex={0} onClick={handleDivClick} onKeyDown={handleKeyDown}>
-      {ArticleInner}
-    </div>
+    <article className={`p-3 rounded-lg shadow-sm ${cardBg}`}>
+      <div className="cursor-pointer" onClick={rootOnClick}>
+        {header}
+        <div className="mt-3">{renderBody()}</div>
+      </div>
+
+      {actions}
+    </article>
   );
 }

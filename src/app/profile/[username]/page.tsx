@@ -2,8 +2,6 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import BasicMap from "../../../components/BasicMap";
-import SmallTrackMap from "../../../components/SmallTrackMap";
 import SmallPost from "../../../components/SmallPost";
 import {
   getPublishedUserInfo,
@@ -18,11 +16,14 @@ import { Divider } from "primereact/divider";
 import { useTheme } from "../../../components/ThemeProvider";
 import { Card } from "primereact/card";
 
-/* ... rest of file above unchanged ... */
-// (The top of this file up to the return is unchanged; we only modify the JSX for the right column to add compact posts under stats.)
+/*
+  Simplified LivePage feed
 
-// inside the component return, replace the right column section with the following.
-// For clarity, here's the full updated return body (kept the earlier code but modified the right column to include SmallPost list):
+  - Show only correspondence (comments) and notes from the author (text posts).
+  - Track entries are still loaded (for stats) but they are not shown in the main feed.
+  - Right column compact history shows up to 3 of the author's text notes.
+  - Added: generic "tracker" feed items that represent a point/marker associated with a session.
+*/
 
 export default function LivePage() {
   const params = useParams();
@@ -80,6 +81,7 @@ export default function LivePage() {
     return [
       {
         streamId: "mock-001",
+        type: "tracker",
         title: "Morning Ride — River Loop",
         startTime: new Date(now - 1000 * 60 * 60 * 5).toISOString(),
         finishTime: new Date(now - 1000 * 60 * 60 * 2).toISOString(),
@@ -93,6 +95,7 @@ export default function LivePage() {
       {
         streamId: "mock-002",
         title: "Lunch Loop",
+        type: "tracker",
         startTime: new Date(now - 1000 * 60 * 60 * 26).toISOString(),
         finishTime: new Date(now - 1000 * 60 * 60 * 24).toISOString(),
         mileMarker: 42.5,
@@ -105,6 +108,7 @@ export default function LivePage() {
       {
         streamId: "mock-003",
         title: "Evening Recovery",
+        type: "tracker",
         startTime: new Date(now - 1000 * 60 * 60 * 72).toISOString(),
         finishTime: new Date(now - 1000 * 60 * 60 * 70).toISOString(),
         mileMarker: 7.8,
@@ -299,8 +303,128 @@ export default function LivePage() {
   const sectionHeaderClass =
     "p-3 border-b " + (theme === "dark" ? "dark:border-white/6" : "border-gray-100");
 
-  // prepare compact posts (take up to 3 most recent entries)
-  const compactPosts = entries.slice(0, 3);
+  // --- New: create comment/text mock helpers so feed can include correspondence and author notes ---
+  const createMockComments = (usernameStr: string, streamIds: string[]) => {
+    const now = Date.now();
+    const comments: any[] = [
+      {
+        id: `c-${now - 1000 * 60 * 40}`,
+        type: "comment",
+        username: "fan_amy",
+        profilePicture: "https://i.pravatar.cc/100?img=5",
+        createdAt: new Date(now - 1000 * 60 * 40).toISOString(),
+        text: "Amazing notes — helped me plan my ride, thanks!",
+        streamId: streamIds[0] ?? undefined,
+      },
+      {
+        id: `c-${now - 1000 * 60 * 90}`,
+        type: "comment",
+        username: "coach_rob",
+        profilePicture: "https://i.pravatar.cc/100?img=12",
+        createdAt: new Date(now - 1000 * 60 * 90).toISOString(),
+        text: "Nice strategy — would you share the elevation profile?",
+        streamId: streamIds[0] ?? undefined,
+      },
+    ];
+    return comments;
+  };
+
+  const createMockTextPosts = (usernameStr: string) => {
+    const now = Date.now();
+    return [
+      {
+        id: `t-${now - 1000 * 60 * 60 * 6}`,
+        type: "text",
+        username: usernameStr,
+        profilePicture: published?.profilePicture ?? live?.profilePicture ?? "https://i.pravatar.cc/100?img=32",
+        createdAt: new Date(now - 1000 * 60 * 60 * 6).toISOString(),
+        title: "Notes — Pre-ride strategy",
+        text: "Planning a steady 50-mile route. Focus on fueling every 30 minutes and keeping cadence above 75.",
+      },
+      {
+        id: `t-${now - 1000 * 60 * 60 * 30}`,
+        type: "text",
+        username: usernameStr,
+        profilePicture: published?.profilePicture ?? live?.profilePicture ?? "https://i.pravatar.cc/100?img=32",
+        createdAt: new Date(now - 1000 * 60 * 60 * 30).toISOString(),
+        title: "Post-ride reflection",
+        text: "Great day on the bike — learned that hydration timing mattered more than I expected.",
+      },
+    ];
+  };
+
+  // New helper: create generic "tracker" events for sessions
+  // Waypoints are more general than a 'started' event and can include coordinates,
+  // mile marker, elevation, and a short message. They'll be shown inline in the feed.
+  const createWaypointEvents = (streams: any[]) => {
+    return (streams || [])
+      .filter((s) => s && s.startTime) // only streams with a start time
+      .map((s) => ({
+        id: `wp-${s.streamId ?? s.startTime}`,
+        type: "tracker",
+        username: s.username ?? username,
+        profilePicture: s.profilePicture ?? published?.profilePicture ?? live?.profilePicture ?? "https://i.pravatar.cc/100?img=32",
+        createdAt: s.startTime,
+        streamId: s.streamId,
+        title: s.title ? `${s.title}` : "Tracker event",
+        text: s.title ? `Tracker for ${s.title}` : "Tracker event.",
+        lat: s.currentLocation?.lat ?? null,
+        lng: s.currentLocation?.lng ?? null,
+        mileMarker: s.mileMarker ?? null,
+        cumulativeVert: s.cumulativeVert ?? null,
+      }));
+  };
+
+  // Build a unified feed consisting ONLY of correspondence (comments), author's notes (text posts),
+  // and "tracker" events which represent interesting points tied to sessions.
+  const feed = useMemo(() => {
+    // fetch stream ids so we can associate comments -> author's streams
+    const streamIds = (entries || []).map((e) => e.streamId).filter(Boolean);
+
+    const texts = createMockTextPosts(username).map((t) => ({
+      ...t,
+      createdAt: t.createdAt,
+    }));
+
+    const comments = createMockComments(username, streamIds).map((c) => ({
+      ...c,
+      createdAt: c.createdAt,
+    }));
+
+    const waypoints = createWaypointEvents(entries);
+
+    // combine comments, texts, waypoint events and sort newest-first
+    const combined = [...texts, ...comments, ...waypoints].sort((a, b) => {
+      const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return tb - ta;
+    });
+
+    return combined;
+  }, [entries, username, published, live]);
+
+  // prepare compact posts (author's notes only, up to 3)
+  const compactPosts = useMemo(() => {
+    return feed.filter((p) => p.type === "text" && p.username === username).slice(0, 3);
+  }, [feed, username]);
+
+  // SmallPost callback example (comment click or reply)
+  const handlePostAction = (post: any) => {
+    if (post.type === "comment") {
+      // open a reply composer or scroll to reply area — for now console
+      console.log("Reply to comment", post);
+    } else if (post.type === "text") {
+      // show full note or navigate to a dedicated note view (not implemented yet)
+      console.log("Open author note", post);
+    } else if (post.type === "tracker") {
+      // navigate to the corresponding live stream / map view if possible
+      if (post.streamId) {
+        router.push(`/live/${post.username}/${post.streamId}`);
+      } else {
+        console.log("tracker clicked", post);
+      }
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
@@ -386,66 +510,38 @@ export default function LivePage() {
           </div>
         </div>
 
-        {/* Main content: entries list + map + posts */}
+        {/* Main content: feed (correspondence & author notes) */}
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column (main) unchanged */}
+          {/* Left column (feed) - only text/comment posts plus waypoints */}
           <div className="lg:col-span-2 space-y-4">
-            {/* trackers list ... (same as before) */}
-            <div
-              className={`${
-                theme === "dark"
-                  ? "rounded-xl overflow-hidden shadow"
-                  : "rounded-xl overflow-hidden shadow-lg border border-gray-100"
-              }`}
-            > 
-            </div>
-
             <div className={`${cardBase} overflow-hidden`}>
               <div className={sectionHeaderClass}>
-                <div className="text-sm font-medium">Activity</div>
+                <div className="text-sm font-medium">Correspondence & Notes</div>
               </div>
 
-              <div className="p-4">
+              <div className="p-4 space-y-4">
                 {loading ? (
-                  <div className="text-sm text-gray-500">Loading feed…</div>
+                  <div className="text-sm text-gray-500">Loading…</div>
+                ) : feed.length === 0 ? (
+                  <div className="text-sm text-gray-500">No correspondence or notes yet.</div>
                 ) : (
-                  <article className="flex gap-3">
-                    <Avatar
-                      image={published?.profilePicture}
-                      size="large"
-                      shape="circle"
-                      className="!w-12 !h-12"
-                    />
-                    <div className="flex-1">
-                      <div className="text-sm">
-                        <strong>{username}</strong>{" "}
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          @{username} · 5h
-                        </span>
-                      </div>
-                      <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                        Live tracking demo post — position updates, stats and
-                        GPX download available on the right.
-                      </p>
-                      <div className="mt-2 flex items-center gap-6 text-xs text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <i className="pi pi-comment" /> 3
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <i className="pi pi-retweet" /> 12
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <i className="pi pi-heart" /> 88
-                        </div>
-                      </div>
-                    </div>
-                  </article>
+                  feed.map((p: any) => {
+                    const key = p.id ?? p.createdAt;
+                    return (
+                      <SmallPost
+                        key={key}
+                        post={p}
+                        href={undefined}
+                        onClick={handlePostAction}
+                      />
+                    );
+                  })
                 )}
               </div>
             </div>
           </div>
 
-          {/* Right column (stats + compact posts) */}
+          {/* Right column (stats + compact notes) */}
           <div className="space-y-4">
             <div className={cardBase}>
               <div className={sectionHeaderClass}>
@@ -501,21 +597,19 @@ export default function LivePage() {
 
                   <div className="flex flex-col">
                     <span className="text-xs text-gray-400">
-                      Avg elevation / stream
+                      Longest session
                     </span>
                     <span className="font-semibold text-lg">
-                      {stats.avgVert ? Math.round(stats.avgVert) : "—"}
+                      {stats.longestStream ? stats.longestStream.title ?? stats.longestStream.streamId : "—"}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Compact posts under the stats card */}
             <div className={cardBase}>
               <div className={sectionHeaderClass}>
                 <div className="text-sm font-medium">Tracker History</div>
-                
               </div>
 
               <div className="p-3 space-y-3">
@@ -528,9 +622,44 @@ export default function LivePage() {
                     return (
                       <SmallPost
                         key={p.streamId ?? p.startTime}
-                        post={p}
+                        post={{
+                          id: p.streamId ?? p.startTime,
+                          type: "track",
+                          username: p.username ?? username,
+                          profilePicture: p.profilePicture,
+                          createdAt: p.startTime ?? new Date().toISOString(),
+                          title: p.title,
+                          startTime: p.startTime,
+                          finishTime: p.finishTime,
+                          mileMarker: p.mileMarker,
+                          cumulativeVert: p.cumulativeVert,
+                          routeGpxUrl: p.routeGpxUrl,
+                        }}
                         points={pts}
-                        href={"/live/" + p.username + '/3'}
+                        href={"/live/" + p.username + '/' + (p.streamId ?? "")}
+                      />
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* Compact notes under the stats card */}
+            <div className={cardBase}>
+              <div className={sectionHeaderClass}>
+                <div className="text-sm font-medium">Author Notes</div>
+              </div>
+
+              <div className="p-3 space-y-3">
+                {compactPosts.length === 0 ? (
+                  <div className="text-sm text-gray-500">No author notes yet.</div>
+                ) : (
+                  compactPosts.map((p) => {
+                    return (
+                      <SmallPost
+                        key={p.id}
+                        post={p}
+                        href={undefined}
                       />
                     );
                   })
@@ -542,4 +671,9 @@ export default function LivePage() {
       </div>
     </div>
   );
+
+  // small helper to convert center coords into an object for generating tracks when needed
+  function centerToLatLng(c: [number, number]) {
+    return { lat: c[0], lng: c[1] };
+  }
 }

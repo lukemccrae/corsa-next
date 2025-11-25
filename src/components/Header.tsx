@@ -15,7 +15,7 @@ export default function TemplateDemo() {
     <div className="flex align-items-center gap-2">
       {/* Back to Home Button */}
       <Button
-        icon="pi pi-home"
+        icon="pi pi-globe"
         className="p-button-text p-button-lg"
         onClick={() => {
           window.location.href = `/`; // go to account page
