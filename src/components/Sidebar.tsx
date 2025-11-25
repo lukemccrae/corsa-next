@@ -1,168 +1,211 @@
-'use client';
-import React, { useMemo, useState } from 'react';
-import { Avatar } from 'primereact/avatar';
-import { Button } from 'primereact/button';
-import { useRouter } from 'next/navigation';
-import { useTheme } from './ThemeProvider';
+"use client";
+import React, { useState } from "react";
+import Link from "next/link";
+import { LiveDot } from "./LiveDot";
 
-type Channel = {
+/**
+ * Sidebar (client)
+ *
+ * - Accepts livestreams from parent as a prop and renders them all.
+ * - Provides a collapse/expand affordance (keeps the component a client component).
+ * - Uses plain markup and Tailwind classes (no PrimeReact, no useTheme).
+ */
+
+export type Channel = {
   id: string;
   name: string;
-  subtitle?: string;
-  avatar?: string;
+  subtitle?: string | null;
+  avatar?: string | null;
   live?: boolean;
-  viewers?: number;
+  viewers?: number | null;
 };
-
-const formatViewers = (n?: number) => {
-  if (n == null) return '';
-  if (n >= 1000) return `${Math.round(n / 100) / 10}K`;
-  return `${n}`;
-};
-
-function ChannelItem({ channel }: { channel: Channel }) {
-  const router = useRouter();
-  const { theme } = useTheme();
-
-  const itemHoverClass = theme === 'dark' ? 'hover:bg-white/6' : 'hover:bg-gray-50';
-  const subtitleClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-500';
-  const viewersClass = theme === 'dark' ? 'text-gray-200' : 'text-gray-600';
-
-  return (
-    <li
-      key={channel.id}
-      className={`flex items-center justify-between px-1 py-2 rounded cursor-pointer ${itemHoverClass} transition-colors`}
-      role="button"
-      onClick={() => router.push(`/profile/${channel.name}`)}
-    >
-      <div className="flex items-center gap-3">
-        <Avatar
-          image={channel.avatar}
-          label={!channel.avatar ? channel.name?.charAt(0).toUpperCase() : undefined}
-          shape="circle"
-          size="large"
-          className="!w-10 !h-10"
-        />
-        <div className="flex flex-col leading-tight">
-          <span className="text-sm font-medium">{channel.name}</span>
-          {channel.subtitle && <span className={`text-xs ${subtitleClass}`}>{channel.subtitle}</span>}
-        </div>
-      </div>
-
-      <div className="flex flex-col items-end">
-        {channel.live ? (
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-500 block" />
-            <span className={`text-xs ${viewersClass}`}>{formatViewers(channel.viewers)}</span>
-          </div>
-        ) : (
-          <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Offline</span>
-        )}
-      </div>
-    </li>
-  );
-}
-
-function ChannelSection({
-  title,
-  channels,
-  onShowMore,
-}: {
-  title: string;
-  channels: Channel[];
-  onShowMore?: () => void;
-}) {
-  return (
-    <section>
-      <h4 className="text-xs font-semibold text-gray-400 px-1 mb-2">{title}</h4>
-      <ul className="flex flex-col gap-1">
-        {channels.map((c) => (
-          <ChannelItem key={c.id} channel={c} />
-        ))}
-      </ul>
-      {onShowMore && (
-        <button
-          className="mt-2 ml-1 text-sm text-violet-400 hover:underline"
-          onClick={onShowMore}
-        >
-          Show More
-        </button>
-      )}
-    </section>
-  );
-}
 
 export default function Sidebar({
-  followedChannels,
-  liveChannels,
-  className = '',
+  livestreams,
+  className = "",
 }: {
-  followedChannels?: Channel[];
-  liveChannels?: Channel[];
+  livestreams?: Channel[] | null;
   className?: string;
 }) {
-  const { theme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
 
-  const followed = useMemo<Channel[]>(
-    () =>
-      followedChannels ?? [
-        { id: '1', name: 'Raxxanterax', subtitle: 'Path of Exile', avatar: '/demo/raxx.png', live: true, viewers: 1400 },
-        { id: '2', name: 'EvadeR', avatar: '/demo/evade.png' },
-        { id: '3', name: 'Pikabooiirl', avatar: '/demo/pika.png' },
-        { id: '4', name: 'jmls', avatar: '/demo/jmls.png' },
-        { id: '5', name: 'LVTHalo', avatar: '/demo/lvt.png' },
-      ],
-    [followedChannels]
-  );
+  const formatViewers = (n?: number | null) => {
+    if (n == null) return "";
+    if (n >= 1000) return `${Math.round(n / 100) / 10}K`;
+    return `${n}`;
+  };
 
-  const live = useMemo<Channel[]>(
-    () =>
-      liveChannels ?? [
-        { id: 'a', name: 'aaronyoung', subtitle: 'ARC Raiders', avatar: 'https://i.imgur.com/iOtuPi3.jpeg', live: true, viewers: 13000 },
-        { id: 'b', name: 'aPG', subtitle: 'Halo Infinite', avatar: '/demo/apg.png', live: true, viewers: 303 },
-        { id: 'c', name: 'scump', subtitle: 'Battlefield REDSEC', avatar: '/demo/scump.png', live: true, viewers: 2800 },
-        { id: 'd', name: 'Echidna', subtitle: 'Halo Infinite', avatar: '/demo/echidna.png', live: true, viewers: 34 },
-        { id: 'e', name: 'LastShot', subtitle: 'Halo Infinite', avatar: '/demo/lastshot.png', live: true, viewers: 106 },
-      ],
-    [liveChannels]
-  );
+  const item = (channel: Channel) => {
+    const initials = channel.name ? channel.name.charAt(0).toUpperCase() : "?";
+    return (
+      <li
+        key={channel.id}
+        className="flex items-center justify-between px-2 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+      >
+        <Link
+          href={`/profile/${encodeURIComponent(channel.name)}`}
+          className="flex items-center gap-3 min-w-0"
+        >
+          <div className="flex-shrink-0">
+            {channel.avatar ? (
+              <img
+                src={channel.avatar}
+                alt={channel.name}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-800 dark:text-gray-100">
+                {initials}
+              </div>
+            )}
+          </div>
 
+          <div className="min-w-0">
+            <div className="text-sm font-medium truncate text-gray-900 dark:text-gray-100">
+              {channel.name}
+            </div>
+            {channel.subtitle && (
+              <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {channel.subtitle}
+              </div>
+            )}
+          </div>
+        </Link>
+
+        <div className="flex flex-col items-end ml-3">
+          {channel.live ? (
+            <div className="flex items-center gap-2">
+              <LiveDot />
+            </div>
+          ) : (
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              Offline
+            </span>
+          )}
+        </div>
+      </li>
+    );
+  };
+
+  // Collapsed thin sidebar used on medium+ screens
   if (collapsed) {
     return (
       <aside
-        className={`hidden md:flex flex-col items-center justify-start w-14 ${theme === 'dark' ? 'bg-gray-900 text-white border-r border-white/6' : 'bg-white text-gray-900 border-r border-gray-100'} ${className}`}
+        className={`hidden md:flex flex-col items-center justify-start w-14 ${className} bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-r border-gray-100 dark:border-white/6 shadow-lg`}
+        aria-hidden={false}
       >
-        <button
-          onClick={() => setCollapsed(false)}
-          className={`mt-3 ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
-          aria-label="Open sidebar"
-        >
-          <i className="pi pi-angle-right text-xl" />
-        </button>
+        <div className="w-full flex flex-col items-center">
+          <button
+            onClick={() => setCollapsed(false)}
+            className="mt-3 p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+            aria-label="Open sidebar"
+            title="Open sidebar"
+          >
+            {/* chevron right */}
+            <svg
+              className="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden
+            >
+              <path
+                d="M9 6l6 6-6 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
+          <nav className="mt-4 flex flex-col gap-3 items-center px-1">
+            {Array.isArray(livestreams) && livestreams.length > 0 ? (
+              // show a compact avatar strip (limit to first 6)
+              livestreams.slice(0, 6).map((c) => (
+                <Link
+                  key={c.id}
+                  href={`/profile/${encodeURIComponent(c.name)}`}
+                  className="w-10 h-10 rounded-full overflow-hidden"
+                >
+                  {c.avatar ? (
+                    <img
+                      src={c.avatar}
+                      alt={c.name}
+                      className="w-10 h-10 object-cover rounded-full"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-800 dark:text-gray-100">
+                      {c.name ? c.name.charAt(0).toUpperCase() : "?"}
+                    </div>
+                  )}
+                </Link>
+              ))
+            ) : (
+              <div className="text-xs text-gray-500 dark:text-gray-400 px-2 text-center">
+                No streams
+              </div>
+            )}
+          </nav>
+        </div>
       </aside>
     );
   }
 
+  // Full sidebar
   return (
     <aside
-      className={`hidden md:flex flex-col w-72 max-w-[18rem] h-full ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} border-r ${theme === 'dark' ? 'border-white/6' : 'border-gray-100'} shadow-lg ${className}`}
+      className={`hidden md:flex flex-col w-72 max-w-[18rem] h-full ${className} bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-r border-gray-100 dark:border-white/6 shadow-lg`}
     >
-      <div className={`flex items-center justify-between px-4 py-3 border-b ${theme === 'dark' ? 'border-white/6' : 'border-gray-100'}`}>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/6">
         <div>
           <h3 className="text-lg font-semibold">Discover</h3>
           <p className="text-xs text-gray-400">Live activity</p>
         </div>
-        <Button
-          icon="pi pi-angle-left"
-          className={`p-button-rounded p-button-text ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}
-          onClick={() => setCollapsed(true)}
-          aria-label="Collapse sidebar"
-        />
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCollapsed(true)}
+            aria-label="Collapse sidebar"
+            title="Collapse sidebar"
+            className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-gray-600 dark:text-gray-300"
+          >
+            {/* chevron left */}
+            <svg
+              className="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden
+            >
+              <path
+                d="M15 6l-6 6 6 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div className="px-3 py-3 overflow-auto space-y-4">
-        <ChannelSection title="Trackers" channels={live} onShowMore={() => console.log('show more live')} />
+        <section aria-labelledby="live-streams">
+          <h4
+            id="live-streams"
+            className="text-xs font-semibold text-gray-400 px-1 mb-2"
+          >
+            All streams
+          </h4>
+          <ul className="flex flex-col gap-1">
+            {Array.isArray(livestreams) && livestreams.length > 0 ? (
+              livestreams.map((c) => item(c))
+            ) : (
+              <li className="px-2 py-2 text-sm text-gray-500 dark:text-gray-400">
+                No streams available
+              </li>
+            )}
+          </ul>
+        </section>
       </div>
     </aside>
   );
