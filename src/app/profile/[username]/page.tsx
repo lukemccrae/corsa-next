@@ -214,7 +214,7 @@ export default function LivePage() {
         </div>
 
         {/* Main content: feed (correspondence & author notes) */}
-        <div className="max-w-2xl mx-auto py-8">
+        <div className="max-w-xl mx-auto py-8">
           {sortedFeed.map((item) => (
             <FeedItem key={item.id} entry={item} />
           ))}
