@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
 .dark-topo {
-    filter: brightness(0.6) contrast(1.2) saturate(1.4);
-  }
+  filter: brightness(0.6) contrast(1.2) saturate(1.4);
+}
+
+.leaflet-control-attribution {
+  display: none !important;
+}
