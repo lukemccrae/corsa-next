@@ -12,6 +12,7 @@ import { Button } from "primereact/button";
 import { useTheme } from "../../../components/ThemeProvider";
 import LiveButton from "@/src/components/LiveButton";
 import FeedItem from "@/src/components/FeedItem";
+import { User } from "@/src/generated/graphql";
 
 export default function LivePage() {
   const params = useParams();
@@ -20,7 +21,7 @@ export default function LivePage() {
   const { getAnon } = useUser();
   const { theme } = useTheme();
 
-  const [published, setPublished] = useState<any | null>(null);
+  const [published, setPublished] = useState<User | null>(null);
   const [live, setLive] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [feed, setFeed] = useState<any[]>([]);

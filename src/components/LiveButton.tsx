@@ -17,7 +17,6 @@ export default function LiveButton({
   size = 'md'
 }: LiveButtonProps) {
   const router = useRouter();
-  console.log(username, streamId, '<< hi')
 
   const sizeClasses =
     size === 'sm' ? 'px-3 py-1 text-xs' : size === 'lg' ? 'px-4 py-2 text-sm' : 'px-3 py-1 text-sm';

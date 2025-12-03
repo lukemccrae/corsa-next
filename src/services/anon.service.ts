@@ -181,20 +181,34 @@ export const getLivestreamByUserId = async (props: GetPublishedUserInfoProps) =>
 export const getPublishedUserInfo = async (props: GetPublishedUserInfoProps) => {
   const query = `
     query MyQuery {
-      getPublishedUserInfo(username: "${props.username}") {
-        profilePicture
+      getUserByUserName(username: "${props.username}") {
         bio
-        plans {
-          name
-          slug
-          coverImage
-          profilePhoto
-          author
-          coverText
-          published
-          startTime
+        profilePicture
+        userId
+        username
+        posts {
+          ... on BlogPost {
+            createdAt
+            type
+            userId
+          }
+          ... on LivestreamPost {
+            id
+            createdAt
+            userId
+            type
+          }
+          ... on PhotoPost {
+            id
+            caption
+          }
+          ... on StatusPost {
+            id
+            createdAt
+            type
+            userId
+          }
         }
-
       }
     }
   `;
