@@ -16,6 +16,7 @@
     "@aws-sdk/types": "^3.910.0",
     "@graphql-codegen/cli": "^6.1.0",
     "@graphql-codegen/typescript-graphql-request": "^6.3.0",
+    "@graphql-codegen/typescript-react-query": "^6.1.1",
     "@tailwindcss/postcss": "^4.1.16",
     "@types/leaflet": "^1.9.21",
     "amazon-cognito-identity-js": "^6.3.15",

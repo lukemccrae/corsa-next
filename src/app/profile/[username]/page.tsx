@@ -13,57 +13,6 @@ import { useTheme } from "../../../components/ThemeProvider";
 import LiveButton from "@/src/components/LiveButton";
 import FeedItem from "@/src/components/FeedItem";
 
-function getExampleFeed(username: string) {
-  const now = Date.now();
-  return [
-    {
-      type: "blog",
-      id: "blog-1",
-      username,
-      createdAt: new Date(now - 1000 * 60 * 60 * 24).toISOString(),
-      title: "Race Recap: Mountain 50K",
-      text: "An epic adventure in the high country. Shared lessons and photos.",
-      imageUrl: "https://i.imgur.com/b8EiZ6C.jpeg",
-      profilePicture: 'https://i.imgur.com/Vhxz3lb.png'
-    },
-    {
-      type: "tracker",
-      id: "tracker-243243",
-      username,
-      createdAt: new Date(now - 1000 * 60 * 3).toISOString(),
-      streamId: "live-890",
-      routeGpxUrl: "https://someurl.com/route.gpx",
-      stats: { distance: 30.4, vert: 5600 },
-      profilePicture: 'https://i.imgur.com/Vhxz3lb.png',
-      title: 'Bibbulmun Track FKT',
-      currentLocation: {
-        lat: -35.00585879488083,
-        lng: 117.86388288315776
-      },
-      startTime: '1758664350000',
-      finishTime: '1759454070000'
-    },
-    {
-      type: "status",
-      id: "status-123",
-      username,
-      createdAt: new Date(now - 1000 * 60 * 5).toISOString(),
-      text: "Excited to stream the race tomorrow! Thank you for all the support.",
-      profilePicture: 'https://i.imgur.com/Vhxz3lb.png'
-    },
-    {
-      type: "photo",
-      id: "photo-999",
-      username,
-      createdAt: new Date(now - 1000 * 60 * 45).toISOString(),
-      imageUrl: "https://i.imgur.com/n56ZTOK.png",
-      caption: "Sunrise before start",
-      profilePicture: 'https://i.imgur.com/Vhxz3lb.png'
-    }
-  ];
-}
-
-
 export default function LivePage() {
   const params = useParams();
   const router = useRouter();
@@ -75,11 +24,6 @@ export default function LivePage() {
   const [live, setLive] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [feed, setFeed] = useState<any[]>([]);
-
-  useEffect(() => {
-    // Replace with API, for now mock
-    setFeed(getExampleFeed(username));
-  }, [username]);
 
   const sortedFeed = useMemo(
     () =>
