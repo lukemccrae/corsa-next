@@ -28,11 +28,13 @@ async function fetchStreamsByEntity(entity: string | undefined) {
   const query = `
     query MyQuery {
       getStreamsByEntity(entity: "STREAM") {
-        profilePicture
-        title
-        startTime
-        live
+        fullRouteData
+        routeGpxUrl
         username
+        profilePicture
+        live
+        routeGpxUrl
+        slug
         currentLocation {
           lat
           lng
@@ -41,6 +43,7 @@ async function fetchStreamsByEntity(entity: string | undefined) {
     }
   `;
   console.log(query)
+  console.log(APPSYNC_API_KEY)
   const variables = { entity };
 
   const res = await fetch(APPSYNC_ENDPOINT, {
@@ -70,14 +73,14 @@ export default async function WithSidebarLayout({ children }: { children: React.
   const raw = await fetchStreamsByEntity(DEFAULT_ENTITY || undefined);
   const livestreams: Channel[] = Array.isArray(raw)
     ? raw.map((s: any) => ({
-        id: s.streamId ?? String(Math.random()).slice(2),
-        name: s.username ?? (s.streamId ?? "unknown"),
-        subtitle: s.title ?? null,
-        avatar: s.profilePicture ?? null,
-        live: !!s.live,
-        viewers: s.viewers ?? null,
-        currentLocation: s.currentLocation ?? null,
-      }))
+      id: s.streamId ?? String(Math.random()).slice(2),
+      name: s.username ?? (s.streamId ?? "unknown"),
+      subtitle: s.title ?? null,
+      avatar: s.profilePicture ?? null,
+      live: !!s.live,
+      viewers: s.viewers ?? null,
+      currentLocation: s.currentLocation ?? null,
+    }))
     : [];
 
   return (

@@ -233,7 +233,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
           lastName,
         }),
       });
-      console.log(response, "<< res");
       if (!response.ok) {
         throw new Error("Failed to register user");
       }
@@ -299,7 +298,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
   const getAnonCreds = async (): Promise<AwsCredentialIdentity> => {
     const REGION = "us-west-1";
-    const IDENTITY_POOL_ID = "us-west-1:927abfba-eb3c-4fd6-a801-734ee9a4280e";
+    const IDENTITY_POOL_ID = "us-west-1:495addf9-156d-41fd-bf55-3c576a9e1c5e";
 
     const credentialsProvider = fromCognitoIdentityPool({
       identityPoolId: IDENTITY_POOL_ID,
@@ -336,6 +335,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         };
 
         setAnon(creds);
+        console.log(creds, '<< anon creds')
         localStorage.setItem("anon", JSON.stringify(creds));
       } else {
         throw new Error("Failed to retrieve valid credentials");
