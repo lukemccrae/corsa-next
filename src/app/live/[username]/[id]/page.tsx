@@ -57,7 +57,6 @@ async function fetchUserDataForStream(username: string, streamId: string) {
   }
 
   const json = await res.json();
-  console.log(json, '<< json')
   const user = json?.data?.getUserByUserName;
   return user;
 }

@@ -148,7 +148,7 @@ export default function LivePageClient({
           />
 
           {/* Map card — sits under the header card */}
-          <div className="h-full rounded-lg overflow-hidden border flex-1 min-h-0">
+          <div className="h-[400px] rounded-lg overflow-hidden border">
             <LiveMap
               center={mapCenter}
               points={points}

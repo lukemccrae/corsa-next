@@ -4,7 +4,6 @@ import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
 import { useTheme } from "./ThemeProvider";
 import LiveButton from "./LiveButton";
-import FeedItem from "./FeedItem";
 import type { User as GQLUser, User } from "../generated/graphql";
 import type { PostEntry } from "../types";
 
@@ -23,6 +22,9 @@ type Props = {
   user: User; // shape coming from server GraphQL; kept flexible to avoid heavy typing coupling
   username: string;
 };
+
+import dynamic from "next/dynamic";
+const FeedItem = dynamic(() => import("./FeedItem"), { ssr: false });
 
 export default function ProfileClient({ user, username }: Props) {
   const { theme } = useTheme();

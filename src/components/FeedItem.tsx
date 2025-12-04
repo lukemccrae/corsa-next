@@ -87,7 +87,7 @@ export default function FeedItem(args: FeedItemsArgs) {
                             {new Date(Number(stream.stream.finishTime)).toLocaleString()}
                         </span>
                     </div>
-                    <div className="h-48 w-full rounded-lg overflow-hidden mb-2">
+                    <div className="w-full mb-2 rounded-lg overflow-hidden">
                         <TrackerMap
                             lat={stream.stream.currentLocation?.lat ?? 0}
                             lng={stream.stream.currentLocation?.lng ?? 0}
