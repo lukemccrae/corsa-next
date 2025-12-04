@@ -17,7 +17,6 @@ import { PostEntry } from "@/src/types";
 
 export default function LivePage() {
   const params = useParams();
-  const router = useRouter();
   const username = (params as any)?.username ?? "unknown";
   const { getAnon } = useUser();
   const { theme } = useTheme();
@@ -25,7 +24,6 @@ export default function LivePage() {
   const [user, setUser] = useState<User | null>(null);
   const [live, setLive] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [feed, setFeed] = useState<any[]>([]);
 
   const sortedFeed = useMemo(() => {
     const posts = user?.posts ?? [];
