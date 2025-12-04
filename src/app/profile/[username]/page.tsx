@@ -23,6 +23,7 @@ async function fetchProfile(username: string) {
   const query = `
     query MyQuery {
       getUserByUserName(username: "aaronyoung") {
+      streamId
         posts {
           createdAt
           type
@@ -120,5 +121,5 @@ export default async function ProfilePage({
 
   // Render a client component and pass the server-fetched snapshot to it.
   // The client component will manage interactivity (theme, modals, navigation).
-  return <ProfileClient user={userData} live={userData.liveStreams?.[0] ?? null} username={username} />;
+  return <ProfileClient user={userData} username={username} />;
 }

@@ -237,6 +237,7 @@ export type User = {
   liveStreams?: Maybe<Array<Maybe<LiveStream>>>;
   posts?: Maybe<Array<Maybe<Post>>>;
   profilePicture?: Maybe<Scalars['String']['output']>;
+  streamId?: Maybe<Scalars['String']['output']>;
   userId: Scalars['ID']['output'];
   username: Scalars['String']['output'];
 };
@@ -276,7 +277,6 @@ export type Waypoint = {
   pointIndex?: Maybe<Scalars['Int']['output']>;
   stream?: Maybe<LiveStream>;
   timestamp: Scalars['String']['output'];
-  waypointId: Scalars['ID']['output'];
 };
 
 /**

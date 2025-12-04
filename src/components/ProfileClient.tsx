@@ -20,12 +20,11 @@ import type { PostEntry } from "../types";
  */
 
 type Props = {
-  user: any; // shape coming from server GraphQL; kept flexible to avoid heavy typing coupling
-  live?: any | null;
+  user: User; // shape coming from server GraphQL; kept flexible to avoid heavy typing coupling
   username: string;
 };
 
-export default function ProfileClient({ user, live, username }: Props) {
+export default function ProfileClient({ user, username }: Props) {
   const { theme } = useTheme();
 
   const sortedFeed = useMemo(() => {
@@ -60,9 +59,9 @@ export default function ProfileClient({ user, live, username }: Props) {
         <div className="absolute inset-x-0 -bottom-15 flex items-end justify-between px-6 pointer-events-none">
           <div className="pointer-events-auto">
             <Avatar
-              image={user?.profilePicture ?? live?.profilePicture}
+              image={user.profilePicture ?? undefined}
               label={
-                !user?.profilePicture && !live?.profilePicture
+                !user?.profilePicture
                   ? username?.charAt(0).toUpperCase()
                   : undefined
               }
@@ -108,7 +107,7 @@ export default function ProfileClient({ user, live, username }: Props) {
                 <div className="text-sm text-gray-500 dark:text-gray-400">Followers</div>
                 <div className="font-semibold">2264</div>
               </div>
-              <LiveButton username={username} streamId={live?.streamId ?? null} />
+              <LiveButton username={username} streamId={user.streamId} />
             </div>
           </div>
         </div>
