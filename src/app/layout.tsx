@@ -1,4 +1,4 @@
-// app/layout.tsx (root layout) — remove the Sidebar here so sub-layouts can opt-in
+import "primereact/resources/themes/lara-light-blue/theme.css";
 import "./globals.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";

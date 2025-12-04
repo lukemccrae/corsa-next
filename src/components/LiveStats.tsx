@@ -1,6 +1,7 @@
 "use client";
 import React, { useMemo } from "react";
 import { Button } from "primereact/button";
+import { Avatar } from "primereact/avatar";
 import { useTheme } from "./ThemeProvider";
 import { Point } from "./LiveMap";
 
@@ -9,21 +10,25 @@ type Props = {
   selectedIndex?: number | null;
   className?: string;
   onDownloadGpx?: () => void;
+  username?: string;
+  profilePicture?: string;
+  streamTitle?: string;
 };
 
 /**
  * LiveStatsCompact
  *
- * Very small horizontal stats card meant to sit above the map container.
- * - Minimal footprint on small screens (collapses into two rows)
- * - Matches app theme using tailwind + ThemeProvider
- * - Uses PrimeReact Button for any actions (download GPX)
+ * Compact horizontal stats card meant to sit above the map container.
+ * Now optionally renders a condensed avatar + username on the left when provided.
  */
 export default function LiveStats({
   points,
   selectedIndex,
   className = "",
   onDownloadGpx,
+  username,
+  profilePicture,
+  streamTitle,
 }: Props) {
   const { theme } = useTheme();
 
@@ -63,9 +68,37 @@ export default function LiveStats({
 
   return (
     <div
-      className={`w-full ${className} ${bg} ${border} rounded-xl p-2 shadow-sm flex flex-col sm:flex-row items-center gap-2`}
+      className={`w-full ${className} ${bg} ${border} rounded-xl p-3 shadow-sm flex items-center gap-3`}
       aria-live="polite"
     >
+      {/* Optional avatar + username */}
+      {username ? (
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex-shrink-0">
+            <Avatar
+              image={profilePicture ?? undefined}
+              label={!profilePicture ? username.charAt(0).toUpperCase() : undefined}
+              shape="circle"
+              size="normal"
+              className="!w-10 !h-10"
+            />
+          </div>
+          <div className="min-w-0">
+            <a
+              href={`/profile/${username}`}
+              className="text-sm font-semibold block truncate hover:underline"
+              aria-label={username ? `Open ${username} profile` : undefined}
+            >
+              {username}
+            </a>
+            {streamTitle ? (
+              <div className="text-xs text-gray-400 truncate">{streamTitle}</div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Stats row — stretch to use available space */}
       <div className="flex-1 w-full flex items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           <div className="text-xs text-gray-400">Distance</div>

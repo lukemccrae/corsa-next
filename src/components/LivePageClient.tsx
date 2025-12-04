@@ -100,17 +100,9 @@ export default function LivePageClient({
     setMessages(initialMessages ?? []);
   }, [initialMessages]);
 
-  const headerBg = theme === "dark" ? "bg-gray-900 text-gray-100" : "bg-white";
-
   const handlePointSelect = (i?: number | null) => {
     if (typeof i === "number") setSelectedIndex(i);
     else setSelectedIndex(null);
-  };
-
-  // If you want LiveChat to update the parent-level messages (e.g. to show count), you can pass a callback.
-  // LiveChat currently manages its own local send flow; here we'll just keep the initial messages in sync.
-  const onNewLocalMessage = (msg: any) => {
-    setMessages((m) => [...m, msg]);
   };
 
   const mapCenter = useMemo<[number, number] | undefined>(() => {
@@ -127,71 +119,36 @@ export default function LivePageClient({
     return undefined;
   }, [points, initialStream]);
 
+  const handleDownloadGpx = () => {
+    const url = initialStream?.routeGpxUrl;
+    if (url) {
+      window.open(url, "_blank");
+    } else {
+      alert("No GPX available");
+    }
+  };
+
+  // theme-aware card bg for any small inline header
+  const headerBg = theme === "dark" ? "bg-gray-900 text-gray-100" : "bg-white";
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Header: profile picture + username link */}
-      <div
-        className={`flex items-center justify-between mb-4 ${headerBg} p-3 rounded-lg`}
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex-shrink-0">
-            <Avatar
-              image={profilePicture}
-              label={
-                !profilePicture ? username?.charAt(0).toUpperCase() : undefined
-              }
-              shape="circle"
-              size="xlarge"
-              className="!w-16 !h-16"
-            />
-          </div>
-          <div>
-            <a
-              href={`/profile/${username}`}
-              className="text-lg font-semibold hover:underline"
-              aria-label={`Open ${username} profile`}
-            >
-              {username}
-            </a>
-            <div className="text-sm text-gray-500">
-              {initialStream?.title ?? "Live stream"}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            icon="pi pi-download"
-            className="p-button-text"
-            onClick={() => {
-              // easy GPX download helper if route exists
-              const url = initialStream?.routeGpxUrl;
-              if (url) {
-                window.open(url, "_blank");
-              } else {
-                alert("No GPX available");
-              }
-            }}
-          />
-          <Button
-            label="View profile"
-            icon="pi pi-user"
-            className="p-button-text"
-            onClick={() => {
-              window.location.href = `/profile/${username}`;
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Main layout: map on left, chat/points/stats on right */}
+      {/* Main layout: map on left, chat/points on right */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[70vh]">
-        <div className="lg:col-span-2 h-full rounded-lg overflow-hidden border">
-          <div className="h-full">
-            <LiveStats
-              points={points}
-              selectedIndex={selectedIndex}
-            />
+        <div className="lg:col-span-2 h-full flex flex-col gap-3">
+          {/* Card directly ABOVE the map (not overlay). Compact profile + stats */}
+          <LiveStats
+            points={points}
+            selectedIndex={selectedIndex}
+            username={username}
+            profilePicture={profilePicture}
+            streamTitle={initialStream?.title}
+            onDownloadGpx={handleDownloadGpx}
+            className="" // spacing handled by parent
+          />
+
+          {/* Map card — sits under the header card */}
+          <div className="h-full rounded-lg overflow-hidden border flex-1 min-h-0">
             <LiveMap
               center={mapCenter}
               points={points}
@@ -202,25 +159,8 @@ export default function LivePageClient({
         </div>
 
         <aside className="flex flex-col gap-4 h-full">
-
-          {/* <div className="flex-1 rounded-lg overflow-hidden border p-3 bg-white dark:bg-gray-800">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="text-sm font-medium">Waypoints</div>
-              <div className="text-xs text-gray-400">{points.length} points</div>
-            </div>
-            <PointsList
-              points={points}
-              selectedIndex={selectedIndex ?? undefined}
-              onSelectIndex={(i) => {
-                handlePointSelect(i);
-                // also attempt to fly map -> by setting selectedIndex handled above
-              }}
-            />
-          </div> */}
-
           <div className="col-span-1 row-span-1 rounded-lg overflow-hidden border p-0 h-[72%]">
-            {/* LiveChat takfes initialMessages. It manages its own local message state.
-                If you want LiveChat to push messages back here, you can enhance LiveChat to accept a callback. */}
+            {/* LiveChat takes initialMessages. It manages its own local message state. */}
             <div className="h-full">
               <LiveChat streamUsername={username} initialMessages={messages} />
             </div>
