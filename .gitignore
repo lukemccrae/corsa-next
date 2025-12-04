@@ -41,3 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 codegen.yml
+src/app/profile/\[username]/page.tsx
+src/components/FeedItem.tsx

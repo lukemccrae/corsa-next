@@ -46,7 +46,6 @@ export default function LivePage() {
       try {
         const anon = await getAnon();
         const pub = await getPublishedUserInfo({ username, anon });
-        console.log(pub, '<< pub')
         const liveRes = await getLivestreamByUserId({ username, anon });
 
         const userData =
@@ -58,7 +57,6 @@ export default function LivePage() {
 
         if (!mounted) return;
         setUser(userData);
-        console.log(userData, '<< userData')
         setLive(liveData);
       } catch (err) {
         console.error("Failed to fetch live user data", err);

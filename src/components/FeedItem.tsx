@@ -6,6 +6,7 @@ import { Button } from "primereact/button";
 import dynamic from "next/dynamic";
 import { BlogPost, LivestreamPost, PhotoPost, StatusPost, User } from "../generated/graphql";
 import { PostEntry } from "../types";
+import { userAgent } from "next/server";
 
 interface FeedItemsArgs {
     entry: PostEntry;
@@ -107,12 +108,13 @@ export default function FeedItem(args: FeedItemsArgs) {
                 </Card>
             );
         case "PHOTO":
+            const photo = args.entry as PhotoPost;
             return (
                 <Card className="mb-6">
                     <div className="flex gap-2 items-center mb-2">
-                        <Avatar image={(args.entry as any).profilePicture} size="normal" shape="circle" className="" />
-                        <span className="font-medium">{(args.entry as any).username}</span>
-                        <span className="text-xs text-gray-400">{timeAgo((args.entry as any).createdAt)}</span>
+                        <Avatar image={args.user.profilePicture ?? undefined} size="normal" shape="circle" className="" />
+                        <span className="font-medium">{args.user.username}</span>
+                        <span className="text-xs text-gray-400">{timeAgo(photo.createdAt)}</span>
                     </div>
                     {(args.entry as any).caption && <div className="text-sm">{(args.entry as any).caption}</div>}
                     {(args.entry as any).imageUrl && (
