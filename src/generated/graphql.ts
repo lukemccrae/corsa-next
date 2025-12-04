@@ -44,6 +44,7 @@ export type ChatMessage = {
   createdAt: Scalars['String']['output'];
   messageId: Scalars['ID']['output'];
   messageType?: Maybe<MessageType>;
+  profilePicture?: Maybe<Scalars['String']['output']>;
   role?: Maybe<UserRole>;
   stream?: Maybe<LiveStream>;
   text: Scalars['String']['output'];
