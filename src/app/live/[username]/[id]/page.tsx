@@ -15,8 +15,12 @@ async function fetchUserDataForStream(username: string, streamId: string) {
         username
         profilePicture
         liveStreams(streamId: "${streamId}") {
-          delayInSeconds
-          deviceLogo
+          streamId
+          mileMarker
+          title
+          startTime
+          unitOfMeasure
+          finishTime
           chatMessages {
             text
             username
@@ -53,6 +57,7 @@ async function fetchUserDataForStream(username: string, streamId: string) {
   }
 
   const json = await res.json();
+  console.log(json, '<< json')
   const user = json?.data?.getUserByUserName;
   return user;
 }

@@ -148,7 +148,7 @@ export type PhotoPost = Post & {
   caption?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  imageUrl: Scalars['String']['output'];
+  imageUrl?: Maybe<Scalars['String']['output']>;
   mentions?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   type: PostType;
