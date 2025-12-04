@@ -44,7 +44,7 @@ type UserContextType = {
   user: User | undefined;
   anon: Anon | undefined;
   checkValidAnon: () => boolean;
-  setAnonCreds: () => Promise<void>;
+  setAnonCreds: () => Promise<Anon | undefined>;
   getAnon: () => Promise<Anon>;
   logoutUser: () => Promise<void>;
   loginUser: (event: any) => Promise<void>;
@@ -288,12 +288,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   // Get anonymous credentials, retrieving them if necessary
   const getAnon = async (): Promise<Anon> => {
     if (!checkValidAnon()) {
-      await setAnonCreds();
+      const anon = await setAnonCreds();
+      return anon as Anon;
     }
-    if (!anon) {
-      throw new Error("Failed to retrieve valid anonymous credentials.");
-    }
-    return anon;
+    return anon as Anon;
   };
 
   const getAnonCreds = async (): Promise<AwsCredentialIdentity> => {
@@ -335,8 +333,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         };
 
         setAnon(creds);
-        console.log(creds, '<< anon creds')
         localStorage.setItem("anon", JSON.stringify(creds));
+        return creds;
       } else {
         throw new Error("Failed to retrieve valid credentials");
       }

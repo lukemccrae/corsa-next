@@ -1,3 +1,5 @@
+import { BlogPost, LivestreamPost, PhotoPost, StatusPost } from "./generated/graphql";
+
 export type CognitoToken = {
     aud: string;
     auth_time: number;
@@ -65,3 +67,5 @@ export type TrackerPost = PostBase & {
 };
 
 export type FeedPost = TrackPost | CommentPost | TextPost | TrackerPost;
+
+export type PostEntry = BlogPost | PhotoPost | StatusPost | LivestreamPost;

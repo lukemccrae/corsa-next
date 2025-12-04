@@ -85,8 +85,11 @@ export type LiveStream = {
   currentLocation?: Maybe<LatLng>;
   delayInSeconds?: Maybe<Scalars['Int']['output']>;
   deviceLogo?: Maybe<DeviceLogo>;
+  finishTime?: Maybe<Scalars['String']['output']>;
   fullRouteData?: Maybe<Scalars['String']['output']>;
   live?: Maybe<Scalars['Boolean']['output']>;
+  mileMarker?: Maybe<Scalars['Float']['output']>;
+  profilePicture?: Maybe<Scalars['String']['output']>;
   routeGpxUrl?: Maybe<Scalars['String']['output']>;
   slug?: Maybe<Scalars['String']['output']>;
   sponsors?: Maybe<Array<Maybe<Sponsor>>>;
@@ -94,6 +97,7 @@ export type LiveStream = {
   streamId: Scalars['ID']['output'];
   title?: Maybe<Scalars['String']['output']>;
   unitOfMeasure?: Maybe<UnitOfMeasure>;
+  username?: Maybe<Scalars['String']['output']>;
   waypoints?: Maybe<Array<Maybe<Waypoint>>>;
 };
 
@@ -168,7 +172,13 @@ export enum PostType {
 
 export type Query = {
   __typename?: 'Query';
+  getStreamsByEntity?: Maybe<Array<Maybe<LiveStream>>>;
   getUserByUserName?: Maybe<User>;
+};
+
+
+export type QueryGetStreamsByEntityArgs = {
+  entity?: InputMaybe<Scalars['String']['input']>;
 };
 
 

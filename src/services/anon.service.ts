@@ -1,6 +1,7 @@
-import { SignatureV4 } from '@aws-sdk/signature-v4';
-import { Sha256 } from '@aws-crypto/sha256-js';
-import { HttpRequest } from '@aws-sdk/protocol-http';
+import { Sha256 } from "@aws-crypto/sha256-js";
+import { HttpRequest } from "@aws-sdk/protocol-http";
+import { SignatureV4 } from "@aws-sdk/signature-v4";
+
 import { domain } from '../context/domain.context';
 import { Anon } from '../context/UserContext';
 
@@ -23,39 +24,47 @@ interface GetChatByStreamIdProps {
 // Your AppSync API endpoint
 const APPSYNC_ENDPOINT = domain.appsync;
 
-
 export const anonFetch = async (query: string, anon: Anon, variables?: any) => {
-  // Prepare HTTP request
+  const url = new URL(APPSYNC_ENDPOINT);
+
+  const body = JSON.stringify({ query, variables });
+
+  // Compute SHA256 hash of the request body
+  const hasher = new Sha256();
+  hasher.update(body);
+  const hashBytes = await hasher.digest();
+  const bodyHashHex = Buffer.from(hashBytes).toString("hex");
+
   const request = new HttpRequest({
-    method: 'POST',
-    hostname: new URL(APPSYNC_ENDPOINT).hostname,
-    path: '/graphql',
+    method: "POST",
+    protocol: url.protocol,
+    hostname: url.hostname,
+    // AppSync expects /graphql for this endpoint
+    path: url.pathname || "/graphql",
     headers: {
-      'Content-Type': 'application/json',
-      host: new URL(APPSYNC_ENDPOINT).hostname,
+      "Content-Type": "application/json",
+      host: url.hostname,
+      "x-amz-content-sha256": bodyHashHex,
     },
-    body: JSON.stringify({ query, variables }),
+    body,
   });
 
-  // Sign the request using SignatureV4
   const signer = new SignatureV4({
-    credentials: anon,
-    region: 'us-west-1', // Replace with your AWS region
-    service: 'appsync',
+    credentials: anon,   // MUST contain accessKeyId, secretAccessKey, sessionToken
+    region: "us-west-1",
+    service: "appsync",
     sha256: Sha256,
   });
 
-  const signedRequest = await signer.sign(request);
+  const signed = await signer.sign(request);
 
-  // Send the signed request using fetch API
   const response = await fetch(APPSYNC_ENDPOINT, {
-    method: signedRequest.method,
-    headers: signedRequest.headers,
-    body: signedRequest.body,
+    method: signed.method,
+    headers: signed.headers,
+    body: signed.body,  // EXACT signed body
   });
 
-  const responseData = await response.json();
-  return responseData;
+  return response.json();
 };
 
 export const fetchMapDetails = async (bucketKey: string, anon: Anon) => {
@@ -190,23 +199,43 @@ export const getPublishedUserInfo = async (props: GetPublishedUserInfoProps) => 
           ... on BlogPost {
             createdAt
             type
+            title
+            text
             userId
           }
           ... on LivestreamPost {
             id
             createdAt
+            stream {
+              title
+              profilePicture
+              startTime
+              finishTime
+              mileMarker
+              live
+              username
+              currentLocation {
+                lat
+                lng
+              }
+            }
             userId
             type
           }
           ... on PhotoPost {
             id
             caption
+            type
+            createdAt
+            imageUrl
+            userId
           }
           ... on StatusPost {
             id
             createdAt
             type
             userId
+            text
           }
         }
       }

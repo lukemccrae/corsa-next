@@ -4,10 +4,24 @@ import { Card } from "primereact/card";
 import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
 import dynamic from "next/dynamic";
+import { BlogPost, LivestreamPost, PhotoPost, StatusPost, User } from "../generated/graphql";
+import { PostEntry } from "../types";
+
+interface FeedItemsArgs {
+    entry: PostEntry;
+    user: User;
+    key: string;
+}
 
 const TrackerMap = dynamic(() => import("./TrackerMap"), { ssr: false });
 
-export default function FeedItem({ entry }: { entry: any }) {
+export default function FeedItem(args: FeedItemsArgs) {
+    // Normalize type for robust runtime checks:
+    // Some parts of the app use lowercase 'blog' / 'photo' etc.,
+    // while generated GraphQL enums may be uppercase ('BLOG', 'PHOTO').
+    // Using a normalized string keeps runtime behavior stable while
+    // allowing us to type the entry properly.
+    const entryType = String((args.entry as any)?.type ?? "");
 
     // Timestamp helper
     const timeAgo = (iso?: string) => {
@@ -21,113 +35,88 @@ export default function FeedItem({ entry }: { entry: any }) {
         return `${Math.floor(s / 86400)}d ago`;
     };
 
-    switch (entry.type) {
-        case "blog":
+    switch (entryType) {
+        case "BLOG": // be permissive
             return (
                 <Card className="mb-6">
                     <div className="flex gap-2 items-center mb-2">
-                        <Avatar
-                            image={entry.profilePicture}
-                            size="normal"
-                            shape="circle"
-                            className=""
-                        />
-                        <span className="font-medium">{entry.username}</span>
-                        <span className="text-xs text-gray-400">{timeAgo(entry.createdAt)}</span>
+                        <Avatar image={args.user.profilePicture ?? undefined} size="normal" shape="circle" className="" />
+                        <span className="font-medium">{args.user.username}</span>
+                        <span className="text-xs text-gray-400">{timeAgo(args.entry.createdAt)}</span>
                     </div>
-                    <h3 className="font-semibold text-lg">{entry.title}</h3>
-                    <p className="mb-2">{entry.text}</p>
-                    {entry.imageUrl && (
-                        <img
-                            src={entry.imageUrl}
-                            alt={entry.caption ?? ""}
-                            className="rounded w-64 mb-2"
-                        />
+                    <h3 className="font-semibold text-lg">{(args.entry as any).title}</h3>
+                    <p className="mb-2">{(args.entry as any).text}</p>
+                    {(args.entry as any).imageUrl && (
+                        <img src={(args.entry as any).imageUrl} alt={(args.entry as any).caption ?? ""} className="rounded w-64 mb-2" />
                     )}
                 </Card>
             );
-        case "tracker":
+        case "LIVESTREAM":
+            const stream = args.entry as LivestreamPost;
             return (
                 <Card className="mb-6">
                     {/* Header */}
                     <div className="flex gap-2 items-center mb-2">
-                        <Avatar
-                            image={entry.profilePicture}
-                            size="normal"
-                            shape="circle"
-                        />
-                        <span className="font-medium">{entry.username}</span>
-                        <span className="text-xs text-gray-400">
-                            {timeAgo(entry.createdAt)}
-                        </span>
+                        <Avatar image={args.user.profilePicture ?? undefined} size="normal" shape="circle" />
+                        <span className="font-medium">{args.user.username}</span>
+                        <span className="text-xs text-gray-400">{timeAgo(stream.createdAt)}</span>
                     </div>
 
                     {/* Title */}
                     <div className="mb-1 flex items-center gap-2">
-                        <i className="pi pi-map-marker text-red-500 text-sm"></i>
-                        <span className="font-semibold">{entry.title}</span>
+                        <i className="pi pi-map-marker text-red-500 text-sm" />
+                        <span className="font-semibold">{stream.stream.title}</span>
                     </div>
 
                     {/* Stats */}
                     <div className="text-xs mb-2">
-                        Distance: <span className="font-bold">{entry.stats?.distance} mi</span>
-                        &nbsp;| Vert: <span className="font-bold">{entry.stats?.vert} ft</span>
+                        Distance: <span className="font-bold">{stream.stream.mileMarker} mi</span>
+                        {/* &nbsp;| Vert: <span className="font-bold">{stream.stream.cumu} ft</span> */}
                     </div>
 
                     {/* Timing */}
                     <div className="text-xs text-gray-500 mb-2">
-                        Start: <span className="font-medium">
-                            {new Date(Number(entry.startTime)).toLocaleString()}
+                        Start:{" "}
+                        <span className="text-medium">
+                            {new Date(Number(stream.stream.startTime)).toLocaleString()}
                         </span>
                         <br />
-                        Finish: <span className="font-medium">
-                            {new Date(Number(entry.finishTime)).toLocaleString()}
+                        Finish:{" "}
+                        <span className="text-medium">
+                            {new Date(Number(stream.stream.finishTime)).toLocaleString()}
                         </span>
                     </div>
                     <div className="h-48 w-full rounded-lg overflow-hidden mb-2">
                         <TrackerMap
-                            lat={entry.currentLocation.lat}
-                            lng={entry.currentLocation.lng}
+                            lat={stream.stream.currentLocation?.lat ?? 0}
+                            lng={stream.stream.currentLocation?.lng ?? 0}
                         />
                     </div>
                 </Card>
             );
-        case "status":
+        case "STATUS":
+            const status = args.entry as StatusPost;
             return (
                 <Card className="mb-6">
                     <div className="flex gap-2 items-center mb-2">
-                        <Avatar
-                            image={entry.profilePicture}
-                            size="normal"
-                            shape="circle"
-                            className=""
-                        />
-                        <span className="font-medium">{entry.username}</span>
-                        <span className="text-xs text-gray-400">{timeAgo(entry.createdAt)}</span>
+                        <Avatar image={args.user.profilePicture ?? undefined} size="normal" shape="circle" className="" />
+                        <span className="font-medium">{args.user.username}</span>
+                        <span className="text-xs text-gray-400">{timeAgo(status.createdAt)}</span>
                     </div>
-                    <p>{entry.text}</p>
+                    <p>{status.text}</p>
                 </Card>
             );
-        case "photo":
+        case "PHOTO":
             return (
                 <Card className="mb-6">
                     <div className="flex gap-2 items-center mb-2">
-                        <Avatar
-                            image={entry.profilePicture}
-                            size="normal"
-                            shape="circle"
-                            className=""
-                        />
-                        <span className="font-medium">{entry.username}</span>
-                        <span className="text-xs text-gray-400">{timeAgo(entry.createdAt)}</span>
+                        <Avatar image={(args.entry as any).profilePicture} size="normal" shape="circle" className="" />
+                        <span className="font-medium">{(args.entry as any).username}</span>
+                        <span className="text-xs text-gray-400">{timeAgo((args.entry as any).createdAt)}</span>
                     </div>
-                    {entry.caption && <div className="text-sm">{entry.caption}</div>}
-                    {entry.imageUrl && (
-                        <img
-                            src={entry.imageUrl}
-                            alt={entry.caption ?? ""}
-                            className="rounded w-64 mb-2"
-                        />
+                    {(args.entry as any).caption && <div className="text-sm">{(args.entry as any).caption}</div>}
+                    {(args.entry as any).imageUrl && (
+                        <img src={(args.entry as any).imageUrl} alt={(args.entry as any).caption ?? ""} className="rounded w-64 mb-2" />
                     )}
                 </Card>
             );
