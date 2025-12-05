@@ -36,6 +36,7 @@ export default function Sidebar({
   };
 
   const item = (channel: Channel) => {
+    console.log(channel)
     const initials = channel.name ? channel.name.charAt(0).toUpperCase() : "?";
     return (
       <li

@@ -109,6 +109,7 @@ export default function FeedItem(args: FeedItemsArgs) {
             );
         case "PHOTO":
             const photo = args.entry as PhotoPost;
+            console.log(photo)
             return (
                 <Card className="mb-6">
                     <div className="flex gap-2 items-center mb-2">

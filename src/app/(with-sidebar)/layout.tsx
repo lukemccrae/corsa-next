@@ -34,6 +34,7 @@ async function fetchStreamsByEntity(entity: string | undefined) {
         profilePicture
         live
         routeGpxUrl
+        title
         slug
         currentLocation {
           lat
@@ -42,8 +43,6 @@ async function fetchStreamsByEntity(entity: string | undefined) {
       }
     }
   `;
-  console.log(query)
-  console.log(APPSYNC_API_KEY)
   const variables = { entity };
 
   const res = await fetch(APPSYNC_ENDPOINT, {

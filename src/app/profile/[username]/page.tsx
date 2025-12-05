@@ -46,6 +46,7 @@ async function fetchProfile(username: string) {
               streamId
               startTime
               finishTime
+              title
               currentLocation {
                 lat
                 lng
@@ -57,6 +58,7 @@ async function fetchProfile(username: string) {
             caption
             type
             createdAt
+            imageUrl
             userId
             id
           }

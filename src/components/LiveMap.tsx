@@ -45,7 +45,7 @@ export default function LiveMap({ center, points, selectedIndex, onSelectIndex }
     html: `<div style="
       width:8px;height:8px;border-radius:50%;background:#111;border:2px solid #fff;
     "></div>`,
-    iconSize: [12, 12],
+    iconSize: [16, 16],
     iconAnchor: [6, 6],
   });
 
@@ -54,7 +54,7 @@ export default function LiveMap({ center, points, selectedIndex, onSelectIndex }
     html: `<div style="
       width:14px;height:14px;border-radius:50%;background:#e34a4a;border:3px solid #fff;box-shadow:0 0 8px #e34a4a66;
     "></div>`,
-    iconSize: [18, 18],
+    iconSize: [20, 20],
     iconAnchor: [9, 9],
   });
 
@@ -105,7 +105,7 @@ export default function LiveMap({ center, points, selectedIndex, onSelectIndex }
       ))}
 
       {/* fly to selected marker when it changes */}
-      <FlyToSelected coords={selectedCoords} />
+      {/* <FlyToSelected coords={selectedCoords} /> */}
     </MapContainer>
   );
 }
