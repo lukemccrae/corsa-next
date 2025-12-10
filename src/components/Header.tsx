@@ -8,6 +8,7 @@ import { useUser } from "../context/UserContext";
 import { Avatar } from "primereact/avatar";
 import AvatarPanel from "./AvatarPanel";
 import ThemeToggleButton from "./ThemeToggleButton"; // Import the ThemeToggleButton component
+import { CreateButton } from "./CreateButton";
 
 export default function TemplateDemo() {
 
@@ -27,8 +28,9 @@ export default function TemplateDemo() {
 
   const end = (
     <div className="flex align-items-center gap-2 m-2">
-      <AvatarPanel></AvatarPanel>
+      <CreateButton></CreateButton>
       <ThemeToggleButton></ThemeToggleButton>
+      <AvatarPanel></AvatarPanel>
     </div>
   );
 

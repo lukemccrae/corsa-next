@@ -201,6 +201,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   };
 
   const registerUser = async (event: any) => {
+    console.log(event, '<< event')
     event.preventDefault();
     const data = new FormData(event.currentTarget);
 
@@ -216,6 +217,9 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       throw new Error("Your user credentials are invalid");
     }
 
+    if(!username!) throw new Error("username is required");
+
+    console.log(firstName, lastName, bio, email, username)
     try {
       const response = await fetch(`${domain.utilityApi}/register`, {
         method: "POST",
@@ -233,6 +237,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
           lastName,
         }),
       });
+      console.log(response)
       if (!response.ok) {
         throw new Error("Failed to register user");
       }
