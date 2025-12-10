@@ -27,48 +27,6 @@ export default function AccountSettingsPage() {
   const { user } = useUser();
   const { theme } = useTheme();
   const router = useRouter();
-  // Sidebar navigation
-  const sidebarItems = [
-  {
-    label: "Profile",
-    icon: "pi pi-user",
-    template: () => (
-      <Link
-        href={`/account/${user?.preferred_username}`}
-        className="flex items-center gap-2 p-2 no-underline text-inherit"
-      >
-        <i className="pi pi-user" />
-        <span>Profile</span>
-      </Link>
-    ),
-  },
-  {
-    label: "Devices",
-    icon: "pi pi-mobile",
-    template: () => (
-      <Link
-        href={`/account/${user?.preferred_username}/devices`}
-        className="flex items-center gap-2 p-2 no-underline text-inherit"
-      >
-        <i className="pi pi-mobile" />
-        <span>Devices</span>
-      </Link>
-    ),
-  },
-  {
-    label: "Preferences",
-    icon: "pi pi-sliders-h",
-    template: () => (
-      <Link
-        href={`/account/${user?.preferred_username}/preferences`}
-        className="flex items-center gap-2 p-2 no-underline text-inherit"
-      >
-        <i className="pi pi-sliders-h" />
-        <span>Preferences</span>
-      </Link>
-    ),
-  },
-];
   const [form, setForm] = useState<ProfileForm>({
     name: "",
     username: "",
@@ -82,10 +40,8 @@ export default function AccountSettingsPage() {
     if (!user) return;
     setForm((f) => ({
       ...f,
-      name: user.preferred_username || "",
-      username: user.username || "",
+      username: user.preferred_username || "",
       email: user.email || "",
-      cell: user.phone_number || "",
       avatar: user.picture || "",
     }));
   }, [user]);
@@ -172,20 +128,10 @@ export default function AccountSettingsPage() {
             <h2 className="text-2xl font-semibold text-surface-900 dark:text-surface-0">
               Account Settings
             </h2>
-            <p className="text-surface-500 dark:text-surface-300">
-              Manage your account and preferences.
-            </p>
           </div>
           <Divider />
 
           <div className="flex flex-row gap-10 mt-6">
-            {/* Sidebar nav */}
-            <aside className="flex-none w-52">
-              <PanelMenu
-                model={sidebarItems}
-                className="bg-transparent border-none text-surface-700 dark:text-surface-200"
-              />
-            </aside>
             {/* Main profile form */}
             <main className="flex-1">
               <Toast ref={toast} />

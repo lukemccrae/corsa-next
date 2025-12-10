@@ -28,10 +28,9 @@ export default function AvatarPanel() {
               <Button
                 label="Account"
                 className="p-button-text p-button-info"
-                icon="pi pi-user-edit"
                 onClick={() => {
                   userPanelRef.current?.hide(); // close panel
-                  window.location.href = `/account/${user.preferred_username}`; // go to account page
+                  window.location.href = `/settings/account`; // go to account page
                 }}
               />
             </div>
@@ -39,7 +38,6 @@ export default function AvatarPanel() {
               <Button
                 label="Profile"
                 className="p-button-text p-button-info"
-                icon="pi pi-user"
                 onClick={() => {
                   userPanelRef.current?.hide(); // close panel
                   window.location.href = `/profile/${user.preferred_username}`; // go to account page
@@ -52,7 +50,6 @@ export default function AvatarPanel() {
               <Button
                 label="Logout"
                 className="p-button-text p-button-danger"
-                icon="pi pi-sign-out"
                 onClick={logoutUser}
               />
             </div>

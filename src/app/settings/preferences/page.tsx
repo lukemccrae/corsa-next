@@ -21,9 +21,6 @@ export default function PreferencesPage() {
             <h2 className="text-2xl font-semibold text-surface-900 dark:text-surface-0">
               Preferences
             </h2>
-            <p className="text-surface-500 dark:text-surface-300">
-              Customize your experience.
-            </p>
           </div>
           <Divider />
 
@@ -32,10 +29,6 @@ export default function PreferencesPage() {
               <div className="flex items-center justify-between">
                 <span className="font-medium">Dark Theme</span>
                 <InputSwitch checked={theme === "dark"} onChange={toggle} />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Email Notifications</span>
-                <InputSwitch checked={emailNotify} onChange={e => setEmailNotify(e.value)} />
               </div>
             </div>
           </Card>
