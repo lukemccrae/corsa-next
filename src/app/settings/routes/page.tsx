@@ -297,7 +297,6 @@ export default function RoutesSettingsPage() {
             </h2>
             <p className="text-gray-400 text-sm max-w-2xl mt-2">
               Upload and manage your GPX routes for pre-calculation of stats.
-              Editing the route name will trigger a stats recalculation.
             </p>
           </div>
 

@@ -1,15 +1,17 @@
 // src/components/CreateButton.tsx
 "use client";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useUser } from "../context/UserContext";
 import { Button } from "primereact/button";
 import { OverlayPanel } from "primereact/overlaypanel";
 import { useRouter } from "next/navigation";
+import CreateTrackerModal from "./CreateTrackerModal";
 
 export function CreateButton() {
   const { user } = useUser();
   const opRef = useRef<OverlayPanel>(null);
   const router = useRouter();
+  const [trackerModalOpen, setTrackerModalOpen] = useState(false);
 
   if (!user) return null;
 
@@ -20,30 +22,13 @@ export function CreateButton() {
         className="p-button-primary"
         rounded
         aria-label="Create new"
-        onClick={(e) => opRef.current?.toggle(e)}
+        onClick={() => {
+              opRef.current?.hide();
+              setTrackerModalOpen(true);
+            }}
       />
-      <OverlayPanel ref={opRef} className="p-2 min-w-[160px] rounded-lg shadow">
-        <div className="flex flex-col gap-1">
-          <Button
-            label="Blog"
-            icon="pi pi-file-edit"
-            className="p-button-text text-left w-full justify-start"
-            onClick={() => {
-              opRef.current?.hide();
-              router.push("/blog/new");
-            }}
-          />
-          <Button
-            label="Tracker"
-            icon="pi pi-map-marker"
-            className="p-button-text text-left w-full justify-start"
-            onClick={() => {
-              opRef.current?.hide();
-              router.push("/track/new"); // adjust if you want to support tracker creation
-            }}
-          />
-        </div>
-      </OverlayPanel>
+
+      <CreateTrackerModal visible={trackerModalOpen} onHide={() => setTrackerModalOpen(false)} />
     </>
   );
 }
