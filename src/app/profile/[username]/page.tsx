@@ -22,7 +22,7 @@ const APPSYNC_API_KEY =
 async function fetchProfile(username: string) {
   const query = `
     query MyQuery {
-      getUserByUserName(username: "aaronyoung") {
+      getUserByUserName(username: "${username}") {
       streamId
         posts {
           createdAt
@@ -92,7 +92,6 @@ async function fetchProfile(username: string) {
   }
 
   const json = await res.json().catch(() => null);
-  console.log(json, '<< profile json');
   return json?.data?.getUserByUserName ?? null;
 
 }
@@ -107,7 +106,6 @@ export default async function ProfilePage({
   let userData = null;
   try {
     userData = await fetchProfile(username);
-    console.log(userData, '<< userData');
   } catch (err) {
     console.error("fetchProfile error", err);
     userData = null;

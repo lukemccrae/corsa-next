@@ -24,10 +24,15 @@ type Props = {
 };
 
 import dynamic from "next/dynamic";
+import { useUser } from "../context/UserContext";
+import PostInputBar from "./PostInputBar";
 const FeedItem = dynamic(() => import("./FeedItem"), { ssr: false });
 
 export default function ProfileClient({ user, username }: Props) {
   const { theme } = useTheme();
+  const { user: currentUser } = useUser();
+  const isOwnProfile = currentUser?.preferred_username === username;
+  console.log(user, '<< user')
 
   const sortedFeed = useMemo(() => {
     const posts: any[] = user?.posts ?? [];
@@ -45,10 +50,11 @@ export default function ProfileClient({ user, username }: Props) {
       {/* Profile header */}
       <div className="relative">
         <div
-          className={`h-60 w-full rounded-lg overflow-hidden ${theme === "dark"
-            ? "bg-gradient-to-r from-gray-800 to-gray-900 filter brightness-90"
-            : "bg-gradient-to-r from-white to-gray-100"
-            } `}
+          className={`h-60 w-full rounded-lg overflow-hidden ${
+            theme === "dark"
+              ? "bg-gradient-to-r from-gray-800 to-gray-900 filter brightness-90"
+              : "bg-gradient-to-r from-white to-gray-100"
+          } `}
           aria-hidden
         >
           <img
@@ -74,7 +80,11 @@ export default function ProfileClient({ user, username }: Props) {
           </div>
 
           <div className="pointer-events-auto flex items-center gap-2">
-            <Button label="Follow" icon="pi pi-user-plus" className="p-button-outlined" />
+            <Button
+              label="Follow"
+              icon="pi pi-user-plus"
+              className="p-button-outlined"
+            />
           </div>
         </div>
       </div>
@@ -84,7 +94,9 @@ export default function ProfileClient({ user, username }: Props) {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">{username}</h1>
-            <div className="text-sm text-gray-500 dark:text-gray-400">@{username}</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              @{username}
+            </div>
             <p className="mt-3 text-sm text-gray-700 dark:text-gray-300 max-w-2xl">
               {user?.bio ?? "No bio provided."}
             </p>
@@ -102,11 +114,15 @@ export default function ProfileClient({ user, username }: Props) {
 
             <div className="mt-4 flex items-center gap-6">
               <div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Following</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Following
+                </div>
                 <div className="font-semibold">151</div>
               </div>
               <div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Followers</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Followers
+                </div>
                 <div className="font-semibold">2264</div>
               </div>
               <LiveButton username={username} streamId={user.streamId} />
@@ -116,9 +132,18 @@ export default function ProfileClient({ user, username }: Props) {
 
         {/* Main content: feed */}
         <div className="max-w-xl mx-auto py-8">
+          {isOwnProfile && (
+            <div className="mb-4">
+              <PostInputBar />
+            </div>
+          )}
           {sortedFeed.map((item: PostEntry) => (
             <div key={item.id} className="mb-4">
-              <FeedItem key={item.id} user={user as User} entry={item as PostEntry} />
+              <FeedItem
+                key={item.id}
+                user={user as User}
+                entry={item as PostEntry}
+              />
             </div>
           ))}
         </div>

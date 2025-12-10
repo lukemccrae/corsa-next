@@ -29,7 +29,6 @@ export default function TemplateDemo() {
   const end = (
     <div className="flex align-items-center gap-2 m-2">
       <CreateButton></CreateButton>
-      <ThemeToggleButton></ThemeToggleButton>
       <AvatarPanel></AvatarPanel>
     </div>
   );
