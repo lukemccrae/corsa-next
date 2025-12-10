@@ -1,4 +1,3 @@
-// src/app/settings/routes/page.tsx
 "use client";
 import React, { useRef, useState, useEffect } from "react";
 import { Button } from "primereact/button";
@@ -11,6 +10,8 @@ import { Footer } from "../../../components/Footer";
 import { useTheme } from "../../../components/ThemeProvider";
 import SmallTrackMap from "../../../components/SmallTrackMap";
 import { Dropdown } from "primereact/dropdown";
+import ElevationGraphWithHover from "../../../components/ElevationGraphWithHover";
+import RouteView from "@/src/components/RouteView";
 
 // Types
 type Route = {
@@ -58,6 +59,9 @@ export default function RoutesSettingsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [viewRoute, setViewRoute] = useState<Route | null>(null);
   const fileUploadRef = useRef<FileUpload>(null);
+
+  // NEW: highlight point to show on map when hovering the chart
+  const [hoverPoint, setHoverPoint] = useState<[number, number] | null>(null);
 
   // Upload handler (mock)
   const handleUpload = async (e: any) => {
@@ -240,7 +244,10 @@ export default function RoutesSettingsPage() {
                 <Button
                   icon="pi pi-eye"
                   className="p-button-text p-button-sm"
-                  onClick={() => setViewRoute(route)}
+                  onClick={() => {
+                    setViewRoute(route);
+                    setHoverPoint(null);
+                  }}
                 />
                 <Button
                   icon="pi pi-trash"
@@ -255,80 +262,27 @@ export default function RoutesSettingsPage() {
     );
   }
 
-  // Elevation graph
-  function ElevationGraph({ elevation }: { elevation: number[] }) {
-    if (!elevation.length) return null;
-    const width = 340,
-      height = 72,
-      pad = 10;
-
-    const min = Math.min(...elevation);
-    const max = Math.max(...elevation);
-
-    const pts = elevation.map((e, i) => {
-      const x = pad + (width - 2 * pad) * (i / (elevation.length - 1));
-      const y = pad + (height - 2 * pad) * (1 - (e - min) / (max - min || 1));
-      return `${x},${y}`;
-    });
-
-    return (
-      <svg width={width} height={height}>
-        <polyline
-          points={pts.join(" ")}
-          fill="none"
-          stroke="#8884d8"
-          strokeWidth={2}
-        />
-        <text x={pad} y={height - 2} fontSize={11} fill="#94a3b8">
-          {min} ft
-        </text>
-        <text x={width - pad - 36} y={height - 2} fontSize={11} fill="#94a3b8">
-          {max} ft
-        </text>
-      </svg>
-    );
-  }
-
   function ViewDialog() {
     const r = viewRoute;
+
+    // Build rows for ElevationGraph: [lat, lng, elevation, distanceIndex, cumulativeVert]
+    const graphRows = r
+      ? r.points.map((p, i) => [p[0], p[1], r.elevation?.[i] ?? 0, i, r.gain ?? 0] as number[])
+      : [];
+
     return (
       <Dialog
         header={r?.name}
         visible={!!r}
-        style={{ width: "480px", maxWidth: "98vw" }}
-        onHide={() => setViewRoute(null)}
+        style={{ width: "640px", maxWidth: "98vw" }}
+        onHide={() => {
+          setViewRoute(null);
+          setHoverPoint(null);
+        }}
         modal
         draggable={false}
       >
-        {r && (
-          <div className="space-y-4">
-            <div className="w-full h-48 rounded">
-              <SmallTrackMap points={r.points} className="w-full h-48" />
-            </div>
-
-            <div>
-              <div className="text-xs font-semibold mb-2 text-gray-400">
-                Elevation Profile
-              </div>
-              <ElevationGraph elevation={r.elevation} />
-            </div>
-
-            <div className="flex gap-4 text-xs text-gray-500 mt-2">
-              <div>
-                <span className="font-semibold text-black dark:text-white">
-                  {r.distance.toFixed(2)}
-                </span>{" "}
-                mi
-              </div>
-              <div>
-                <span className="font-semibold text-black dark:text-white">
-                  {r.points.length}
-                </span>{" "}
-                points
-              </div>
-            </div>
-          </div>
-        )}
+        {r && <RouteView></RouteView>}
       </Dialog>
     );
   }
