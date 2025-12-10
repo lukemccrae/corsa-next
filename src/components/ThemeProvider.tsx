@@ -33,14 +33,14 @@ export default function ThemeProvider({
   children: React.ReactNode;
 }) {
   // Stable server-side default (do NOT access window/localStorage here)
-  const [theme, setThemeState] = useState<Theme>("light");
+  const [theme, setThemeState] = useState<Theme>("dark");
 
   // On mount, read persisted user preference or system preference and apply it.
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const saved = localStorage.getItem("theme");
-    let initial: Theme = "light";
+    let initial: Theme = "dark";
 
     if (saved === "dark" || saved === "light") {
       initial = saved as Theme;

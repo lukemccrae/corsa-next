@@ -1,14 +1,17 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
-import { Avatar } from "primereact/avatar";
+import { PanelMenu } from "primereact/panelmenu";
 import { Divider } from "primereact/divider";
 import { Toast } from "primereact/toast";
+import { Avatar } from "primereact/avatar";
+import { InputText } from "primereact/inputtext";
+import { Button } from "primereact/button";
 import Cropper from "react-easy-crop";
-
 import { useUser } from "../../../context/UserContext";
 import { useTheme } from "../../../components/ThemeProvider";
+import { Footer } from "../../../components/Footer";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type ProfileForm = {
   name: string;
@@ -19,14 +22,53 @@ type ProfileForm = {
   avatarFile: File | null;
 };
 
-export default function AccountDetailsPage() {
+export default function AccountSettingsPage() {
   const toast = useRef<Toast>(null);
   const { user } = useUser();
   const { theme } = useTheme();
-
-  // -----------------------------
-  // REACTIVE FORM (like Vue's ref())
-  // -----------------------------
+  const router = useRouter();
+  // Sidebar navigation
+  const sidebarItems = [
+  {
+    label: "Profile",
+    icon: "pi pi-user",
+    template: () => (
+      <Link
+        href={`/account/${user?.preferred_username}`}
+        className="flex items-center gap-2 p-2 no-underline text-inherit"
+      >
+        <i className="pi pi-user" />
+        <span>Profile</span>
+      </Link>
+    ),
+  },
+  {
+    label: "Devices",
+    icon: "pi pi-mobile",
+    template: () => (
+      <Link
+        href={`/account/${user?.preferred_username}/devices`}
+        className="flex items-center gap-2 p-2 no-underline text-inherit"
+      >
+        <i className="pi pi-mobile" />
+        <span>Devices</span>
+      </Link>
+    ),
+  },
+  {
+    label: "Preferences",
+    icon: "pi pi-sliders-h",
+    template: () => (
+      <Link
+        href={`/account/${user?.preferred_username}/preferences`}
+        className="flex items-center gap-2 p-2 no-underline text-inherit"
+      >
+        <i className="pi pi-sliders-h" />
+        <span>Preferences</span>
+      </Link>
+    ),
+  },
+];
   const [form, setForm] = useState<ProfileForm>({
     name: "",
     username: "",
@@ -36,7 +78,6 @@ export default function AccountDetailsPage() {
     avatarFile: null,
   });
 
-  // Fill form when user loads (like Vue's watch(immediate))
   useEffect(() => {
     if (!user) return;
     setForm((f) => ({
@@ -49,9 +90,7 @@ export default function AccountDetailsPage() {
     }));
   }, [user]);
 
-  // -----------------------------
-  // Avatar Upload + Crop Modal
-  // -----------------------------
+  // Avatar Cropper modal state/logic
   const [showCropModal, setShowCropModal] = useState(false);
   const [cropAreaPixels, setCropAreaPixels] = useState<any>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -75,8 +114,14 @@ export default function AccountDetailsPage() {
         canvas.height = 320;
         ctx.drawImage(
           image,
-          cropPixels.x, cropPixels.y, cropPixels.width, cropPixels.height,
-          0, 0, 320, 320
+          cropPixels.x,
+          cropPixels.y,
+          cropPixels.width,
+          cropPixels.height,
+          0,
+          0,
+          320,
+          320
         );
         resolve(canvas.toDataURL("image/jpeg", 0.9));
       };
@@ -105,11 +150,9 @@ export default function AccountDetailsPage() {
     setShowCropModal(false);
   }
 
-  // -----------------------------
-  // SAVE PROFILE
-  // -----------------------------
   async function updateProfile() {
     // TODO: upload image + send mutation
+    // All original functionality stays here
     console.log("Updated profile:", form);
 
     toast.current?.show({
@@ -119,116 +162,157 @@ export default function AccountDetailsPage() {
     });
   }
 
-  // -----------------------------
-  // UI (Matches your Vue layout)
-  // -----------------------------
+  // Page shell/layout
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <Toast ref={toast} />
-
-      <h3 className="font-semibold text-lg mb-8">Profile</h3>
-
-      <div className="flex flex-col md:flex-row gap-10">
-        {/* LEFT COLUMN – FORM */}
-        <div className="flex-1 flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <label className="font-medium">Name</label>
-            <InputText
-              className="w-full"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
+    <>
+      <div className="flex flex-col flex-auto min-h-screen bg-surface-950">
+        {/* Card shell */}
+        <div className="rounded-t-3xl bg-surface-0 dark:bg-surface-900 py-8 px-8 lg:px-20 max-w-5xl mx-auto w-full shadow">
+          <div className="flex flex-col gap-2 mb-6">
+            <h2 className="text-2xl font-semibold text-surface-900 dark:text-surface-0">
+              Account Settings
+            </h2>
+            <p className="text-surface-500 dark:text-surface-300">
+              Manage your account and preferences.
+            </p>
           </div>
+          <Divider />
 
-          <div className="flex flex-col gap-2">
-            <label className="font-medium">Username</label>
-            <InputText
-              className="w-full"
-              value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
-            />
-          </div>
+          <div className="flex flex-row gap-10 mt-6">
+            {/* Sidebar nav */}
+            <aside className="flex-none w-52">
+              <PanelMenu
+                model={sidebarItems}
+                className="bg-transparent border-none text-surface-700 dark:text-surface-200"
+              />
+            </aside>
+            {/* Main profile form */}
+            <main className="flex-1">
+              <Toast ref={toast} />
+              <h3 className="font-semibold text-lg mb-8">Profile</h3>
 
-          <div className="flex flex-col gap-2">
-            <label className="font-medium">Email</label>
-            <InputText
-              className="w-full"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-            />
-          </div>
+              <div className="flex flex-col md:flex-row gap-10">
+                {/* LEFT COLUMN – FORM */}
+                <div className="flex-1 flex flex-col gap-6">
+                  <div className="flex flex-col gap-2">
+                    <label className="font-medium">Name</label>
+                    <InputText
+                      className="w-full"
+                      value={form.name}
+                      onChange={(e) =>
+                        setForm({ ...form, name: e.target.value })
+                      }
+                    />
+                  </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="font-medium">Cell</label>
-            <InputText
-              className="w-full"
-              value={form.cell}
-              onChange={(e) => setForm({ ...form, cell: e.target.value })}
-            />
-          </div>
-        </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="font-medium">Username</label>
+                    <InputText
+                      className="w-full"
+                      value={form.username}
+                      onChange={(e) =>
+                        setForm({ ...form, username: e.target.value })
+                      }
+                    />
+                  </div>
 
-        {/* RIGHT COLUMN – AVATAR */}
-        <div className="flex flex-col items-start lg:items-center gap-4">
-          <Avatar
-            image={form.avatar}
-            label={!form.avatar ? form.name?.charAt(0) : undefined}
-            shape="circle"
-            size="xlarge"
-            className="!w-28 !h-28"
-          />
+                  <div className="flex flex-col gap-2">
+                    <label className="font-medium">Email</label>
+                    <InputText
+                      className="w-full"
+                      value={form.email}
+                      onChange={(e) =>
+                        setForm({ ...form, email: e.target.value })
+                      }
+                    />
+                  </div>
 
-          <Button
-            label="Upload"
-            icon="pi pi-upload"
-            className="p-button-outlined p-button-secondary"
-            onClick={() => document.getElementById("avatarInput")?.click()}
-          />
+                  <div className="flex flex-col gap-2">
+                    <label className="font-medium">Cell</label>
+                    <InputText
+                      className="w-full"
+                      value={form.cell}
+                      onChange={(e) =>
+                        setForm({ ...form, cell: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
 
-          <input
-            id="avatarInput"
-            type="file"
-            accept="image/*"
-            onChange={onAvatarSelect}
-            className="hidden"
-          />
-        </div>
-      </div>
+                {/* RIGHT COLUMN – AVATAR */}
+                <div className="flex flex-col items-start lg:items-center gap-4">
+                  <Avatar
+                    image={form.avatar}
+                    label={!form.avatar ? form.name?.charAt(0) : undefined}
+                    shape="circle"
+                    size="xlarge"
+                    className="!w-28 !h-28"
+                  />
 
-      <div className="mt-8">
-        <Button
-          label="Update Profile"
-          icon="pi pi-check"
-          className="w-auto"
-          onClick={updateProfile}
-        />
-      </div>
+                  <Button
+                    label="Upload"
+                    icon="pi pi-upload"
+                    className="p-button-outlined p-button-secondary"
+                    onClick={() =>
+                      document.getElementById("avatarInput")?.click()
+                    }
+                  />
 
-      {/* ------------------ CROP MODAL ------------------ */}
-      {showCropModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-xl flex flex-col items-center w-full max-w-md">
-            <div className="w-[300px] h-[300px] relative">
-              {form.avatarFile && (
-                <Cropper
-                  image={URL.createObjectURL(form.avatarFile)}
-                  crop={crop}
-                  zoom={zoom}
-                  aspect={1}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onCropComplete={(_, px) => setCropAreaPixels(px)}
+                  <input
+                    id="avatarInput"
+                    type="file"
+                    accept="image/*"
+                    onChange={onAvatarSelect}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+              <div className="mt-8">
+                <Button
+                  label="Update Profile"
+                  icon="pi pi-check"
+                  className="w-auto"
+                  onClick={updateProfile}
                 />
-              )}
-            </div>
+              </div>
+              {/* Avatar Crop modal */}
+              {showCropModal && (
+                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+                  <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-xl flex flex-col items-center w-full max-w-md">
+                    <div className="w-[300px] h-[300px] relative">
+                      {form.avatarFile && (
+                        <Cropper
+                          image={URL.createObjectURL(form.avatarFile)}
+                          crop={crop}
+                          zoom={zoom}
+                          aspect={1}
+                          onCropChange={setCrop}
+                          onZoomChange={setZoom}
+                          onCropComplete={(_, px) => setCropAreaPixels(px)}
+                        />
+                      )}
+                    </div>
 
-            <div className="flex gap-2 mt-4">
-              <Button label="Save" severity="success" onClick={saveCrop} />
-              <Button label="Cancel" severity="danger" onClick={cancelCrop} />
-            </div>
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        label="Save"
+                        severity="success"
+                        onClick={saveCrop}
+                      />
+                      <Button
+                        label="Cancel"
+                        severity="danger"
+                        onClick={cancelCrop}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </main>
           </div>
         </div>
-      )}
-    </div>
+      </div>
+      <Footer />
+    </>
   );
 }
