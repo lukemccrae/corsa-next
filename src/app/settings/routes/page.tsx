@@ -1,5 +1,6 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "primereact/button";
 import { FileUpload } from "primereact/fileupload";
 import { Toast } from "primereact/toast";
@@ -8,10 +9,12 @@ import { InputNumber } from "primereact/inputnumber";
 import { Dialog } from "primereact/dialog";
 import { Footer } from "../../../components/Footer";
 import { useTheme } from "../../../components/ThemeProvider";
-import SmallTrackMap from "../../../components/SmallTrackMap";
+// Dynamically load browser-only components to avoid server-side evaluation
+const SmallTrackMap = dynamic(() => import("../../../components/SmallTrackMap"), { ssr: false });
+const ElevationGraphWithHover = dynamic(() => import("../../../components/ElevationGraphWithHover"), { ssr: false });
+const RouteView = dynamic(() => import("@/src/components/RouteView"), { ssr: false });
+
 import { Dropdown } from "primereact/dropdown";
-import ElevationGraphWithHover from "../../../components/ElevationGraphWithHover";
-import RouteView from "@/src/components/RouteView";
 
 // Types
 type Route = {
@@ -58,7 +61,7 @@ export default function RoutesSettingsPage() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [viewRoute, setViewRoute] = useState<Route | null>(null);
-  const fileUploadRef = useRef<FileUpload>(null);
+  const fileUploadRef = useRef<any>(null);
 
   // NEW: highlight point to show on map when hovering the chart
   const [hoverPoint, setHoverPoint] = useState<[number, number] | null>(null);
@@ -102,7 +105,7 @@ export default function RoutesSettingsPage() {
       life: 1300,
     });
 
-    fileUploadRef.current?.clear();
+    fileUploadRef.current?.clear?.();
   };
 
   const delRoute = (id: string) => {
