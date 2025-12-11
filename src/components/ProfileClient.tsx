@@ -26,6 +26,7 @@ type Props = {
 import dynamic from "next/dynamic";
 import { useUser } from "../context/UserContext";
 import PostInputBar from "./PostInputBar";
+import CoverMap from "./CoverMap";
 const FeedItem = dynamic(() => import("./FeedItem"), { ssr: false });
 
 export default function ProfileClient({ user, username }: Props) {
@@ -49,7 +50,7 @@ export default function ProfileClient({ user, username }: Props) {
     <div className="max-w-3xl mx-auto px-4 py-6">
       {/* Profile header */}
       <div className="relative">
-        <div
+        {user.live ? <CoverMap></CoverMap> : <div
           className={`h-60 w-full rounded-lg overflow-hidden ${
             theme === "dark"
               ? "bg-gradient-to-r from-gray-800 to-gray-900 filter brightness-90"
@@ -62,7 +63,7 @@ export default function ProfileClient({ user, username }: Props) {
             alt={`${username} cover`}
             className="w-full h-full object-cover"
           />
-        </div>
+        </div>}
 
         <div className="absolute inset-x-0 -bottom-15 flex items-end justify-between px-6 pointer-events-none">
           <div className="pointer-events-auto">
@@ -125,7 +126,6 @@ export default function ProfileClient({ user, username }: Props) {
                 </div>
                 <div className="font-semibold">2264</div>
               </div>
-              <LiveButton username={username} streamId={user.streamId} />
             </div>
           </div>
         </div>

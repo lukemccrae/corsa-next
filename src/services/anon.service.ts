@@ -195,6 +195,7 @@ export const getPublishedUserInfo = async (props: GetPublishedUserInfoProps) => 
         profilePicture
         userId
         username
+        live
         posts {
           ... on BlogPost {
             createdAt
@@ -243,6 +244,7 @@ export const getPublishedUserInfo = async (props: GetPublishedUserInfoProps) => 
   `;
 
   const result = await anonFetch(query, props.anon);
+  console.log(result, '<< res')
   return result;
 };
 

@@ -26,21 +26,21 @@ export default function AvatarPanel() {
           <OverlayPanel ref={userPanelRef}>
             <div className="flex flex-col gap-2">
               <Button
-                label="Settings"
-                className="p-button-text p-button-info"
-                onClick={() => {
-                  userPanelRef.current?.hide(); // close panel
-                  window.location.href = `/settings/account`; // go to account page
-                }}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Button
                 label="Profile"
                 className="p-button-text p-button-info"
                 onClick={() => {
                   userPanelRef.current?.hide(); // close panel
                   window.location.href = `/profile/${user.preferred_username}`; // go to account page
+                }}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                label="Settings"
+                className="p-button-text p-button-info"
+                onClick={() => {
+                  userPanelRef.current?.hide(); // close panel
+                  window.location.href = `/settings/account`; // go to account page
                 }}
               />
             </div>

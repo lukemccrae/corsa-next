@@ -24,6 +24,7 @@ async function fetchProfile(username: string) {
     query MyQuery {
       getUserByUserName(username: "${username}") {
       streamId
+      live
         posts {
           createdAt
           type
