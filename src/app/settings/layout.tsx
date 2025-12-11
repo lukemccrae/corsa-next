@@ -1,97 +1,149 @@
-// src/app/account/[username]/layout.tsx
+// src/app/settings/layout.tsx
 "use client";
 
-import React from "react";
-import { PanelMenu } from "primereact/panelmenu";
+import React, { useState } from "react";
 import Link from "next/link";
-import { Divider } from "primereact/divider";
-import { Footer } from "../../components/Footer";
+import { Button } from "primereact/button";
+import { Sidebar } from "primereact/sidebar";
+import { Avatar } from "primereact/avatar";
+import { usePathname } from "next/navigation";
 import { useUser } from "../../context/UserContext";
+import { useTheme } from "../../components/ThemeProvider";
 
-// Sidebar navigation model — ensure user context is loaded in layout!
-function SidebarNav() {
+/**
+ * Responsive settings layout for /settings/*
+ *
+ * - desktop (md+): left sticky navigation column + content
+ * - mobile: top header with menu button that opens a PrimeReact Sidebar (drawer)
+ *
+ * Notes:
+ * - Footer remains handled by pages that render it (consistent with existing pages).
+ * - Uses Tailwind for styling and PrimeReact base components (Sidebar, Button, Avatar).
+ */
+
+const MENU = [
+  { key: "account", label: "Account", href: "/settings/account", icon: "pi pi-user" },
+  { key: "devices", label: "Devices", href: "/settings/devices", icon: "pi pi-mobile" },
+  { key: "preferences", label: "Preferences", href: "/settings/preferences", icon: "pi pi-cog" },
+  { key: "privacy", label: "Privacy", href: "/settings/privacy", icon: "pi pi-lock" },
+  { key: "routes", label: "Routes", href: "/settings/routes", icon: "pi pi-map" },
+];
+
+export default function SettingsLayout({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const { user } = useUser();
-  const sidebarItems = [
-    {
-      label: "Account",
-      template: () => (
-        <Link
-          href={`/settings/account`}
-          className="flex items-center gap-2 p-2 no-underline text-inherit"
-        >
-          <span>Account</span>
-        </Link>
-      ),
-    },
-    {
-      label: "Devices",
-      template: () => (
-        <Link
-          href={`/settings/devices`}
-          className="flex items-center gap-2 p-2 no-underline text-inherit"
-        >
-          <span>Devices</span>
-        </Link>
-      ),
-    },
-    {
-      label: "Preferences",
-      template: () => (
-        <Link
-          href={`/settings/preferences`}
-          className="flex items-center gap-2 p-2 no-underline text-inherit"
-        >
-          <span>Preferences</span>
-        </Link>
-      ),
-    },
-    {
-      label: "Privacy",
-      template: () => (
-        <Link
-          href={`/settings/privacy`}
-          className="flex items-center gap-2 p-2 no-underline text-inherit"
-        >
-          <span>Privacy</span>
-        </Link>
-      ),
-    },
-        {
-      label: "Routes",
-      template: () => (
-        <Link
-          href={`/settings/routes`}
-          className="flex items-center gap-2 p-2 no-underline text-inherit"
-        >
-          <span>Routes</span>
-        </Link>
-      ),
-    }
-  ];
-  return (
-    <aside className="flex-none w-52">
-      <PanelMenu
-        model={sidebarItems}
-        className="bg-transparent border-none text-surface-700 dark:text-surface-200"
-      />
-    </aside>
-  );
-}
+  const { theme } = useTheme();
 
-export default function AccountSettingsLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+  const navBg = theme === "dark" ? "bg-gray-800" : "bg-gray-50";
+  const contentBg = theme === "dark" ? "bg-gray-900 text-gray-100" : "bg-white text-gray-900";
+
+  const isActive = (href: string) => pathname?.startsWith(href);
+
+  const NavList = ({ onItemClick }: { onItemClick?: () => void }) => (
+    <nav aria-label="Settings navigation" className="flex flex-col min-h-[200px]">
+      <div className="px-4 py-3 border-b border-gray-100 dark:border-white/6">
+        <div className="text-xs font-semibold text-gray-400">Settings</div>
+      </div>
+
+      <ul className="p-3 flex flex-col gap-1">
+        {MENU.map((m) => (
+          <li key={m.key}>
+            {/* Use Link without nested <a> to satisfy Next 13+ rules */}
+            <Link
+              href={m.href}
+              onClick={onItemClick}
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-md transition-colors text-sm ${
+                isActive(m.href)
+                  ? "bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-200"
+                  : "hover:bg-gray-100 dark:hover:bg-white/5 text-gray-800 dark:text-gray-200"
+              }`}
+              aria-current={isActive(m.href) ? "page" : undefined}
+            >
+              {m.icon && <i className={`${m.icon} text-sm`} aria-hidden />}
+              <span className="truncate">{m.label}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      {/* optional user info at bottom of nav */}
+      <div className="mt-auto px-3 py-3 border-t border-gray-100 dark:border-white/6">
+        {user ? (
+          <div className="flex items-center gap-3">
+            <Avatar
+              image={user.picture ?? undefined}
+              label={!user.picture ? user.preferred_username?.charAt(0).toUpperCase() : undefined}
+              size="normal"
+              shape="circle"
+              className="!w-9 !h-9"
+            />
+            <div className="min-w-0">
+              <div className="text-sm font-medium truncate">{user.preferred_username}</div>
+              <div className="text-xs text-gray-400 truncate">{user.email}</div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-xs text-gray-500">Not signed in</div>
+        )}
+      </div>
+    </nav>
+  );
+
   return (
     <div className="flex flex-col min-h-screen bg-surface-950">
-      <div className="rounded-t-3xl bg-surface-0 dark:bg-surface-900 py-8 px-8 lg:px-20 max-w-5xl mx-auto w-full shadow">
-        <div className="flex flex-row gap-10 mt-6">
-          <SidebarNav />
-          <main className="flex-1">{children}</main>
+      <div className="rounded-t-3xl bg-surface-0 dark:bg-surface-900 py-6 px-4 lg:px-20 w-full shadow">
+        {/* header */}
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 mb-4">
+          <div>
+            <h1 className="text-2xl font-semibold">Settings</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Manage your account and preferences
+            </p>
+          </div>
+
+          {/* mobile menu toggle */}
+          <div className="md:hidden">
+            <Button
+              icon="pi pi-bars"
+              className="p-button-text"
+              aria-label="Open settings menu"
+              onClick={() => setOpen(true)}
+            />
+          </div>
+        </div>
+
+        {/* layout: desktop nav + content */}
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-[16rem_1fr] gap-6">
+          {/* desktop sidebar */}
+          <aside
+            className={`hidden md:flex flex-col rounded-lg overflow-hidden shadow ${navBg} border border-gray-100 dark:border-white/6`}
+            aria-hidden={false}
+          >
+            <div className="flex-1">
+              <NavList />
+            </div>
+          </aside>
+
+          {/* mobile sidebar (PrimeReact Sidebar) */}
+          <Sidebar
+            visible={open}
+            onHide={() => setOpen(false)}
+            position="left"
+            className="w-64"
+            aria-label="Settings menu"
+          >
+            <div className="px-2 py-3">
+              <NavList onItemClick={() => setOpen(false)} />
+            </div>
+          </Sidebar>
+
+          {/* main content */}
+          <main className={`min-w-0 ${contentBg} rounded-lg p-4 border border-gray-100 dark:border-white/6 shadow-sm`}>
+            {children}
+          </main>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

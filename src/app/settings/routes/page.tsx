@@ -161,15 +161,15 @@ export default function RoutesSettingsPage() {
       <tr>
         {isEditing ? (
           <>
-            <td className="p-2 w-16">
+            <td className="p-2">
               <InputText
                 value={localName}
                 onChange={(e) => setLocalName(e.target.value)}
-                style={{ width: "100%" }}
+                className="w-full"
               />
             </td>
 
-            <td className="p-2 w-16">
+            <td className="p-2">
               <Dropdown
                 value={localUom}
                 options={[
@@ -190,7 +190,7 @@ export default function RoutesSettingsPage() {
               />
             </td>
 
-            <td className="p-2 w-16">
+            <td className="p-2">
               <InputNumber
                 value={localGain}
                 onChange={(e) => setLocalGain(e.value)}
@@ -198,7 +198,7 @@ export default function RoutesSettingsPage() {
               />
             </td>
 
-            <td className="p-2 w-32 text-right">
+            <td className="p-2 text-right">
               <div className="flex gap-1 justify-end">
                 <Button
                   icon="pi pi-check"
@@ -216,25 +216,25 @@ export default function RoutesSettingsPage() {
           </>
         ) : (
           <>
-            <td className="p-2 w-16">
+            <td className="p-2">
               <span className="text-sm font-medium">{route.name}</span>
             </td>
 
-            <td className="p-2 w-16">
+            <td className="p-2">
               <span className="text-sm font-medium">{route.uom}</span>
             </td>
 
-            <td className="p-2 w-16">
+            <td className="p-2">
               <span className="text-sm font-medium">
                 {route.distance.toFixed(2)} mi
               </span>
             </td>
 
-            <td className="p-2 w-16">
+            <td className="p-2">
               <span className="text-sm font-medium">{route.gain} ft</span>
             </td>
 
-            <td className="p-2 w-32 text-right">
+            <td className="p-2 text-right">
               <div className="flex gap-1 justify-end">
                 <Button
                   icon="pi pi-pencil"
@@ -300,7 +300,8 @@ export default function RoutesSettingsPage() {
             </p>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-6 md:gap-10 mt-6">
+          {/* Keep columns stacked on small screens */}
+          <div className="flex flex-col gap-6 md:flex-row md:gap-10 mt-6">
             <main className="flex-1">
               <Toast ref={toast} />
 
@@ -324,33 +325,35 @@ export default function RoutesSettingsPage() {
                   />
                 </div>
 
-                {/* ROUTE TABLE */}
-                <table className="w-full table-fixed border-separate border-spacing-0">
-                  <thead>
-                    <tr className="text-xs font-semibold text-gray-400 text-left">
-                      <th className="p-2 w-52">Route Name</th>
-                      <th className="p-2 w-24">UOM</th>
-                      <th className="p-2 w-24">Distance</th>
-                      <th className="p-2 w-24">Gain</th>
-                      <th className="p-2 w-32 text-right">&nbsp;</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {routes.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={5}
-                          className="p-6 text-sm text-gray-400 text-center"
-                        >
-                          No routes added yet.
-                        </td>
+                {/* Table wrapper: horizontal scroll on small screens */}
+                <div className="overflow-x-auto">
+                  <table className="min-w-[760px] w-full table-auto">
+                    <thead>
+                      <tr className="text-xs font-semibold text-gray-400 text-left">
+                        <th className="p-2">Route Name</th>
+                        <th className="p-2">UOM</th>
+                        <th className="p-2">Distance</th>
+                        <th className="p-2">Gain</th>
+                        <th className="p-2 text-right">&nbsp;</th>
                       </tr>
-                    ) : (
-                      routes.map((r) => <RouteRow key={r.id} route={r} />)
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+
+                    <tbody>
+                      {routes.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="p-6 text-sm text-gray-400 text-center"
+                          >
+                            No routes added yet.
+                          </td>
+                        </tr>
+                      ) : (
+                        routes.map((r) => <RouteRow key={r.id} route={r} />)
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </main>
           </div>

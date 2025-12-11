@@ -103,7 +103,7 @@ export default function DevicesSettingsPage() {
     if (editing) {
       return (
         <tr>
-          <td className="p-2 w-40">
+          <td className="p-2">
             <InputText
               value={editForm?.imei ?? ""}
               onChange={(e) => setEditForm(f => f ? { ...f, imei: e.target.value } : f)}
@@ -111,7 +111,7 @@ export default function DevicesSettingsPage() {
               className="w-full"
             />
           </td>
-          <td className="p-2 w-40">
+          <td className="p-2">
             <InputText
               value={editForm?.name ?? ""}
               onChange={(e) => setEditForm(f => f ? { ...f, name: e.target.value } : f)}
@@ -119,7 +119,7 @@ export default function DevicesSettingsPage() {
               className="w-full"
             />
           </td>
-          <td className="p-2 w-32">
+          <td className="p-2">
             <Dropdown
               options={deviceMakes}
               value={editForm?.make}
@@ -128,7 +128,7 @@ export default function DevicesSettingsPage() {
               className="w-full"
             />
           </td>
-          <td className="p-2 w-32">
+          <td className="p-2">
             <InputText
               value={editForm?.model ?? ""}
               onChange={(e) => setEditForm(f => f ? { ...f, model: e.target.value } : f)}
@@ -136,7 +136,7 @@ export default function DevicesSettingsPage() {
               className="w-full"
             />
           </td>
-          <td className="p-2 w-24 text-right">
+          <td className="p-2 text-right">
             <div className="flex gap-2 justify-end">
               <Button
                 icon="pi pi-check"
@@ -158,11 +158,11 @@ export default function DevicesSettingsPage() {
     // Display row
     return (
       <tr>
-        <td className="p-2 w-40 text-xs">{device.imei}</td>
-        <td className="p-2 w-40 text-sm font-medium">{device.name}</td>
-        <td className="p-2 w-32 text-xs">{deviceMakes.find(m=>m.value===device.make)?.label}</td>
-        <td className="p-2 w-32 text-xs">{device.model}</td>
-        <td className="p-2 w-24 text-right">
+        <td className="p-2 text-xs">{device.imei}</td>
+        <td className="p-2 text-sm font-medium">{device.name}</td>
+        <td className="p-2 text-xs">{deviceMakes.find(m=>m.value===device.make)?.label}</td>
+        <td className="p-2 text-xs">{device.model}</td>
+        <td className="p-2 text-right">
           <div className="flex gap-1 justify-end">
             <Button
               icon="pi pi-pencil"
@@ -183,14 +183,15 @@ export default function DevicesSettingsPage() {
   return (
     <>
       <div className="flex flex-col flex-auto min-h-screen bg-surface-950">
-        <div className="rounded-t-3xl bg-surface-0 dark:bg-surface-900 py-8 px-8 lg:px-20 max-w-5xl mx-auto w-full shadow">
+        <div className="rounded-t-3xl bg-surface-0 dark:bg-surface-900 py-2 px-2 lg:px-20 max-w-5xl mx-auto w-full shadow">
           <div className="flex flex-col gap-2 mb-6">
             <h2 className="text-2xl font-semibold text-surface-900 dark:text-surface-0">
               Device Settings
             </h2>
           </div>
 
-          <div className="flex flex-row gap-10 mt-6">
+          {/* Stack on small screens, side-by-side on md+ */}
+          <div className="flex flex-col md:flex-row gap-10 mt-6">
             <main className="flex-1">
               <Toast ref={toast} />
               <div className="rounded-xl border border-gray-200 dark:border-white/6 bg-white dark:bg-gray-950 p-2 max-w-2xl">
@@ -207,34 +208,37 @@ export default function DevicesSettingsPage() {
                   />
                 </div>
 
-                <table className="w-full table-fixed border-separate border-spacing-0">
-                  <thead>
-                    <tr className="text-xs font-semibold text-gray-400 text-left">
-                      <th className="p-2 w-40">IMEI</th>
-                      <th className="p-2 w-40">Name</th>
-                      <th className="p-2 w-32">Make</th>
-                      <th className="p-2 w-32">Model</th>
-                      <th className="p-2 w-24 text-right">&nbsp;</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {devices.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="p-6 text-sm text-gray-400 text-center">
-                          No devices added yet.
-                        </td>
+                {/* Make table horizontally scrollable on narrow screens */}
+                <div className="overflow-x-auto">
+                  <table className="min-w-[680px] w-full table-auto">
+                    <thead>
+                      <tr className="text-xs font-semibold text-gray-400 text-left">
+                        <th className="p-2">IMEI</th>
+                        <th className="p-2">Name</th>
+                        <th className="p-2">Make</th>
+                        <th className="p-2">Model</th>
+                        <th className="p-2 text-right">&nbsp;</th>
                       </tr>
-                    ) : (
-                      devices.map((d) =>
-                        <DeviceRow
-                          key={d.id}
-                          device={d}
-                          editing={editingId === d.id}
-                        />
-                      )
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {devices.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="p-6 text-sm text-gray-400 text-center">
+                            No devices added yet.
+                          </td>
+                        </tr>
+                      ) : (
+                        devices.map((d) =>
+                          <DeviceRow
+                            key={d.id}
+                            device={d}
+                            editing={editingId === d.id}
+                          />
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </main>
           </div>
