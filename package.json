@@ -29,7 +29,7 @@
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "lightningcss-wasm": "^1.30.2",
-    "next": "15.5.5",
+    "next": "15.5.7",
     "npx": "^10.2.2",
     "postcss": "^8.5.6",
     "primeicons": "^7.0.0",
