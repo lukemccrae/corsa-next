@@ -1,6 +1,12 @@
 "use client";
 import React from "react";
-import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Polyline,
+  Popup,
+} from "react-leaflet";
 import L from "leaflet";
 import { useTheme } from "./ThemeProvider";
 
@@ -14,7 +20,7 @@ type CoverMapProps = {
 };
 
 export default function CoverMap({
-  center = [45.5231, -122.6765],
+  center = [-35.02626523607081, 117.4867391480779],
   zoom = 10,
   points,
   className = "",
@@ -26,10 +32,12 @@ export default function CoverMap({
   // small circular marker used for the center
   const centerIcon = L.divIcon({
     className: "cover-center-icon",
-    html: `<div style="
-      width:12px;height:12px;border-radius:50%;background:#e34a4a;border:2px solid white;
-      box-shadow: 0 0 6px rgba(227,74,74,0.35);
-    "></div>`,
+    html: `
+    <img 
+      src="https://i.imgur.com/9JxknPj.png" 
+      style="width:32px; height:32px; border-radius:50%; border:2px solid white; box-shadow:0 0 6px rgba(227,74,74,0.35);" 
+    />
+  `,
     iconSize: [16, 16],
     iconAnchor: [8, 8],
   });
@@ -50,14 +58,26 @@ export default function CoverMap({
       >
         <TileLayer
           url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-          attribution='Map data: &copy; OpenStreetMap contributors'
+          attribution="Map data: &copy; OpenStreetMap contributors"
           maxZoom={17}
         />
 
         {showCenterMarker && <Marker position={center} icon={centerIcon} />}
 
+        {showCenterMarker && (
+          <Marker position={center} icon={centerIcon}>
+            <Popup>
+              <div>Distance: 53 km.</div>
+              <div>Elapsed: 5h35m</div>
+            </Popup>
+          </Marker>
+        )}
+
         {points && points.length > 1 && (
-          <Polyline positions={points} pathOptions={{ color: "#3b82f6", weight: 3, opacity: 0.9 }} />
+          <Polyline
+            positions={points}
+            pathOptions={{ color: "#3b82f6", weight: 3, opacity: 0.9 }}
+          />
         )}
       </MapContainer>
     </div>

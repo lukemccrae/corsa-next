@@ -33,7 +33,7 @@ export default function ProfileClient({ user, username }: Props) {
   const { theme } = useTheme();
   const { user: currentUser } = useUser();
   const isOwnProfile = currentUser?.preferred_username === username;
-  console.log(user, '<< user')
+  console.log(user, "<< user");
 
   const sortedFeed = useMemo(() => {
     const posts: any[] = user?.posts ?? [];
@@ -50,20 +50,24 @@ export default function ProfileClient({ user, username }: Props) {
     <div className="max-w-3xl mx-auto px-4 py-6">
       {/* Profile header */}
       <div className="relative">
-        {user.live ? <CoverMap></CoverMap> : <div
-          className={`h-60 w-full rounded-lg overflow-hidden ${
-            theme === "dark"
-              ? "bg-gradient-to-r from-gray-800 to-gray-900 filter brightness-90"
-              : "bg-gradient-to-r from-white to-gray-100"
-          } `}
-          aria-hidden
-        >
-          <img
-            src={"https://i.imgur.com/h5fqzGG.png"}
-            alt={`${username} cover`}
-            className="w-full h-full object-cover"
-          />
-        </div>}
+        {user.live ? (
+          <CoverMap></CoverMap>
+        ) : (
+          <div
+            className={`h-60 w-full rounded-lg overflow-hidden ${
+              theme === "dark"
+                ? "bg-gradient-to-r from-gray-800 to-gray-900 filter brightness-90"
+                : "bg-gradient-to-r from-white to-gray-100"
+            } `}
+            aria-hidden
+          >
+            <img
+              src={"https://i.imgur.com/h5fqzGG.png"}
+              alt={`${username} cover`}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
 
         <div className="absolute inset-x-0 -bottom-15 flex items-end justify-between px-6 pointer-events-none">
           <div className="pointer-events-auto">

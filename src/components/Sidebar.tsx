@@ -88,11 +88,11 @@ export default function Sidebar({
     );
   };
 
-  // Collapsed thin sidebar used on medium+ screens
+  // Collapsed thin sidebar used on medium+ screens (now always available)
   if (collapsed) {
     return (
       <aside
-        className={`hidden md:flex flex-col items-center justify-start w-14 ${className} bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-r border-gray-100 dark:border-white/6 shadow-lg`}
+        className={`flex flex-col items-center justify-start w-14 ${className} bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-r border-gray-100 dark:border-white/6 shadow-lg`}
         aria-hidden={false}
       >
         <div className="w-full flex flex-col items-center">
@@ -152,10 +152,10 @@ export default function Sidebar({
     );
   }
 
-  // Full sidebar
+  // Full sidebar (now always available)
   return (
     <aside
-      className={`hidden md:flex flex-col w-72 max-w-[18rem] h-full ${className} bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-r border-gray-100 dark:border-white/6 shadow-lg`}
+      className={`flex flex-col w-72 max-w-[18rem] h-full ${className} bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-r border-gray-100 dark:border-white/6 shadow-lg`}
     >
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/6">
         <div>
