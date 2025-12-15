@@ -15,6 +15,7 @@
     "@aws-sdk/signature-v4": "^3.374.0",
     "@aws-sdk/types": "^3.910.0",
     "@graphql-codegen/cli": "^6.1.0",
+    "@graphql-codegen/introspection": "^5.0.0",
     "@graphql-codegen/typescript-graphql-request": "^6.3.0",
     "@graphql-codegen/typescript-react-query": "^6.1.1",
     "@tailwindcss/postcss": "^4.1.16",
@@ -45,6 +46,8 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@graphql-codegen/schema-ast": "^5.0.0",
+    "@graphql-codegen/typescript": "^5.0.6",
+    "@graphql-codegen/typescript-operations": "^5.0.6",
     "@types/node": "^20",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19",
