@@ -9,12 +9,14 @@ import { InputNumber } from "primereact/inputnumber";
 import { Dialog } from "primereact/dialog";
 import { Footer } from "../../../components/Footer";
 import { useTheme } from "../../../components/ThemeProvider";
+import { useUser } from "../../../context/UserContext";
 // Dynamically load browser-only components to avoid server-side evaluation
 const SmallTrackMap = dynamic(() => import("../../../components/SmallTrackMap"), { ssr: false });
 const ElevationGraphWithHover = dynamic(() => import("../../../components/ElevationGraphWithHover"), { ssr: false });
 const RouteView = dynamic(() => import("@/src/components/RouteView"), { ssr: false });
 
 import { Dropdown } from "primereact/dropdown";
+import UploadRouteModal from "../../../components/UploadRouteModal";
 
 // Types
 type Route = {
@@ -37,7 +39,8 @@ function generateElevation(points: [number, number][]): number[] {
 
 export default function RoutesSettingsPage() {
   const toast = useRef<Toast>(null);
-  const { theme } = useTheme();
+  const { theme, toggle } = useTheme();
+  const { user } = useUser();
 
   // MOCK DATA
   const [routes, setRoutes] = useState<Route[]>([
@@ -66,7 +69,10 @@ export default function RoutesSettingsPage() {
   // NEW: highlight point to show on map when hovering the chart
   const [hoverPoint, setHoverPoint] = useState<[number, number] | null>(null);
 
-  // Upload handler (mock)
+  // Upload modal visibility (new flow)
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+
+  // Upload handler (legacy quick upload)
   const handleUpload = async (e: any) => {
     const file = e.files?.[0];
     if (!file) return;
@@ -119,6 +125,36 @@ export default function RoutesSettingsPage() {
     });
   };
 
+  // Called when UploadRouteModal completes upload & registration
+  const onModalUploaded = (meta: { uuid?: string; filename: string; publicUrl?: string }) => {
+    const baseName = meta.filename.replace(/\.gpx$/i, "");
+    const newPoints: [number, number][] = [
+      [36.5 + Math.random(), -118.2 + Math.random()],
+      [36.51 + Math.random(), -118.21 + Math.random()],
+      [36.52 + Math.random(), -118.22 + Math.random()],
+      [36.53 + Math.random(), -118.23 + Math.random()],
+    ];
+    const elevation = generateElevation(newPoints);
+    const newRoute: Route = {
+      id: meta.uuid ?? String(Date.now()),
+      name: baseName,
+      filename: meta.filename,
+      distance: Number((5 + Math.random() * 20).toFixed(2)),
+      points: newPoints,
+      elevation,
+      gain: 0,
+      uom: "METRIC",
+    };
+    setRoutes((rs) => [newRoute, ...rs]);
+
+    toast.current?.show({
+      severity: "success",
+      summary: "Route registered",
+      detail: meta.filename,
+      life: 1800,
+    });
+  };
+
   // Row Component
   function RouteRow({ route }: { route: Route }) {
     const isEditing = editingId === route.id;
@@ -135,7 +171,7 @@ export default function RoutesSettingsPage() {
         setLocalDistance(route.distance);
         setLocalGain(route.gain);
       }
-    }, [isEditing]);
+    }, [isEditing, route.name, route.distance, route.gain]);
 
     const saveEdit = () => {
       setRoutes((rs) =>
@@ -314,18 +350,29 @@ export default function RoutesSettingsPage() {
                     Analyzed Routes
                   </div>
 
-                  <FileUpload
-                    ref={fileUploadRef}
-                    mode="basic"
-                    name="route"
-                    accept=".gpx"
-                    maxFileSize={10000000}
-                    chooseLabel="Upload GPX"
-                    customUpload
-                    auto
-                    uploadHandler={handleUpload}
-                    disabled={!!editingId}
-                  />
+                  <div className="flex items-center gap-2">
+                    {/* legacy quick upload (keeps old behavior) */}
+                    <FileUpload
+                      ref={fileUploadRef}
+                      mode="basic"
+                      name="route"
+                      accept=".gpx"
+                      maxFileSize={10000000}
+                      chooseLabel="Upload GPX (quick)"
+                      customUpload
+                      auto
+                      uploadHandler={handleUpload}
+                      disabled={!!editingId}
+                    />
+
+                    {/* New modal flow */}
+                    <Button
+                      label="Upload GPX (modal)"
+                      icon="pi pi-upload"
+                      onClick={() => setUploadModalOpen(true)}
+                      className="p-button-primary"
+                    />
+                  </div>
                 </div>
 
                 {/* Table wrapper: horizontal scroll on small screens */}
@@ -364,6 +411,16 @@ export default function RoutesSettingsPage() {
 
         <ViewDialog />
       </div>
+
+      <UploadRouteModal
+        visible={uploadModalOpen}
+        onHide={() => setUploadModalOpen(false)}
+        onUploaded={onModalUploaded}
+        userId={user?.userId ?? ""}
+        username={user?.preferred_username ?? ""}
+        profilePhoto={user?.picture ?? ""}
+        redirectAfter={false}
+      />
 
       <Footer />
     </>
