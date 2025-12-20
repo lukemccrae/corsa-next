@@ -18,6 +18,7 @@ export type Channel = {
   avatar?: string | null;
   live?: boolean;
   viewers?: number | null;
+  streamId: string;
 };
 
 export default function Sidebar({
@@ -44,7 +45,7 @@ export default function Sidebar({
         className="flex items-center justify-between px-2 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
       >
         <Link
-          href={`/profile/${encodeURIComponent(channel.name)}`}
+          href={`/profile/${encodeURIComponent(channel.name)}/${encodeURIComponent(channel.streamId)}`}
           className="flex items-center gap-3 min-w-0"
         >
           <div className="flex-shrink-0">

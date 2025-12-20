@@ -39,9 +39,6 @@ async function fetchUserDataForStream(username: string, streamId: string) {
     }
   `;
 
-  
-  console.log(query);
-
   const res = await fetch(APPSYNC_ENDPOINT, {
     method: "POST",
     headers: {

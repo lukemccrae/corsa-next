@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -9,6 +9,8 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import { useTheme } from "./ThemeProvider";
+import { Dialog } from "primereact/dialog";
+import { Button } from "primereact/button";
 
 type CoverMapProps = {
   center?: [number, number];
@@ -29,6 +31,10 @@ export default function CoverMap({
   showCenterMarker = true,
 }: CoverMapProps) {
   const { theme } = useTheme();
+  const [expanded, setExpanded] = useState(false);
+  const tileUrl = "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+
+  const markerPosition = center;
 
   // small circular marker used for the center
   const centerIcon = L.divIcon({
@@ -46,6 +52,7 @@ export default function CoverMap({
   const wrapperClass = `${className} ${theme === "dark" ? "dark-topo" : ""}`;
 
   return (
+    <>
     <div className={`h-60 w-full rounded-lg overflow-hidden ${wrapperClass}`}>
       <MapContainer
         center={center}
@@ -58,7 +65,7 @@ export default function CoverMap({
         zoomControl={interactive}
       >
         <TileLayer
-          url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+          url={tileUrl}
           attribution="Map data: &copy; OpenStreetMap contributors"
           maxZoom={17}
         />
@@ -81,6 +88,60 @@ export default function CoverMap({
           />
         )}
       </MapContainer>
+      <div className="absolute top-2 right-2 z-[1000]">
+        <Button
+          icon="pi pi-window-maximize"
+          rounded
+          text
+          severity="secondary"
+          onClick={() => setExpanded(true)}
+          className="bg-white dark:bg-gray-800 shadow-md hover:shadow-lg"
+          aria-label="Expand map"
+          tooltip="Expand map"
+          tooltipOptions={{ position: "left" }}
+        />
+      </div>
     </div>
+    <Dialog
+      visible={expanded}
+      onHide={() => setExpanded(false)}
+      header="Map View"
+      modal
+      dismissableMask
+      maximizable
+      style={{ width: "90vw", height: "90vh" }}
+      contentClassName="p-0"
+    >
+      <div className="w-full h-full" style={{ minHeight: "70vh" }}>
+        <MapContainer
+          center={center}
+          zoom={zoom}
+          className={`h-full ${theme === "dark" ? "dark-topo" :  ""}`}
+          scrollWheelZoom={true}
+          dragging={true}
+          doubleClickZoom={true}
+          touchZoom={true}
+          zoomControl={true}
+        >
+          {/* Copy the same TileLayer, Polyline, Marker from above */}
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url={tileUrl}
+          />
+          {points && points.length > 1 && (
+            <Polyline
+              positions={points}
+              pathOptions={{
+                color: 'black',
+                weight: 3,
+                opacity: 0.8,
+              }}
+            />
+          )}
+          {markerPosition && <Marker position={center} icon={centerIcon} />}
+        </MapContainer>
+      </div>
+    </Dialog>
+    </>
   );
 }

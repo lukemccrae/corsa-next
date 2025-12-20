@@ -29,6 +29,7 @@ async function fetchStreamsByEntity(entity: string | undefined) {
     query MyQuery {
       getStreamsByEntity(entity: "STREAM") {
         fullRouteData
+        streamId
         routeGpxUrl
         username
         profilePicture
@@ -79,6 +80,7 @@ export default async function WithSidebarLayout({ children }: { children: React.
       live: !!s.live,
       viewers: s.viewers ?? null,
       currentLocation: s.currentLocation ?? null,
+      streamId: s.streamId ?? null,
     }))
     : [];
 

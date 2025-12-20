@@ -4,7 +4,7 @@ import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
 import { useTheme } from "./ThemeProvider";
 import LiveButton from "./LiveButton";
-import type { User as GQLUser, User } from "../generated/graphql";
+import type { ChatMessage, User as GQLUser, User } from "../generated/graphql";
 import type { PostEntry } from "../types";
 
 /**
@@ -21,6 +21,7 @@ import type { PostEntry } from "../types";
 type Props = {
   user: User; // shape coming from server GraphQL; kept flexible to avoid heavy typing coupling
   username: string;
+  streamId: string;
 };
 
 import dynamic from "next/dynamic";
@@ -30,7 +31,8 @@ import CoverMap from "./CoverMap";
 import ProfileLiveChat from "./ProfileLiveChat";
 const FeedItem = dynamic(() => import("./FeedItem"), { ssr: false });
 
-export default function ProfileClient({ user, username }: Props) {
+export default function ProfileClient({ user, username, streamId }: Props) {
+  const chatMessgaes = user.liveStreams?.[0]?.chatMessages ?? [];
   const { theme } = useTheme();
   const { user: currentUser } = useUser();
   const isOwnProfile = currentUser?.preferred_username === username;
@@ -134,7 +136,7 @@ export default function ProfileClient({ user, username }: Props) {
         {/* Main content: feed */}
         <div className="max-w-xl mx-auto py-8">
           <div className="space-y-4 mb-6">
-            <ProfileLiveChat profileUsername={username} />
+            {<ProfileLiveChat profileUsername={username} initialMessages={chatMessgaes as unknown as ChatMessage[]} />}
           </div>
 
           {isOwnProfile && (

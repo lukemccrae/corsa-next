@@ -7,23 +7,16 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { useUser } from "../context/UserContext";
 import { useModal } from "./ModalProvider";
 import { useTheme } from "./ThemeProvider";
-
-type ChatMessage = {
-  id: string;
-  username: string;
-  text: string;
-  createdAt: string;
-  profilePicture?: string | null;
-};
+import { ChatMessage } from "../generated/graphql";
 
 type Props = {
   profileUsername: string; // the profile being viewed
-  initialMessages?: ChatMessage[];
+  initialMessages: ChatMessage[];
 };
 
 export default function ProfileLiveChat({
   profileUsername,
-  initialMessages = [],
+  initialMessages,
 }: Props) {
   const { user } = useUser();
   const { openLogin } = useModal();
@@ -37,6 +30,10 @@ export default function ProfileLiveChat({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+  setMessages(initialMessages);
+}, [initialMessages]);
+
   const sendMessage = () => {
     if (!text.trim()) return;
 
@@ -48,7 +45,7 @@ export default function ProfileLiveChat({
       : { username: "guest", profilePicture: undefined };
 
     const msg: ChatMessage = {
-      id: String(Date.now()),
+      streamId: String(Date.now()),
       username: sender.username,
       profilePicture: sender.profilePicture ?? null,
       text: text.trim(),
@@ -80,36 +77,21 @@ export default function ProfileLiveChat({
       <div className="px-4 py-3 max-h-96 overflow-y-auto space-y-3">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-            No comments yet — be the first to say hi!
+            Be the first to say hi!
           </div>
         ) : (
           messages.map((m) => {
-            const initials = m.username
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .toUpperCase()
-              .slice(0, 2);
 
             return (
-              <div key={m.id} className="flex gap-3">
+              <div key={m.createdAt} className="flex gap-3">
                 {/* Avatar */}
                 <div className="flex-shrink-0">
-                  {m.profilePicture ? (
                     <Avatar
-                      image={m.profilePicture}
+                      image={m.profilePicture ?? undefined}
                       shape="circle"
                       size="normal"
                       className="w-8 h-8"
                     />
-                  ) : (
-                    <Avatar
-                      label={initials}
-                      shape="circle"
-                      size="normal"
-                      className="w-8 h-8 bg-blue-500 text-white"
-                    />
-                  )}
                 </div>
 
                 {/* Message content */}
