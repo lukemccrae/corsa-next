@@ -45,7 +45,7 @@ export default function ProfileLiveChat({
       : { username: "guest", profilePicture: undefined };
 
     const msg: ChatMessage = {
-      streamId: String(Date.now()),
+      messageId: `temp-${Date.now()}`,
       username: sender.username,
       profilePicture: sender.profilePicture ?? null,
       text: text.trim(),

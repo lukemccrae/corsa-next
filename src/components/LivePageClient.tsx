@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import LiveMap, { Point as MapPoint } from "./LiveMap";
 import LiveStats from "./LiveStats";
 import PointsList from "./PointsList";
-import LiveChat from "./LiveChat";
 import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
 import { useTheme } from "./ThemeProvider";
@@ -160,10 +159,6 @@ export default function LivePageClient({
 
         <aside className="flex flex-col gap-4 h-full">
           <div className="col-span-1 row-span-1 rounded-lg overflow-hidden border p-0 h-[72%]">
-            {/* LiveChat takes initialMessages. It manages its own local message state. */}
-            <div className="h-full">
-              <LiveChat streamUsername={username} initialMessages={messages} />
-            </div>
           </div>
         </aside>
       </div>
