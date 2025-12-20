@@ -27,6 +27,7 @@ import dynamic from "next/dynamic";
 import { useUser } from "../context/UserContext";
 import PostInputBar from "./PostInputBar";
 import CoverMap from "./CoverMap";
+import ProfileLiveChat from "./ProfileLiveChat";
 const FeedItem = dynamic(() => import("./FeedItem"), { ssr: false });
 
 export default function ProfileClient({ user, username }: Props) {
@@ -46,7 +47,7 @@ export default function ProfileClient({ user, username }: Props) {
   }, [user]);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="max-w-xl mx-auto px-4 py-6">
       {/* Profile header */}
       <div className="relative">
         {true ? (
@@ -94,9 +95,9 @@ export default function ProfileClient({ user, username }: Props) {
       </div>
 
       {/* Name / handle / bio / meta */}
-      <div className="mt-20">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
+      <div className="mt-10">
+        {/* <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div> */}
             {/* <h1 className="text-2xl font-bold">@{username}</h1>
             <p className="mt-3 text-sm text-gray-700 dark:text-gray-300 max-w-2xl">
               {user?.bio ?? "No bio provided."}
@@ -127,11 +128,15 @@ export default function ProfileClient({ user, username }: Props) {
                 <div className="font-semibold">2264</div>
               </div>
             </div> */}
-          </div>
-        </div>
+          {/* </div>
+        </div> */}
 
         {/* Main content: feed */}
         <div className="max-w-xl mx-auto py-8">
+          <div className="space-y-4 mb-6">
+            <ProfileLiveChat profileUsername={username} />
+          </div>
+
           {isOwnProfile && (
             <div className="mb-4">
               <PostInputBar />
