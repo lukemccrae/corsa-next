@@ -23,55 +23,33 @@ async function fetchProfile(username: string) {
   const query = `
     query MyQuery {
       getUserByUserName(username: "${username}") {
-      streamId
-      live
+        username
+        profilePicture
+        streamId
+        bio
+        live
         posts {
           createdAt
-          type
           userId
-          id
           ... on BlogPost {
-            id
-            imageUrl
             title
-            userId
-            type
-            text
-          }
-          ... on LivestreamPost {
-            id
-            stream {
-              live
-              mileMarker
-              profilePicture
-              streamId
-              startTime
-              finishTime
-              title
-              currentLocation {
-                lat
-                lng
-              }
-              username
-            }
-          }
-          ... on PhotoPost {
-            caption
-            type
             createdAt
             imageUrl
-            userId
-            id
-          }
-          ... on StatusPost {
-            id
-            text
             type
           }
+          ... on PhotoPost {
+            type
+            images
+            createdAt
+          }
+          ... on StatusPost {
+            __typename
+            text
+            type
+            createdAt
+          }
+          type
         }
-        profilePicture
-        userId
-        username
       }
     }
   `;
@@ -107,6 +85,7 @@ export default async function ProfilePage({
   let userData = null;
   try {
     userData = await fetchProfile(username);
+    console.log("Fetched profile for", username, userData ? "found" : "not found");
   } catch (err) {
     console.error("fetchProfile error", err);
     userData = null;

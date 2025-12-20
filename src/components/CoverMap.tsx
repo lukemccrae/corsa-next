@@ -17,6 +17,7 @@ type CoverMapProps = {
   className?: string;
   interactive?: boolean; // if false the map is non-interactive like a cover image
   showCenterMarker?: boolean;
+  username: string;
 };
 
 export default function CoverMap({
@@ -45,7 +46,7 @@ export default function CoverMap({
   const wrapperClass = `${className} ${theme === "dark" ? "dark-topo" : ""}`;
 
   return (
-    <div className={`h-120 w-full rounded-lg overflow-hidden ${wrapperClass}`}>
+    <div className={`h-60 w-full rounded-lg overflow-hidden ${wrapperClass}`}>
       <MapContainer
         center={center}
         zoom={zoom}

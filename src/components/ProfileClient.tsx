@@ -33,7 +33,6 @@ export default function ProfileClient({ user, username }: Props) {
   const { theme } = useTheme();
   const { user: currentUser } = useUser();
   const isOwnProfile = currentUser?.preferred_username === username;
-  console.log(user, "<< user");
 
   const sortedFeed = useMemo(() => {
     const posts: any[] = user?.posts ?? [];
@@ -47,11 +46,11 @@ export default function ProfileClient({ user, username }: Props) {
   }, [user]);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
+    <div className="max-w-5xl mx-auto px-4 py-6">
       {/* Profile header */}
       <div className="relative">
-        {user.live ? (
-          <CoverMap></CoverMap>
+        {true ? (
+          <CoverMap username={username}></CoverMap>
         ) : (
           <div
             className={`h-60 w-full rounded-lg overflow-hidden ${
@@ -84,7 +83,7 @@ export default function ProfileClient({ user, username }: Props) {
             />
           </div>
 
-          <div className="pointer-events-auto flex items-center gap-2">
+          <div className="pointer-events-auto flex items-center gap-1">
             <Button
               label="Follow"
               icon="pi pi-user-plus"
@@ -98,15 +97,12 @@ export default function ProfileClient({ user, username }: Props) {
       <div className="mt-20">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">{username}</h1>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              @{username}
-            </div>
+            {/* <h1 className="text-2xl font-bold">@{username}</h1>
             <p className="mt-3 text-sm text-gray-700 dark:text-gray-300 max-w-2xl">
               {user?.bio ?? "No bio provided."}
-            </p>
+            </p> */}
 
-            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+            {/* <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
               <div className="flex items-center gap-2">
                 <i className="pi pi-map-marker" />
                 <span>Unknown location</span>
@@ -115,9 +111,9 @@ export default function ProfileClient({ user, username }: Props) {
                 <i className="pi pi-calendar" />
                 <span>Joined —</span>
               </div>
-            </div>
+            </div> */}
 
-            <div className="mt-4 flex items-center gap-6">
+            {/* <div className="mt-2 flex items-center gap-6">
               <div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   Following
@@ -130,7 +126,7 @@ export default function ProfileClient({ user, username }: Props) {
                 </div>
                 <div className="font-semibold">2264</div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
