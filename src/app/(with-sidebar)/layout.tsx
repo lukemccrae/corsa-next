@@ -1,5 +1,7 @@
 import React from "react";
-import Sidebar, { Channel } from "../../components/Sidebar";
+import Sidebar from "../../components/Sidebar";
+import { LiveStream } from "@/src/generated/schema";
+import { TrackerGroup } from "@/src/generated/schema";
 
 /**
  * Server layout that fetches streams by "entity" and passes them into the Sidebar.
@@ -19,10 +21,10 @@ const APPSYNC_ENDPOINT = "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 const DEFAULT_ENTITY = "STREAM";
 
-async function fetchStreamsByEntity(entity: string | undefined) {
+async function fetchStreamsByEntity(entity:  string | undefined) {
   if (!APPSYNC_ENDPOINT || !APPSYNC_API_KEY) {
     console.warn("APPSYNC_ENDPOINT or APPSYNC_API_KEY not configured; returning empty stream list");
-    return [];
+    return { streams: [], groups: [] };
   }
 
   const query = `
@@ -65,45 +67,33 @@ async function fetchStreamsByEntity(entity: string | undefined) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": APPSYNC_API_KEY,
+      "x-api-key":  APPSYNC_API_KEY,
     },
-    body: JSON.stringify({ query, variables }),
+    body:  JSON.stringify({ query, variables }),
     // cache/revalidate as appropriate for your app
     next: { revalidate: 30 },
   });
 
   if (!res.ok) {
     console.error("Failed to fetch streams:", await res.text());
-    return [];
+    return { streams: [], groups: [] };
   }
 
   const json = await res.json();
-  console.log(json, '<< json')
-  const list = json?.data;
-  return list;
+  console.log(json, '<< json');
+  
+  return {
+    streams: json?.data?.getStreamsByEntity ??  [],
+    groups: json?.data?.getAllTrackerGroups ?? []
+  };
 }
 
-export default async function WithSidebarLayout({ children }: { children: React.ReactNode }) {
+export default async function WithSidebarLayout({ children }: { children: React. ReactNode }) {
   // run server-side fetch and map to Sidebar Channel shape
-  const raw = await fetchStreamsByEntity(DEFAULT_ENTITY || undefined);
-  const livestreams: Channel[] = Array.isArray(raw)
-    ? raw.map((s: any) => ({
-      id: s.streamId ?? String(Math.random()).slice(2),
-      name: s.username ?? (s.streamId ?? "unknown"),
-      subtitle: s.title ?? null,
-      avatar: s.profilePicture ?? null,
-      live: !!s.live,
-      viewers: s.viewers ?? null,
-      currentLocation: s.currentLocation ?? null,
-      streamId: s.streamId ?? null,
-    }))
-    : [];
-
-    const groups: 
-
+  const { streams, groups } = await fetchStreamsByEntity(DEFAULT_ENTITY || undefined);
   return (
     <div className="flex h-full w-full min-h-0">
-      <Sidebar groups={} livestreams={livestreams} />
+      <Sidebar groups={groups} livestreams={streams} />
       <div className="flex-1 min-h-0 overflow-auto">
         {children}
       </div>

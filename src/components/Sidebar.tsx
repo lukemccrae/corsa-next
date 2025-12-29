@@ -2,13 +2,12 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { LiveDot } from "./LiveDot";
-import { LiveStream } from "../generated/graphql";
-import { TrackerGroup } from "../generated/schema";
+import { LiveStream, TrackerGroup } from "../generated/schema";
 
 /**
  * Sidebar (client)
  *
- * - Accepts livestreams from parent as a prop and renders them all.
+ * - Accepts livestreams and groups from parent as props and renders them all. 
  * - Provides a collapse/expand affordance (keeps the component a client component).
  * - Uses plain markup and Tailwind classes (no PrimeReact, no useTheme).
  */
@@ -19,35 +18,38 @@ export default function Sidebar({
   className = "",
 }: {
   livestreams: LiveStream[];
-  groups: TrackerGroup;
-  className?: string;
+  groups:  TrackerGroup[];
+  className?:  string;
 }) {
   const [collapsed, setCollapsed] = useState(false);
 
-  const formatViewers = (n?: number | null) => {
+  const formatViewers = (n?:  number | null) => {
     if (n == null) return "";
     if (n >= 1000) return `${Math.round(n / 100) / 10}K`;
     return `${n}`;
   };
 
-  const item = (channel: LiveStream) => {
-    const initials = channel.name ? channel.title.charAt(0).toUpperCase() : "?";
+  const streamItem = (stream: LiveStream) => {
+    const initials = stream.title ?  stream.title.charAt(0).toUpperCase() : "?";
+    const profilePic = stream.user?.profilePicture;
+    const username = stream.user?.username;
+
+    console.log(stream)
+
     return (
       <li
-        key={channel.id}
+        key={stream.streamId}
         className="flex items-center justify-between px-2 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
       >
         <Link
-          href={`/profile/${encodeURIComponent(
-            channel.name
-          )}/${encodeURIComponent(channel.streamId)}`}
-          className="flex items-center gap-3 min-w-0"
+          href={`/profile/${encodeURIComponent(username ??  '')}/${encodeURIComponent(stream.streamId)}`}
+          className="flex items-center gap-3 min-w-0 flex-1"
         >
           <div className="flex-shrink-0">
-            {channel.avatar ? (
+            {profilePic ?  (
               <img
-                src={channel.avatar}
-                alt={channel.name}
+                src={profilePic}
+                alt={stream.title ??  username ?? 'Stream'}
                 className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
@@ -57,20 +59,20 @@ export default function Sidebar({
             )}
           </div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="text-sm font-medium truncate text-gray-900 dark:text-gray-100">
-              {channel.name}
+              {stream.title ?? 'Untitled Stream'}
             </div>
-            {channel.subtitle && (
+            {username && (
               <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                {channel.subtitle}
+                @{username}
               </div>
             )}
           </div>
         </Link>
 
         <div className="flex flex-col items-end ml-3">
-          {channel.live ? (
+          {stream.live ?  (
             <div className="flex items-center gap-2">
               <LiveDot />
             </div>
@@ -84,7 +86,62 @@ export default function Sidebar({
     );
   };
 
-  // Collapsed thin sidebar used on medium+ screens (now always available)
+  const groupItem = (group: TrackerGroup) => {
+    const initials = group.name ?  group.name.charAt(0).toUpperCase() : "?";
+    const profilePic = group.user?.profilePicture;
+    const username = group.user?.username;
+
+    return (
+      <li
+        key={group.groupId}
+        className="flex items-center justify-between px-2 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+      >
+        <Link
+          href={`/group/${encodeURIComponent(group.groupId)}`}
+          className="flex items-center gap-3 min-w-0 flex-1"
+        >
+          <div className="flex-shrink-0">
+            {profilePic ? (
+              <img
+                src={profilePic}
+                alt={group.name ?? 'Group'}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-800 dark:text-gray-100">
+                {initials}
+              </div>
+            )}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-medium truncate text-gray-900 dark:text-gray-100">
+              {group.name ?? 'Untitled Group'}
+            </div>
+            {username && (
+              <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                @{username}
+              </div>
+            )}
+          </div>
+        </Link>
+
+        <div className="flex flex-col items-end ml-3">
+          {group. user?.live ? (
+            <div className="flex items-center gap-2">
+              <LiveDot />
+            </div>
+          ) : (
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              Offline
+            </span>
+          )}
+        </div>
+      </li>
+    );
+  };
+
+  // Collapsed thin sidebar
   if (collapsed) {
     return (
       <aside
@@ -98,7 +155,6 @@ export default function Sidebar({
             aria-label="Open sidebar"
             title="Open sidebar"
           >
-            {/* chevron right */}
             <svg
               className="w-5 h-5"
               viewBox="0 0 24 24"
@@ -117,26 +173,37 @@ export default function Sidebar({
 
           <nav className="mt-4 flex flex-col gap-3 items-center px-1">
             {Array.isArray(livestreams) && livestreams.length > 0 ? (
-              // show a compact avatar strip (limit to first 6)
-              livestreams.slice(0, 6).map((c) => (
-                <Link
-                  key={c.id}
-                  href={`/profile/${encodeURIComponent(c.name)}`}
-                  className="w-10 h-10 rounded-full overflow-hidden"
-                >
-                  {c.avatar ? (
-                    <img
-                      src={c.avatar}
-                      alt={c.name}
-                      className="w-10 h-10 object-cover rounded-full"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-800 dark:text-gray-100">
-                      {c.name ? c.name.charAt(0).toUpperCase() : "?"}
-                    </div>
-                  )}
-                </Link>
-              ))
+              livestreams.slice(0, 6).map((c) => {
+                const profilePic = c.user?.profilePicture;
+                const username = c.user?.username;
+                const initials = c.title ? c.title.charAt(0).toUpperCase() : "?";
+                
+                return (
+                  <Link
+                    key={c.streamId}
+                    href={`/live/${encodeURIComponent(username ?? '')}/${encodeURIComponent(c.streamId)}`}
+                    className="w-10 h-10 rounded-full overflow-hidden relative"
+                    title={c.title ?? username ?? 'Stream'}
+                  >
+                    {profilePic ? (
+                      <img
+                        src={profilePic}
+                        alt={c.title ?? username ?? 'Stream'}
+                        className="w-10 h-10 object-cover rounded-full"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-800 dark:text-gray-100">
+                        {initials}
+                      </div>
+                    )}
+                    {c.live && (
+                      <div className="absolute bottom-0 right-0">
+                        <LiveDot size={6} />
+                      </div>
+                    )}
+                  </Link>
+                );
+              })
             ) : (
               <div className="text-xs text-gray-500 dark:text-gray-400 px-2 text-center">
                 No streams
@@ -148,7 +215,7 @@ export default function Sidebar({
     );
   }
 
-  // Full sidebar (now always available)
+  // Full sidebar
   return (
     <aside
       className={`flex flex-col w-72 max-w-[18rem] h-full ${className} bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-r border-gray-100 dark:border-white/6 shadow-lg`}
@@ -166,7 +233,6 @@ export default function Sidebar({
             title="Collapse sidebar"
             className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-gray-600 dark:text-gray-300"
           >
-            {/* chevron left */}
             <svg
               className="w-5 h-5"
               viewBox="0 0 24 24"
@@ -186,6 +252,23 @@ export default function Sidebar({
       </div>
 
       <div className="px-3 py-3 overflow-auto space-y-4">
+        <section aria-labelledby="tracker-groups">
+          <h4
+            id="tracker-groups"
+            className="text-xs font-semibold text-gray-400 px-1 mb-2"
+          >
+            Races & Groups
+          </h4>
+          <ul className="flex flex-col gap-1">
+            {Array.isArray(groups) && groups.length > 0 ? (
+              groups.map((group) => groupItem(group))
+            ) : (
+              <li className="px-2 py-2 text-sm text-gray-500 dark:text-gray-400">
+                No groups available
+              </li>
+            )}
+          </ul>
+        </section>
         <section aria-labelledby="live-streams">
           <h4
             id="live-streams"
@@ -195,27 +278,7 @@ export default function Sidebar({
           </h4>
           <ul className="flex flex-col gap-1">
             {Array.isArray(livestreams) && livestreams.length > 0 ? (
-              livestreams.map((c) => item(c))
-            ) : (
-              <li className="px-2 py-2 text-sm text-gray-500 dark:text-gray-400">
-                No streams available
-              </li>
-            )}
-          </ul>
-        </section>
-      </div>
-
-      <div className="px-3 py-3 overflow-auto space-y-4">
-        <section aria-labelledby="live-streams">
-          <h4
-            id="live-streams"
-            className="text-xs font-semibold text-gray-400 px-1 mb-2"
-          >
-            Races & Groups
-          </h4>
-          <ul className="flex flex-col gap-1">
-            {Array.isArray(groups) && groups.length > 0 ? (
-              groups.map((c) => item(c))
+              livestreams.map((stream) => streamItem(stream))
             ) : (
               <li className="px-2 py-2 text-sm text-gray-500 dark:text-gray-400">
                 No streams available
