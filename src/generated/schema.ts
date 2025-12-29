@@ -23,12 +23,11 @@ export type Badge = {
 export type BlogPost = Post & {
   __typename?: 'BlogPost';
   createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
   imageUrl?: Maybe<Scalars['String']['output']>;
   mentions?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
-  text: Scalars['String']['output'];
-  title: Scalars['String']['output'];
+  text?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
   type: PostType;
   userId: Scalars['ID']['output'];
 };
@@ -69,6 +68,15 @@ export type Device = {
   userId?: Maybe<Scalars['String']['output']>;
 };
 
+export type DeviceInput = {
+  IMEI: Scalars['ID']['input'];
+  make: Scalars['String']['input'];
+  model: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  shareUrl: Scalars['String']['input'];
+  trackingIntervalInMS: Scalars['Int']['input'];
+};
+
 export enum DeviceLogo {
   Bivy = 'BIVY',
   Garmin = 'GARMIN'
@@ -107,9 +115,9 @@ export type LiveStream = {
   deviceLogo?: Maybe<DeviceLogo>;
   finishTime?: Maybe<Scalars['String']['output']>;
   fullRouteData?: Maybe<Scalars['String']['output']>;
+  groupId?: Maybe<Scalars['String']['output']>;
   live?: Maybe<Scalars['Boolean']['output']>;
   mileMarker?: Maybe<Scalars['Float']['output']>;
-  profilePicture?: Maybe<Scalars['String']['output']>;
   routeGpxUrl?: Maybe<Scalars['String']['output']>;
   slug?: Maybe<Scalars['String']['output']>;
   sponsors?: Maybe<Array<Maybe<Sponsor>>>;
@@ -117,20 +125,9 @@ export type LiveStream = {
   streamId: Scalars['ID']['output'];
   title?: Maybe<Scalars['String']['output']>;
   unitOfMeasure?: Maybe<UnitOfMeasure>;
-  username?: Maybe<Scalars['String']['output']>;
+  user?: Maybe<User>;
+  userId?: Maybe<Scalars['String']['output']>;
   waypoints?: Maybe<Array<Maybe<Waypoint>>>;
-};
-
-/**   LiveStream as a post */
-export type LivestreamPost = Post & {
-  __typename?: 'LivestreamPost';
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  mentions?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
-  stream: LiveStream;
-  tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
-  type: PostType;
-  userId: Scalars['ID']['output'];
 };
 
 export enum MessageType {
@@ -144,6 +141,7 @@ export type Mutation = {
   publishChat: ChatMessage;
   publishWaypoint: Waypoint;
   upsertLiveStream: LiveStream;
+  upsertRoute: Route;
 };
 
 
@@ -162,21 +160,24 @@ export type MutationUpsertLiveStreamArgs = {
   streamId: Scalars['ID']['input'];
 };
 
+
+export type MutationUpsertRouteArgs = {
+  input: RouteInput;
+};
+
 export type PhotoPost = Post & {
   __typename?: 'PhotoPost';
-  caption?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  imageUrl?: Maybe<Scalars['String']['output']>;
+  images?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   mentions?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  text?: Maybe<Scalars['String']['output']>;
   type: PostType;
   userId: Scalars['ID']['output'];
 };
 
 export type Post = {
   createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
   mentions?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   type: PostType;
@@ -192,6 +193,7 @@ export enum PostType {
 
 export type Query = {
   __typename?: 'Query';
+  getAllTrackerGroups?: Maybe<Array<Maybe<TrackerGroup>>>;
   getStreamsByEntity?: Maybe<Array<Maybe<LiveStream>>>;
   getUserByUserName?: Maybe<User>;
 };
@@ -216,6 +218,16 @@ export type Route = {
   uom?: Maybe<UnitOfMeasure>;
 };
 
+export type RouteInput = {
+  createdAt: Scalars['ID']['input'];
+  distance: Scalars['Float']['input'];
+  gain: Scalars['Int']['input'];
+  name: Scalars['String']['input'];
+  storageUrl: Scalars['String']['input'];
+  uom: UnitOfMeasure;
+  userId: Scalars['ID']['input'];
+};
+
 export type Sponsor = {
   __typename?: 'Sponsor';
   image?: Maybe<Scalars['String']['output']>;
@@ -226,7 +238,6 @@ export type Sponsor = {
 export type StatusPost = Post & {
   __typename?: 'StatusPost';
   createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
   mentions?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   text: Scalars['String']['output'];
@@ -250,6 +261,21 @@ export type SubscriptionOnNewWaypointArgs = {
   streamId: Scalars['ID']['input'];
 };
 
+/**
+ *   -----------------------
+ *  Tracker Group
+ *  -----------------------
+ */
+export type TrackerGroup = {
+  __typename?: 'TrackerGroup';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  currentLocation?: Maybe<LatLng>;
+  groupId: Scalars['ID']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  user?: Maybe<User>;
+  userId: Scalars['String']['output'];
+};
+
 export enum UnitOfMeasure {
   Imperial = 'IMPERIAL',
   Metric = 'METRIC'
@@ -270,6 +296,7 @@ export type User = {
   profilePicture?: Maybe<Scalars['String']['output']>;
   routes?: Maybe<Array<Maybe<Route>>>;
   streamId?: Maybe<Scalars['String']['output']>;
+  trackerGroups?: Maybe<Array<Maybe<TrackerGroup>>>;
   userId: Scalars['ID']['output'];
   username: Scalars['String']['output'];
 };
@@ -312,7 +339,19 @@ export type Waypoint = {
 };
 
 /**
- *   -----------------------
+ *   LiveStream as a post
+ *  type LivestreamPost implements Post
+ *    @aws_iam
+ *    @aws_cognito_user_pools
+ *    @aws_api_key {
+ *    type: PostType!
+ *    userId: ID!
+ *    createdAt: String!
+ *    tags: [String]
+ *    mentions: [String]
+ *    stream: LiveStream!
+ *  }
+ *  -----------------------
  *  Inputs
  *  -----------------------
  */

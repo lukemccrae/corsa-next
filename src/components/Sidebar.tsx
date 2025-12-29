@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { LiveDot } from "./LiveDot";
+import { LiveStream } from "../generated/graphql";
+import { TrackerGroup } from "../generated/schema";
 
 /**
  * Sidebar (client)
@@ -11,21 +13,13 @@ import { LiveDot } from "./LiveDot";
  * - Uses plain markup and Tailwind classes (no PrimeReact, no useTheme).
  */
 
-export type Channel = {
-  id: string;
-  name: string;
-  subtitle?: string | null;
-  avatar?: string | null;
-  live?: boolean;
-  viewers?: number | null;
-  streamId: string;
-};
-
 export default function Sidebar({
   livestreams,
+  groups,
   className = "",
 }: {
-  livestreams?: Channel[] | null;
+  livestreams: LiveStream[];
+  groups: TrackerGroup;
   className?: string;
 }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -36,16 +30,17 @@ export default function Sidebar({
     return `${n}`;
   };
 
-  const item = (channel: Channel) => {
-    console.log(channel)
-    const initials = channel.name ? channel.name.charAt(0).toUpperCase() : "?";
+  const item = (channel: LiveStream) => {
+    const initials = channel.name ? channel.title.charAt(0).toUpperCase() : "?";
     return (
       <li
         key={channel.id}
         className="flex items-center justify-between px-2 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
       >
         <Link
-          href={`/profile/${encodeURIComponent(channel.name)}/${encodeURIComponent(channel.streamId)}`}
+          href={`/profile/${encodeURIComponent(
+            channel.name
+          )}/${encodeURIComponent(channel.streamId)}`}
           className="flex items-center gap-3 min-w-0"
         >
           <div className="flex-shrink-0">
@@ -196,11 +191,31 @@ export default function Sidebar({
             id="live-streams"
             className="text-xs font-semibold text-gray-400 px-1 mb-2"
           >
-            All streams
+            Individuals
           </h4>
           <ul className="flex flex-col gap-1">
             {Array.isArray(livestreams) && livestreams.length > 0 ? (
               livestreams.map((c) => item(c))
+            ) : (
+              <li className="px-2 py-2 text-sm text-gray-500 dark:text-gray-400">
+                No streams available
+              </li>
+            )}
+          </ul>
+        </section>
+      </div>
+
+      <div className="px-3 py-3 overflow-auto space-y-4">
+        <section aria-labelledby="live-streams">
+          <h4
+            id="live-streams"
+            className="text-xs font-semibold text-gray-400 px-1 mb-2"
+          >
+            Races & Groups
+          </h4>
+          <ul className="flex flex-col gap-1">
+            {Array.isArray(groups) && groups.length > 0 ? (
+              groups.map((c) => item(c))
             ) : (
               <li className="px-2 py-2 text-sm text-gray-500 dark:text-gray-400">
                 No streams available

@@ -27,12 +27,23 @@ async function fetchStreamsByEntity(entity: string | undefined) {
 
   const query = `
     query MyQuery {
+      getAllTrackerGroups {
+        name
+        user {
+          profilePicture
+          username
+          live
+        }
+        groupId
+        currentLocation {
+          lat
+          lng
+        }
+      }
       getStreamsByEntity(entity: "STREAM") {
         fullRouteData
         streamId
         routeGpxUrl
-        username
-        profilePicture
         live
         routeGpxUrl
         title
@@ -40,6 +51,10 @@ async function fetchStreamsByEntity(entity: string | undefined) {
         currentLocation {
           lat
           lng
+        }
+        user {
+          username
+          profilePicture
         }
       }
     }
@@ -64,7 +79,7 @@ async function fetchStreamsByEntity(entity: string | undefined) {
 
   const json = await res.json();
   console.log(json, '<< json')
-  const list = json?.data?.getStreamsByEntity ?? [];
+  const list = json?.data;
   return list;
 }
 
@@ -84,9 +99,11 @@ export default async function WithSidebarLayout({ children }: { children: React.
     }))
     : [];
 
+    const groups: 
+
   return (
     <div className="flex h-full w-full min-h-0">
-      <Sidebar livestreams={livestreams} />
+      <Sidebar groups={} livestreams={livestreams} />
       <div className="flex-1 min-h-0 overflow-auto">
         {children}
       </div>
