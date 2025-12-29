@@ -7,7 +7,7 @@ const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 
-async function fetchGroupData(username: string, groupId: string) {
+async function fetchGroupData(groupId: string) {
   console.log(groupId, "fetching group data for groupId");
   const query = `
     query MyQuery {
@@ -21,12 +21,22 @@ async function fetchGroupData(username: string, groupId: string) {
         user {
           username
           userId
+          profilePicture
         }
         livestreams {
           user {
             username
             userId
             profilePicture
+          }
+          streamId
+          title
+          startTime
+          finishTime
+          mileMarker
+          currentLocation {
+            lat
+            lng
           }
         }
       }
@@ -35,12 +45,11 @@ async function fetchGroupData(username: string, groupId: string) {
 
   const res = await fetch(APPSYNC_ENDPOINT, {
     method: "POST",
-    headers:  {
-      "Content-Type":  "application/json",
+    headers: {
+      "Content-Type": "application/json",
       "x-api-key": APPSYNC_API_KEY,
     },
-    body: JSON. stringify({ query }),
-    next: { revalidate: 60 },
+    body: JSON.stringify({ query }),
   });
 
   if (!res.ok) {
@@ -48,8 +57,8 @@ async function fetchGroupData(username: string, groupId: string) {
   }
 
   const json = await res.json();
-  console.log(json, "group data response");
-  const user = json?. data?.getUserByUserName;
+  console.log(JSON.stringify(json, null, 2), "group data response");
+  const user = json?.data?.getTrackerGroupData ?? null;
   return user;
 }
 
@@ -65,24 +74,20 @@ export default async function GroupPage({
   let groupData = null;
 
   try {
-    groupData = await fetchGroupData(username, groupId);
-    console.log(groupData, "fetched group data" );
+    groupData = await fetchGroupData(groupId);
+    console.log(groupData, "fetched group data");
   } catch (err) {
     console.error("fetchGroupData error", err);
     groupData = null;
   }
 
-  if (!groupData || !groupData.trackerGroups?.[0]) {
+  if (!groupData) {
     return <div className="p-8 text-center">Group not found</div>;
   }
 
-  const group = groupData.trackerGroups[0];
+  const group = groupData;
 
   return (
-    <GroupPageClient
-      group={group}
-      username={username}
-      groupId={groupId}
-    />
+    <GroupPageClient group={group} username={username} groupId={groupId} />
   );
 }

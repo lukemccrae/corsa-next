@@ -6,7 +6,7 @@ import { Card } from "primereact/card";
 import { useTheme } from "./ThemeProvider";
 import { useUser } from "../context/UserContext";
 import dynamic from "next/dynamic";
-import type { TrackerGroup } from "../generated/schema";
+import type { LiveStream, TrackerGroup } from "../generated/schema";
 import PostInputBar from "./PostInputBar";
 import GroupLiveMap from "./GroupLiveMap";
 import ProfileLiveChat from "./ProfileLiveChat";
@@ -15,7 +15,7 @@ import GroupRunnersList from "./GroupRunnerList";
 const CoverMap = dynamic(() => import("./CoverMap"), { ssr: false });
 
 type Props = {
-  group: any; // TrackerGroup with nested user liveStreams data
+  group: TrackerGroup;
   username: string;
   groupId: string;
 };
@@ -24,12 +24,13 @@ export default function GroupPageClient({ group, username, groupId }: Props) {
   const { theme } = useTheme();
   const { user:  currentUser } = useUser();
   const isOwner = currentUser?.preferred_username === username;
+  console.log(group, "<<< group in GroupPageClient");
 
   // Aggregate all chat messages from all runners
   const allChatMessages = useMemo(() => {
-    if (!group?. user?.liveStreams) return [];
+    if (!group?.livestreams || group.livestreams.length === 0) return [];
     const messages: any[] = [];
-    group.user.liveStreams. forEach((stream:  any) => {
+    group.livestreams.forEach((stream) => {
       if (stream?. chatMessages) {
         messages.push(...stream.chatMessages);
       }
@@ -43,21 +44,25 @@ export default function GroupPageClient({ group, username, groupId }: Props) {
   }, [group]);
 
   // Aggregate all waypoints for map display
-  const allRunners = useMemo(() => {
-    if (!group?.user?. liveStreams) return [];
-    return group.user.liveStreams.map((stream: any) => ({
-      username: group.user.username,
-      profilePicture: group.user.profilePicture,
-      streamId: stream.streamId,
-      title: stream.title,
-      startTime: stream.startTime,
-      finishTime: stream.finishTime,
-      mileMarker: stream.mileMarker,
-      live: stream.live,
-      unitOfMeasure: stream.unitOfMeasure,
-      waypoints:  stream.waypoints || [],
-    }));
+  const allRunners: LiveStream[] = useMemo(() => {
+    if (!group.livestreams || !group) return [];
+    return group.livestreams
+      .filter((stream): stream is LiveStream => stream !== null && stream !== undefined)
+      .map((stream) => ({
+        username: stream.user?.username,
+        profilePicture: stream.user?.profilePicture,
+        streamId: stream.streamId,
+        title: stream.title,
+        startTime: stream.startTime,
+        finishTime: stream.finishTime,
+        mileMarker: stream.mileMarker,
+        live: stream.live,
+        unitOfMeasure: stream.unitOfMeasure,
+        waypoints: stream.waypoints || [],
+      }));
   }, [group]);
+
+  console.log(allRunners, "<<< allRunners in GroupPageClient");
 
   const bg = theme === "dark" ? "bg-gray-900 text-gray-100" : "bg-white text-gray-900";
 
@@ -82,7 +87,7 @@ export default function GroupPageClient({ group, username, groupId }: Props) {
 
         <div className="absolute bottom-4 left-4 flex items-end gap-4">
           <Avatar
-            image={group?. user?.profilePicture || undefined}
+            image={group?.user?.profilePicture || undefined}
             label={! group?.user?.profilePicture ?  group?.name?. charAt(0).toUpperCase() : undefined}
             size="xlarge"
             shape="circle"
@@ -104,14 +109,14 @@ export default function GroupPageClient({ group, username, groupId }: Props) {
         {/* Left column:  Map + Runners list */}
         <div className="lg:col-span-2 space-y-6">
           {/* Map */}
-          <Card className={bg}>
+          {/* <Card className={bg}>
             <GroupLiveMap runners={allRunners} />
-          </Card>
+          </Card> */}
 
           {/* Runners list */}
           <Card className={bg}>
             <h2 className="text-xl font-bold mb-4">Participants</h2>
-            <GroupRunnersList runners={allRunners} />
+            <GroupRunnersList livestreams={allRunners} />
           </Card>
         </div>
 

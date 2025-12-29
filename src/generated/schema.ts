@@ -121,12 +121,12 @@ export type LiveStream = {
   routeGpxUrl?: Maybe<Scalars['String']['output']>;
   slug?: Maybe<Scalars['String']['output']>;
   sponsors?: Maybe<Array<Maybe<Sponsor>>>;
-  startTime?: Maybe<Scalars['String']['output']>;
+  startTime: Scalars['String']['output'];
   streamId: Scalars['ID']['output'];
-  title?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
   unitOfMeasure?: Maybe<UnitOfMeasure>;
   user?: Maybe<User>;
-  userId?: Maybe<Scalars['String']['output']>;
+  userId: Scalars['String']['output'];
   waypoints?: Maybe<Array<Maybe<Waypoint>>>;
 };
 
@@ -195,12 +195,18 @@ export type Query = {
   __typename?: 'Query';
   getAllTrackerGroups?: Maybe<Array<Maybe<TrackerGroup>>>;
   getStreamsByEntity?: Maybe<Array<Maybe<LiveStream>>>;
+  getTrackerGroupData?: Maybe<TrackerGroup>;
   getUserByUserName?: Maybe<User>;
 };
 
 
 export type QueryGetStreamsByEntityArgs = {
   entity?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryGetTrackerGroupDataArgs = {
+  groupId: Scalars['ID']['input'];
 };
 
 
@@ -271,6 +277,7 @@ export type TrackerGroup = {
   createdAt?: Maybe<Scalars['String']['output']>;
   currentLocation?: Maybe<LatLng>;
   groupId: Scalars['ID']['output'];
+  livestreams?: Maybe<Array<Maybe<LiveStream>>>;
   name?: Maybe<Scalars['String']['output']>;
   user?: Maybe<User>;
   userId: Scalars['String']['output'];
@@ -290,10 +297,11 @@ export type User = {
   __typename?: 'User';
   bio?: Maybe<Scalars['String']['output']>;
   devices?: Maybe<Array<Maybe<Device>>>;
+  groupId?: Maybe<Scalars['ID']['output']>;
   live?: Maybe<Scalars['Boolean']['output']>;
   liveStreams?: Maybe<Array<Maybe<LiveStream>>>;
   posts?: Maybe<Array<Maybe<Post>>>;
-  profilePicture?: Maybe<Scalars['String']['output']>;
+  profilePicture: Scalars['String']['output'];
   routes?: Maybe<Array<Maybe<Route>>>;
   streamId?: Maybe<Scalars['String']['output']>;
   trackerGroups?: Maybe<Array<Maybe<TrackerGroup>>>;

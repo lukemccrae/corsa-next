@@ -7,7 +7,7 @@ import { LiveStream, TrackerGroup } from "../generated/schema";
 /**
  * Sidebar (client)
  *
- * - Accepts livestreams and groups from parent as props and renders them all. 
+ * - Accepts livestreams and groups from parent as props and renders them all.
  * - Provides a collapse/expand affordance (keeps the component a client component).
  * - Uses plain markup and Tailwind classes (no PrimeReact, no useTheme).
  */
@@ -18,23 +18,23 @@ export default function Sidebar({
   className = "",
 }: {
   livestreams: LiveStream[];
-  groups:  TrackerGroup[];
-  className?:  string;
+  groups: TrackerGroup[];
+  className?: string;
 }) {
   const [collapsed, setCollapsed] = useState(false);
 
-  const formatViewers = (n?:  number | null) => {
+  const formatViewers = (n?: number | null) => {
     if (n == null) return "";
     if (n >= 1000) return `${Math.round(n / 100) / 10}K`;
     return `${n}`;
   };
 
   const streamItem = (stream: LiveStream) => {
-    const initials = stream.title ?  stream.title.charAt(0).toUpperCase() : "?";
+    const initials = stream.title ? stream.title.charAt(0).toUpperCase() : "?";
     const profilePic = stream.user?.profilePicture;
     const username = stream.user?.username;
 
-    console.log(stream)
+    console.log(stream);
 
     return (
       <li
@@ -42,14 +42,16 @@ export default function Sidebar({
         className="flex items-center justify-between px-2 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
       >
         <Link
-          href={`/profile/${encodeURIComponent(username ??  '')}/${encodeURIComponent(stream.streamId)}`}
+          href={`/profile/${encodeURIComponent(
+            username ?? ""
+          )}/${encodeURIComponent(stream.streamId)}`}
           className="flex items-center gap-3 min-w-0 flex-1"
         >
           <div className="flex-shrink-0">
-            {profilePic ?  (
+            {profilePic ? (
               <img
                 src={profilePic}
-                alt={stream.title ??  username ?? 'Stream'}
+                alt={stream.title ?? username ?? "Stream"}
                 className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
@@ -61,7 +63,7 @@ export default function Sidebar({
 
           <div className="min-w-0 flex-1">
             <div className="text-sm font-medium truncate text-gray-900 dark:text-gray-100">
-              {stream.title ?? 'Untitled Stream'}
+              {stream.title ?? "Untitled Stream"}
             </div>
             {username && (
               <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -72,7 +74,7 @@ export default function Sidebar({
         </Link>
 
         <div className="flex flex-col items-end ml-3">
-          {stream.live ?  (
+          {stream.live ? (
             <div className="flex items-center gap-2">
               <LiveDot />
             </div>
@@ -87,7 +89,7 @@ export default function Sidebar({
   };
 
   const groupItem = (group: TrackerGroup) => {
-    const initials = group.name ?  group.name.charAt(0).toUpperCase() : "?";
+    const initials = group.name ? group.name.charAt(0).toUpperCase() : "?";
     const profilePic = group.user?.profilePicture;
     const username = group.user?.username;
 
@@ -104,7 +106,7 @@ export default function Sidebar({
             {profilePic ? (
               <img
                 src={profilePic}
-                alt={group.name ?? 'Group'}
+                alt={group.name ?? "Group"}
                 className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
@@ -116,7 +118,7 @@ export default function Sidebar({
 
           <div className="min-w-0 flex-1">
             <div className="text-sm font-medium truncate text-gray-900 dark:text-gray-100">
-              {group.name ?? 'Untitled Group'}
+              {group.name ?? "Untitled Group"}
             </div>
             {username && (
               <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -127,7 +129,7 @@ export default function Sidebar({
         </Link>
 
         <div className="flex flex-col items-end ml-3">
-          {group. user?.live ? (
+          {group.user?.live ? (
             <div className="flex items-center gap-2">
               <LiveDot />
             </div>
@@ -170,25 +172,65 @@ export default function Sidebar({
               />
             </svg>
           </button>
-
+          <nav className="mt-4 flex flex-col gap-3 items-center px-1">
+            {Array.isArray(groups) && groups.length > 0 ? (
+              groups.slice(0, 6).map((c) => {
+                const profilePic = c.user?.profilePicture;
+                return (
+                  <Link
+                    key={c.groupId}
+                    href={`/group/${encodeURIComponent(c.groupId)}`}
+                    className="w-10 h-10 rounded-full overflow-hidden relative"
+                  >
+                    {profilePic ? (
+                      <img
+                        src={profilePic}
+                        alt={c.name ?? c.user?.username ?? "Stream"}
+                        className="w-10 h-10 object-cover rounded-full"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-800 dark:text-gray-100">
+                        {c.name
+                          ? c.name.charAt(0).toUpperCase()
+                          : "?"}
+                      </div>
+                    )}
+                    {c.user?.live && (
+                      <div className="absolute bottom-0 right-0">
+                        <LiveDot size={6} />
+                      </div>
+                    )}
+                  </Link>
+                );
+              })
+            ) : (
+              <div className="text-xs text-gray-500 dark:text-gray-400 px-2 text-center">
+                No streams
+              </div>
+            )}
+          </nav>
           <nav className="mt-4 flex flex-col gap-3 items-center px-1">
             {Array.isArray(livestreams) && livestreams.length > 0 ? (
               livestreams.slice(0, 6).map((c) => {
                 const profilePic = c.user?.profilePicture;
                 const username = c.user?.username;
-                const initials = c.title ? c.title.charAt(0).toUpperCase() : "?";
-                
+                const initials = c.title
+                  ? c.title.charAt(0).toUpperCase()
+                  : "?";
+
                 return (
                   <Link
                     key={c.streamId}
-                    href={`/live/${encodeURIComponent(username ?? '')}/${encodeURIComponent(c.streamId)}`}
+                    href={`/profile/${encodeURIComponent(
+                      username ?? ""
+                    )}/${encodeURIComponent(c.streamId)}`}
                     className="w-10 h-10 rounded-full overflow-hidden relative"
-                    title={c.title ?? username ?? 'Stream'}
+                    title={c.title ?? username ?? "Stream"}
                   >
                     {profilePic ? (
                       <img
                         src={profilePic}
-                        alt={c.title ?? username ?? 'Stream'}
+                        alt={c.title ?? username ?? "Stream"}
                         className="w-10 h-10 object-cover rounded-full"
                       />
                     ) : (

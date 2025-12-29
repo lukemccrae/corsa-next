@@ -47,9 +47,6 @@ export default function PostInputBar({ placeholder, onPost }: Props) {
           }
         }}
       />
-      <Button icon="pi pi-video" className="p-button-rounded p-button-text !text-pink-400" aria-label="Add video" />
-      <Button icon="pi pi-image" className="p-button-rounded p-button-text !text-green-400" aria-label="Add image" />
-      <Button icon="pi pi-smile" className="p-button-rounded p-button-text !text-yellow-400" aria-label="Add emoji" />
     </div>
   );
 }
