@@ -49,6 +49,7 @@ export default function GroupPageClient({ group, username, groupId }: Props) {
     return group.livestreams
       .filter((stream): stream is LiveStream => stream !== null && stream !== undefined)
       .map((stream) => ({
+        userId: stream.userId,
         username: stream.user?.username,
         profilePicture: stream.user?.profilePicture,
         streamId: stream.streamId,

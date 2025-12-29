@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { LiveStream } from "../generated/schema";
 
 type Props = {
-  livestreams: any;
+  livestreams: LiveStream[];
 };
 
 const timeAgo = (iso?:  string) => {
