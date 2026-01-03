@@ -63,11 +63,11 @@ export default function Sidebar({
 
           <div className="min-w-0 flex-1">
             <div className="text-sm font-medium truncate text-gray-900 dark:text-gray-100">
-              {stream.title ?? "Untitled Stream"}
+              @{username}
             </div>
             {username && (
               <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                @{username}
+                {stream.title ?? "Untitled Stream"}
               </div>
             )}
           </div>

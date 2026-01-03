@@ -11,3 +11,23 @@
 .p-menubar-button {
   display: none !important;
 }
+
+/* Livestream marker styles */
+.livestream-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.livestream-marker-icon:hover {
+  z-index: 1000 !important;
+}
+
+/* Pulse animation for live indicators */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
