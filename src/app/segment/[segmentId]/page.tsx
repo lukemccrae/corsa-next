@@ -14,10 +14,10 @@ const SmallTrackMap = dynamic(
 
 // Mock data - Tempe, Arizona segment
 const MOCK_SEGMENT = {
-  name: "Tempe Butte Climb",
+  name: "Tempe Arizona Chipotle Challenge",
   distance: 0.8,
   elevationGain: 300,
-  description: "A challenging desert climb up Tempe Butte (Hayden Butte Preserve) with panoramic views of the Valley",
+  description: "Whoever logs the most segment completions from Mill Ave Bridge to the top of 'A' wins free Chipotle for a year!",
   points: [
     [33.4254, -111.9379], // Start - Mill Ave Bridge area
     [33.4265, -111.9385],
