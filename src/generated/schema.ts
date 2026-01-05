@@ -194,9 +194,21 @@ export enum PostType {
 export type Query = {
   __typename?: 'Query';
   getAllTrackerGroups?: Maybe<Array<Maybe<TrackerGroup>>>;
+  getSegmentBySegmentId?: Maybe<Segment>;
+  getSegmentLeaderboard?: Maybe<Array<Maybe<SegmentLeaderboardEntry>>>;
   getStreamsByEntity?: Maybe<Array<Maybe<LiveStream>>>;
   getTrackerGroupData?: Maybe<TrackerGroup>;
   getUserByUserName?: Maybe<User>;
+};
+
+
+export type QueryGetSegmentBySegmentIdArgs = {
+  segmentId: Scalars['ID']['input'];
+};
+
+
+export type QueryGetSegmentLeaderboardArgs = {
+  segmentId: Scalars['ID']['input'];
 };
 
 
@@ -232,6 +244,25 @@ export type RouteInput = {
   storageUrl: Scalars['String']['input'];
   uom: UnitOfMeasure;
   userId: Scalars['ID']['input'];
+};
+
+export type Segment = {
+  __typename?: 'Segment';
+  description?: Maybe<Scalars['String']['output']>;
+  route?: Maybe<Route>;
+  segmentId: Scalars['ID']['output'];
+  startTime?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+};
+
+export type SegmentLeaderboardEntry = {
+  __typename?: 'SegmentLeaderboardEntry';
+  attemptCount: Scalars['Int']['output'];
+  lastEffortAt?: Maybe<Scalars['String']['output']>;
+  profilePicture?: Maybe<Scalars['String']['output']>;
+  segmentId: Scalars['ID']['output'];
+  userId: Scalars['ID']['output'];
+  username: Scalars['String']['output'];
 };
 
 export type Sponsor = {
