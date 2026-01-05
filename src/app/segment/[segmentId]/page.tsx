@@ -31,7 +31,7 @@ const MOCK_ENTRIES = [
   {
     rank: 1,
     userId: "user1",
-    username: "desert_runner",
+    username: "michael_lee",
     profilePicture: "https://i.pravatar.cc/150? img=11",
     time: 387, // 6:27
     date: "2026-01-02T07:30:00Z",
@@ -42,7 +42,7 @@ const MOCK_ENTRIES = [
   {
     rank:  2,
     userId: "user2",
-    username: "asu_speedster",
+    username: "alex_morrison",
     profilePicture:  "https://i.pravatar.cc/150?img=12",
     time: 412, // 6:52
     date: "2025-12-28T06:45:00Z",
@@ -53,7 +53,7 @@ const MOCK_ENTRIES = [
   {
     rank: 3,
     userId: "user3",
-    username: "summit_seeker",
+    username: "marcus_j",
     time: 425, // 7:05
     date: "2025-12-20T08:15:00Z",
     gender:  "M" as const,
@@ -63,7 +63,7 @@ const MOCK_ENTRIES = [
   {
     rank: 4,
     userId: "user4",
-    username: "valley_climber",
+    username: "marcus_j",
     profilePicture: "https://i.pravatar.cc/150? img=14",
     time: 438, // 7:18
     date: "2025-12-15T17:20:00Z",
@@ -73,7 +73,7 @@ const MOCK_ENTRIES = [
   },
   {
     rank:  5,
-    userId: "user5",
+    userId: "james_p",
     username: "tempe_trail_runner",
     time: 451, // 7:31
     date: "2025-12-10T06:30:00Z",
