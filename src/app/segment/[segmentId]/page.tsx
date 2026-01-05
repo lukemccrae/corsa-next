@@ -131,16 +131,18 @@ export default function SegmentDetailPage() {
           </p>
         </div>
 
+        {/* Leaderboard Section */}
+        <SegmentLeaderboard segmentName={segment.name} segmentDistance={segment.distance} segmentElevationGain={segment.elevationGain} unitOfMeasure="IMPERIAL" entries={entries} currentUserId={user?.userId}/>
+      
+
         {/* Map Section */}
         <Card className={`mb-6 ${cardBg} border`}>
-          <div className="h-64 md:h-96 rounded-lg overflow-hidden">
+          <div className="h-32 md:h-96 rounded-lg overflow-hidden">
             <SmallTrackMap points={segment.points} zoom={14} center={[33.4276, -111.9391]} className="h-full w-full"/>
           </div>
         </Card>
 
-        {/* Leaderboard Section */}
-        <SegmentLeaderboard segmentName={segment.name} segmentDistance={segment.distance} segmentElevationGain={segment.elevationGain} unitOfMeasure="IMPERIAL" entries={entries} currentUserId={user?.userId}/>
-      </div>
+        </div>
     </div>
   );
 }
