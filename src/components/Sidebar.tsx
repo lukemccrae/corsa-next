@@ -294,7 +294,7 @@ export default function Sidebar({
       </div>
 
       <div className="px-3 py-3 overflow-auto space-y-4">
-        <section aria-labelledby="tracker-groups">
+        {/* <section aria-labelledby="tracker-groups">
           <h4
             id="tracker-groups"
             className="text-xs font-semibold text-gray-400 px-1 mb-2"
@@ -310,7 +310,7 @@ export default function Sidebar({
               </li>
             )}
           </ul>
-        </section>
+        </section> */}
         <section aria-labelledby="live-streams">
           <h4
             id="live-streams"

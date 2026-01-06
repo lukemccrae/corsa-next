@@ -29,19 +29,6 @@ async function fetchStreamsByEntity(entity:  string | undefined) {
 
   const query = `
     query MyQuery {
-      getAllTrackerGroups {
-        name
-        user {
-          profilePicture
-          username
-          live
-        }
-        groupId
-        currentLocation {
-          lat
-          lng
-        }
-      }
       getStreamsByEntity(entity: "STREAM") {
         fullRouteData
         streamId
