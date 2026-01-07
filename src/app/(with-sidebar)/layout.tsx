@@ -30,20 +30,17 @@ async function fetchStreamsByEntity(entity:  string | undefined) {
   const query = `
     query MyQuery {
       getStreamsByEntity(entity: "STREAM") {
-        fullRouteData
         streamId
         routeGpxUrl
         live
         routeGpxUrl
         title
+        username
+        profilePicture
         slug
         currentLocation {
           lat
           lng
-        }
-        user {
-          username
-          profilePicture
         }
       }
     }

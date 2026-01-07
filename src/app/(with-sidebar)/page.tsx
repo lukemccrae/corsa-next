@@ -39,14 +39,12 @@ export default function Home() {
               routeGpxUrl
               live
               title
+              username
+              profilePicture
               slug
               currentLocation {
                 lat
                 lng
-              }
-              user {
-                username
-                profilePicture
               }
             }
           }

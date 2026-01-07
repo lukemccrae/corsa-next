@@ -28,28 +28,6 @@ async function fetchProfile(username: string, streamId: string) {
         streamId
         bio
         live
-        posts {
-          createdAt
-          userId
-          ... on BlogPost {
-            title
-            createdAt
-            imageUrl
-            type
-          }
-          ... on PhotoPost {
-            type
-            images
-            createdAt
-          }
-          ... on StatusPost {
-            __typename
-            text
-            type
-            createdAt
-          }
-          type
-        }
         liveStreams(streamId: "${streamId}") {
           streamId
           mileMarker
@@ -92,6 +70,7 @@ async function fetchProfile(username: string, streamId: string) {
   }
 
   const json = await res.json().catch(() => null);
+  console.log(json)
   return json?.data?.getUserByUserName ?? null;
 }
 

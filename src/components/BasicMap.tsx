@@ -24,7 +24,7 @@ export default function FullScreenMap({
 
   // Create icon for livestreams
   const createStreamIcon = (stream: LiveStream) => {
-    const profilePic = stream.user?. profilePicture;
+    const profilePic = stream.profilePicture;
     const title = stream.title || "Untitled";
     const initials = title.charAt(0).toUpperCase();
     const isLive = stream.live;
@@ -233,7 +233,7 @@ export default function FullScreenMap({
           .filter((stream) => stream.currentLocation?. lat && stream.currentLocation?.lng)
           .map((stream) => {
             const { lat, lng } = stream.currentLocation! ;
-            const username = stream.user?.username;
+            const username = stream.username;
 
             return (
               <Marker
@@ -251,9 +251,9 @@ export default function FullScreenMap({
                 <Popup>
                   <div className="min-w-[200px] p-2">
                     <div className="flex items-center gap-2 mb-2">
-                      {stream.user?.profilePicture && (
+                      {stream.profilePicture && (
                         <img
-                          src={stream.user.profilePicture}
+                          src={stream.profilePicture}
                           alt={username || "User"}
                           className="w-8 h-8 rounded-full object-cover"
                         />

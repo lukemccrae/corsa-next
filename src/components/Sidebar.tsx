@@ -31,10 +31,8 @@ export default function Sidebar({
 
   const streamItem = (stream: LiveStream) => {
     const initials = stream.title ? stream.title.charAt(0).toUpperCase() : "?";
-    const profilePic = stream.user?.profilePicture;
-    const username = stream.user?.username;
-
-    console.log(stream);
+    const profilePic = stream.profilePicture;
+    const username = stream.username;
 
     return (
       <li
@@ -63,7 +61,7 @@ export default function Sidebar({
 
           <div className="min-w-0 flex-1">
             <div className="text-sm font-medium truncate text-gray-900 dark:text-gray-100">
-              @{username}
+              {username}
             </div>
             {username && (
               <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -212,8 +210,8 @@ export default function Sidebar({
           <nav className="mt-4 flex flex-col gap-3 items-center px-1">
             {Array.isArray(livestreams) && livestreams.length > 0 ? (
               livestreams.slice(0, 6).map((c) => {
-                const profilePic = c.user?.profilePicture;
-                const username = c.user?.username;
+                const profilePic = c.profilePicture;
+                const username = c.username;
                 const initials = c.title
                   ? c.title.charAt(0).toUpperCase()
                   : "?";

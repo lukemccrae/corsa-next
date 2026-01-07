@@ -12,6 +12,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  AWSDateTime: { input: any; output: any; }
 };
 
 export type Badge = {
@@ -22,7 +23,7 @@ export type Badge = {
 
 export type BlogPost = Post & {
   __typename?: 'BlogPost';
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['AWSDateTime']['output'];
   imageUrl?: Maybe<Scalars['String']['output']>;
   mentions?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
@@ -39,20 +40,18 @@ export type BlogPost = Post & {
  */
 export type ChatMessage = {
   __typename?: 'ChatMessage';
-  badges?: Maybe<Array<Maybe<Badge>>>;
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['AWSDateTime']['output'];
   messageId: Scalars['ID']['output'];
   messageType?: Maybe<MessageType>;
   profilePicture?: Maybe<Scalars['String']['output']>;
-  role?: Maybe<UserRole>;
-  stream?: Maybe<LiveStream>;
+  streamId: Scalars['ID']['output'];
   text: Scalars['String']['output'];
   userColor?: Maybe<Scalars['String']['output']>;
   username: Scalars['String']['output'];
 };
 
 export type ChatMessageInput = {
-  createdAt: Scalars['String']['input'];
+  createdAt: Scalars['AWSDateTime']['input'];
   streamId: Scalars['ID']['input'];
   text: Scalars['String']['input'];
   userId: Scalars['ID']['input'];
@@ -118,6 +117,7 @@ export type LiveStream = {
   groupId?: Maybe<Scalars['String']['output']>;
   live?: Maybe<Scalars['Boolean']['output']>;
   mileMarker?: Maybe<Scalars['Float']['output']>;
+  profilePicture?: Maybe<Scalars['String']['output']>;
   routeGpxUrl?: Maybe<Scalars['String']['output']>;
   slug?: Maybe<Scalars['String']['output']>;
   sponsors?: Maybe<Array<Maybe<Sponsor>>>;
@@ -125,8 +125,8 @@ export type LiveStream = {
   streamId: Scalars['ID']['output'];
   title: Scalars['String']['output'];
   unitOfMeasure?: Maybe<UnitOfMeasure>;
-  user?: Maybe<User>;
   userId: Scalars['String']['output'];
+  username?: Maybe<Scalars['String']['output']>;
   waypoints?: Maybe<Array<Maybe<Waypoint>>>;
 };
 
@@ -167,7 +167,7 @@ export type MutationUpsertRouteArgs = {
 
 export type PhotoPost = Post & {
   __typename?: 'PhotoPost';
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['AWSDateTime']['output'];
   images?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   mentions?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
@@ -177,7 +177,7 @@ export type PhotoPost = Post & {
 };
 
 export type Post = {
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['AWSDateTime']['output'];
   mentions?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   type: PostType;
@@ -274,7 +274,7 @@ export type Sponsor = {
 
 export type StatusPost = Post & {
   __typename?: 'StatusPost';
-  createdAt: Scalars['String']['output'];
+  createdAt: Scalars['AWSDateTime']['output'];
   mentions?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   text: Scalars['String']['output'];
@@ -305,7 +305,7 @@ export type SubscriptionOnNewWaypointArgs = {
  */
 export type TrackerGroup = {
   __typename?: 'TrackerGroup';
-  createdAt?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['AWSDateTime']['output']>;
   currentLocation?: Maybe<LatLng>;
   groupId: Scalars['ID']['output'];
   livestreams?: Maybe<Array<Maybe<LiveStream>>>;
@@ -373,8 +373,8 @@ export type Waypoint = {
   lng: Scalars['Float']['output'];
   mileMarker?: Maybe<Scalars['Float']['output']>;
   pointIndex?: Maybe<Scalars['Int']['output']>;
-  stream?: Maybe<LiveStream>;
-  timestamp: Scalars['String']['output'];
+  streamId: Scalars['ID']['output'];
+  timestamp: Scalars['AWSDateTime']['output'];
 };
 
 /**
@@ -385,7 +385,7 @@ export type Waypoint = {
  *    @aws_api_key {
  *    type: PostType!
  *    userId: ID!
- *    createdAt: String!
+ *    createdAt: AWSDateTime!
  *    tags: [String]
  *    mentions: [String]
  *    stream: LiveStream!
@@ -402,5 +402,5 @@ export type WaypointInput = {
   mileMarker?: InputMaybe<Scalars['Float']['input']>;
   pointIndex?: InputMaybe<Scalars['Int']['input']>;
   streamId: Scalars['ID']['input'];
-  timestamp: Scalars['String']['input'];
+  timestamp: Scalars['AWSDateTime']['input'];
 };

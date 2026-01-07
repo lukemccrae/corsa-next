@@ -7,7 +7,7 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { useUser } from "../context/UserContext";
 import { useModal } from "./ModalProvider";
 import { useTheme } from "./ThemeProvider";
-import { ChatMessage } from "../generated/graphql";
+import { ChatMessage } from "../generated/schema";
 
 type Props = {
   profileUsername: string; // the profile being viewed
@@ -45,6 +45,7 @@ export default function ProfileLiveChat({
       : { username: "guest", profilePicture: undefined };
 
     const msg: ChatMessage = {
+      streamId: '123',
       messageId: `temp-${Date.now()}`,
       username: sender.username,
       profilePicture: sender.profilePicture ?? null,
