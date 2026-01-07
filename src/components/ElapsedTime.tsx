@@ -24,7 +24,6 @@ export function ElapsedTime({
   startTime,
   intervalMs = 1000,
 }: ElapsedTimeProps) {
-  console.log(startTime)
   const start = new Date(startTime).getTime();
   const [elapsed, setElapsed] = useState(Date.now() - start);
 

@@ -121,8 +121,9 @@ export type LiveStream = {
   routeGpxUrl?: Maybe<Scalars['String']['output']>;
   slug?: Maybe<Scalars['String']['output']>;
   sponsors?: Maybe<Array<Maybe<Sponsor>>>;
-  startTime: Scalars['String']['output'];
+  startTime: Scalars['AWSDateTime']['output'];
   streamId: Scalars['ID']['output'];
+  timezone?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
   unitOfMeasure?: Maybe<UnitOfMeasure>;
   userId: Scalars['String']['output'];
@@ -156,7 +157,7 @@ export type MutationPublishWaypointArgs = {
 
 
 export type MutationUpsertLiveStreamArgs = {
-  startTime: Scalars['String']['input'];
+  startTime: Scalars['AWSDateTime']['input'];
   streamId: Scalars['ID']['input'];
 };
 
@@ -251,7 +252,7 @@ export type Segment = {
   description?: Maybe<Scalars['String']['output']>;
   route?: Maybe<Route>;
   segmentId: Scalars['ID']['output'];
-  startTime?: Maybe<Scalars['String']['output']>;
+  startTime?: Maybe<Scalars['AWSDateTime']['output']>;
   title: Scalars['String']['output'];
 };
 
@@ -349,7 +350,7 @@ export type User = {
 export type UserLiveStreamsArgs = {
   slug?: InputMaybe<Scalars['String']['input']>;
   streamId?: InputMaybe<Scalars['ID']['input']>;
-  userId?: InputMaybe<Scalars['String']['input']>;
+  username?: InputMaybe<Scalars['String']['input']>;
 };
 
 export enum UserRole {

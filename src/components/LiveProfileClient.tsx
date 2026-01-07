@@ -7,7 +7,7 @@ import LiveButton from "./LiveButton";
 import type { PostEntry } from "../types";
 
 /**
- * Client wrapper for the profile page UI. 
+ * Client wrapper for the profile page UI.
  *
  * - Receives server-fetched `user` and `live` objects as props.
  * - Keeps markup and styling consistent with the previous implementation but
@@ -19,10 +19,7 @@ import type { PostEntry } from "../types";
 
 type Props = {
   user: User; // shape coming from server GraphQL; kept flexible to avoid heavy typing coupling
-  username: string;
-  streamId: string;
-  waypoints: Waypoint[];
-  profilePicture: string;
+  stream: LiveStream;
 };
 
 import dynamic from "next/dynamic";
@@ -30,17 +27,13 @@ import { useUser } from "../context/UserContext";
 import PostInputBar from "./PostInputBar";
 import CoverMap from "./CoverMap";
 import ProfileLiveChat from "./ProfileLiveChat";
-import { ChatMessage, User, Waypoint } from "../generated/schema";
+import { ChatMessage, LiveStream, User, Waypoint } from "../generated/schema";
 import LiveProfileCard from "./LiveProfileCard";
+import ActivityHeatmap from "./ActivityChart";
 const FeedItem = dynamic(() => import("./FeedItem"), { ssr: false });
 
-export default function LiveProfileClient({
-  user,
-  username,
-  streamId,
-  waypoints,
-  profilePicture,
-}: Props) {
+export default function LiveProfileClient({ user, stream }: Props) {
+  console.log(stream)
   const chatMessgaes = user.liveStreams?.[0]?.chatMessages ?? [];
   if (
     !user.liveStreams ||
@@ -52,7 +45,7 @@ export default function LiveProfileClient({
   const startTime = new Date(user.liveStreams[0].startTime);
   const { theme } = useTheme();
   const { user: currentUser } = useUser();
-  const isOwnProfile = currentUser?.preferred_username === username;
+  const isOwnProfile = currentUser?.preferred_username === user.username;
 
   const sortedFeed = useMemo(() => {
     const posts: any[] = user?.posts ?? [];
@@ -70,27 +63,45 @@ export default function LiveProfileClient({
       {/* Profile Card */}
       {startTime && (
         <LiveProfileCard
-          username={username}
-          profilePicture={profilePicture}
+          username={user.username}
+          profilePicture={user.profilePicture}
           streamTitle={user.liveStreams?.[0]?.title}
           startTime={startTime}
         />
       )}
 
       {/* Map */}
-      {waypoints && (
+      {stream.waypoints && (
         <CoverMap
-          profilePicture={profilePicture}
-          waypoints={waypoints}
-          username={username}
+          profilePicture={user.profilePicture}
+          waypoints={stream.waypoints.filter((w): w is Waypoint => w != null)}
+          username={user.username}
         />
       )}
 
       {/* Chat */}
       <ProfileLiveChat
-        profileUsername={username}
+        profileUsername={user.username}
         initialMessages={chatMessgaes as unknown as ChatMessage[]}
       />
+
+
+      {/* Activity Heatmap */}
+      {stream &&
+        stream.waypoints &&
+        stream.waypoints.length > 0 &&
+        stream.unitOfMeasure &&
+        stream.timezone && (
+          <ActivityHeatmap
+            timezone={stream.timezone}
+            points={stream.waypoints.filter((w): w is Waypoint => w != null)}
+            unitOfMeasure={stream.unitOfMeasure}
+            selectedCell={null}
+            setSelectedCell={() => {}}
+            startTime={stream.startTime}
+          />
+        )}
+
 
       {isOwnProfile && <PostInputBar />}
       {sortedFeed.map((item: PostEntry) => (

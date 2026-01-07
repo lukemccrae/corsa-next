@@ -32,6 +32,7 @@ async function fetchProfile(username: string, streamId: string) {
           streamId
           mileMarker
           title
+          timezone
           startTime
           unitOfMeasure
           startTime
@@ -75,7 +76,7 @@ async function fetchProfile(username: string, streamId: string) {
   }
 
   const json = await res.json().catch(() => null);
-  console.log(json)
+  console.log(json);
   return json?.data?.getUserByUserName ?? null;
 }
 
@@ -93,7 +94,7 @@ export default async function ProfilePage({
     console.log(
       "Fetched profile for",
       username,
-      userData ? "found" : "not found"
+      userData
     );
   } catch (err) {
     console.error("fetchProfile error", err);
@@ -110,6 +111,10 @@ export default async function ProfilePage({
 
   // Render a client component and pass the server-fetched snapshot to it.
   // The client component will manage interactivity (theme, modals, navigation).
-  return <LiveProfileClient profilePicture={userData.profilePicture ?? ""} waypoints={userData.liveStreams?.[0]?.waypoints ?? []} user={userData} username={username} streamId={streamId} />;
+  return (
+    <LiveProfileClient
+      user={userData}
+      stream={userData.liveStreams?.[0]}
+    />
+  );
 }
-  
