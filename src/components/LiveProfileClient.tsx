@@ -7,7 +7,7 @@ import LiveButton from "./LiveButton";
 import type { PostEntry } from "../types";
 
 /**
- * Client wrapper for the profile page UI.
+ * Client wrapper for the profile page UI. 
  *
  * - Receives server-fetched `user` and `live` objects as props.
  * - Keeps markup and styling consistent with the previous implementation but
@@ -66,54 +66,40 @@ export default function LiveProfileClient({
   }, [user]);
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-6">
+    <div className="max-w-xl mx-auto px-4 py-6 space-y-6">
+      {/* Profile Card */}
       {startTime && (
         <LiveProfileCard
           username={username}
           profilePicture={profilePicture}
-          streamTitle={user.liveStreams?.[0]?.title}
+          streamTitle={user.liveStreams? .[0]?.title}
           startTime={startTime}
-        ></LiveProfileCard>
+        />
       )}
-      <div className="max-w-xl mx-auto py-6">
-        {waypoints && (
-          <CoverMap
-            profilePicture={profilePicture}
-            waypoints={waypoints}
-            username={username}
-          ></CoverMap>
-        )}
-      </div>
 
-      {/* Name / handle / bio / meta */}
-      <div className="mt-6">
-        {/* Main content: feed */}
-        <div className="max-w-xl mx-auto py-8">
-          <div className="space-y-4 mb-6">
-            {
-              <ProfileLiveChat
-                profileUsername={username}
-                initialMessages={chatMessgaes as unknown as ChatMessage[]}
-              />
-            }
-          </div>
+      {/* Map */}
+      {waypoints && (
+        <CoverMap
+          profilePicture={profilePicture}
+          waypoints={waypoints}
+          username={username}
+        />
+      )}
 
-          {isOwnProfile && (
-            <div className="mb-4">
-              <PostInputBar />
-            </div>
-          )}
-          {sortedFeed.map((item: PostEntry) => (
-            <div key={item.createdAt} className="mb-4">
-              <FeedItem
-                key={item.createdAt}
-                user={user as User}
-                entry={item as PostEntry}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Chat */}
+      <ProfileLiveChat
+        profileUsername={username}
+        initialMessages={chatMessgaes as unknown as ChatMessage[]}
+      />
+
+      {isOwnProfile && <PostInputBar />}
+      {sortedFeed.map((item: PostEntry) => (
+        <FeedItem
+          key={item.createdAt}
+          user={user as User}
+          entry={item as PostEntry}
+        />
+      ))}
     </div>
   );
 }
