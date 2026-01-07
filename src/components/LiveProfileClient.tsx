@@ -72,7 +72,7 @@ export default function LiveProfileClient({
         <LiveProfileCard
           username={username}
           profilePicture={profilePicture}
-          streamTitle={user.liveStreams? .[0]?.title}
+          streamTitle={user.liveStreams?.[0]?.title}
           startTime={startTime}
         />
       )}

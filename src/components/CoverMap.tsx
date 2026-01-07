@@ -12,6 +12,7 @@ import { useTheme } from "./ThemeProvider";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import type { Waypoint } from "../generated/schema";
+import { profile } from "console";
 
 type CoverMapProps = {
   username: string;
@@ -47,20 +48,9 @@ export default function CoverMap(props: CoverMapProps) {
               style="width:40px; height:40px; border-radius:50%; border:3px solid #3b82f6; box-shadow:0 0 8px rgba(59,130,246,0.5); object-fit:  cover;" 
               alt="${props.username}"
             />
-            <div style="
-              position: absolute;
-              bottom: -2px;
-              right: -2px;
-              width: 12px;
-              height: 12px;
-              background:  #10b981;
-              border:  2px solid white;
-              border-radius: 50%;
-              box-shadow: 0 0 4px rgba(0,0,0,0.3);
-            "></div>
           </div>
         `,
-        iconSize: [40, 40],
+        iconSize: [48, 48],
         iconAnchor: [20, 40],
         popupAnchor: [0, -40],
       });
@@ -134,11 +124,11 @@ export default function CoverMap(props: CoverMapProps) {
   const MapContent = ({ isExpanded = false }: { isExpanded?: boolean }) => (
     <MapContainer
       center={mapCenter}
-      zoom={14}
+      zoom={8}
       style={{ height: "100%", width: "100%" }}
       scrollWheelZoom={isExpanded}
-      dragging={isExpanded}
-      doubleClickZoom={isExpanded}
+      dragging={true}
+      doubleClickZoom={true}
       attributionControl={false}
       zoomControl={isExpanded}
     >
@@ -190,7 +180,7 @@ export default function CoverMap(props: CoverMapProps) {
           >
             <Popup>
               <div className="text-sm min-w-[200px]">
-                <div className="font-semibold mb-2">Waypoint {index + 1}</div>
+                {/* <div className="font-semibold mb-2">Waypoint {index + 1}</div> */}
 
                 {waypoint.mileMarker !== null &&
                   waypoint.mileMarker !== undefined && (
@@ -236,7 +226,7 @@ export default function CoverMap(props: CoverMapProps) {
   return (
     <>
       <div
-        className={`h-60 w-full rounded-lg overflow-hidden relative`}
+        className={`h-80 w-full rounded-lg overflow-hidden relative`}
       >
         <MapContent />
         <div className="absolute top-2 right-2 z-[1000]">
