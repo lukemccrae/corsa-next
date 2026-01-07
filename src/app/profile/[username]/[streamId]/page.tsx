@@ -1,5 +1,5 @@
 "use server";
-import ProfileClient from "@/src/components/ProfileClient";
+import LiveProfileClient from "@/src/components/LiveProfileClient";
 import React from "react";
 
 /**
@@ -34,6 +34,11 @@ async function fetchProfile(username: string, streamId: string) {
           title
           startTime
           unitOfMeasure
+          startTime
+          currentLocation {
+            lat
+            lng
+          }
           finishTime
           chatMessages {
             text
@@ -105,6 +110,6 @@ export default async function ProfilePage({
 
   // Render a client component and pass the server-fetched snapshot to it.
   // The client component will manage interactivity (theme, modals, navigation).
-  return <ProfileClient user={userData} username={username} streamId={streamId} />;
+  return <LiveProfileClient profilePicture={userData.profilePicture ?? ""} waypoints={userData.liveStreams?.[0]?.waypoints ?? []} user={userData} username={username} streamId={streamId} />;
 }
   
