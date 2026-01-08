@@ -6,6 +6,7 @@ import { useTheme } from "@/src/components/ThemeProvider";
 import { useUser } from "@/src/context/UserContext";
 import SegmentLeaderboard from "@/src/components/SegmentLeaderboard";
 import dynamic from "next/dynamic";
+import { Button } from "primereact/button";
 
 const SmallTrackMap = dynamic(() => import("@/src/components/SmallTrackMap"), {
   ssr: false,
@@ -194,8 +195,16 @@ export default function SegmentDemoPage() {
   const { theme } = useTheme();
   const { user } = useUser();
 
-  const [selectedSegment, setSelectedSegment] = useState<string>('tempe-burrito-league');
+  const [selectedSegment, setSelectedSegment] = useState<string>(
+    "tempe-burrito-league"
+  );
   const [loading, setLoading] = useState(false);
+
+  const handleStravaConnect = () => {
+    const stravaAuthUrl =
+      "https://www.strava.com/oauth/authorize?client_id=69281&redirect_uri=https://corsa-next-735i.vercel.app/demo-segment&response_type=code&scope=activity%3Aread";
+    window.location.href = stravaAuthUrl;
+  };
 
   // In a real implementation, you'd fetch this from GraphQL
   const segmentData = selectedSegment
@@ -248,6 +257,32 @@ export default function SegmentDemoPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Strava Integration Section */}
+      <div
+        className={`p-6 mb-8 rounded-lg border ${cardBg} flex flex-col md:flex-row items-center justify-between gap-4`}
+      >
+        <div className="flex items-center gap-4">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/c/cb/Strava_Logo.svg"
+            alt="Powered by Strava"
+            className="h-8 md:h-10"
+          />
+          <div>
+            <h3 className="text-lg font-semibold">Connect with Strava</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Sync your activities and compete on leaderboards
+            </p>
+          </div>
+        </div>
+        <Button
+          label="Connect Strava"
+          icon="pi pi-link"
+          onClick={handleStravaConnect}
+          className="p-button-lg"
+          severity="warning"
+        />
       </div>
 
       {/* Segment Selector */}
