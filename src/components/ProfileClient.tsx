@@ -92,7 +92,7 @@ export default function ProfileClient({ user, username, }: Props) {
       </div>
 
       {/* Name / handle / bio / meta */}
-      <div className="mt-10">
+      <div className="mt-15">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">@{username}</h1>

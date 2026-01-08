@@ -22,28 +22,76 @@ const DefaultIcon = L.icon({
 // set default globally
 L.Marker.prototype.options.icon = DefaultIcon;
 
-export default function TrackerMap({ lat, lng }: { lat: number; lng: number }) {
+export default function TrackerMap({
+  lat,
+  lng,
+  profilePicture,
+  isLive
+}: {
+  lat: number;
+  lng: number;
+  profilePicture: string;
+  isLive: boolean;
+}) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-
-    // Only run in browser
-    if (typeof window === "undefined") return;
-
-    const currentIcon = (L as any).Marker?.prototype?.options?.icon;
-    if (!currentIcon || (currentIcon.options && !currentIcon.options.iconUrl)) {
-      L.Marker.prototype.options.icon = L.icon({
-        iconRetinaUrl: (markerIcon2x as any).src ?? (markerIcon2x as any),
-        // @ts-ignore
-        iconUrl: (markerIcon as any).src ?? (markerIcon as any),
-        shadowUrl: (markerShadow as any).src ?? (markerShadow as any),
-      });
-    }
   }, []);
 
+  const createProfileIcon = () => {
+    const liveIndicator = isLive
+      ? `<span style="position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; background:  #ef4444; border:  2px solid white; border-radius: 50%;"></span>`
+      : "";
+
+    if (profilePicture) {
+      return L.divIcon({
+        className: "tracker-marker",
+        html: `
+          <div style="position: relative; width: 36px; height: 36px;">
+            <img 
+              src="${profilePicture}" 
+              alt="${"User"}" 
+              style="width: 36px; height: 36px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); object-fit: cover; background: white;"
+            />
+            ${liveIndicator}
+          </div>
+        `,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
+        popupAnchor: [0, -18],
+      });
+    }
+
+    // Fallback to initials if no profile picture
+    return L.divIcon({
+      className: "tracker-marker",
+      html: `
+        <div style="position: relative; width: 36px; height: 36px;">
+          <div style="
+            width: 36px; 
+            height: 36px; 
+            border-radius:  50%; 
+            border:  2px solid white; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+          ">
+          </div>
+        </div>
+      `,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+      popupAnchor: [0, -18],
+    });
+  };
+
   if (!mounted) return null; // don't render map until mounted
-  console.log(lat, lng, "<< TrackerMap coords");
   return (
     // hack to make it show
     <div className="h-[300px]">
@@ -62,7 +110,10 @@ export default function TrackerMap({ lat, lng }: { lat: number; lng: number }) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={[lat, lng] as LatLngExpression} />
+        <Marker
+          position={[lat, lng] as LatLngExpression}
+          icon={createProfileIcon()}
+        />
       </MapContainer>
     </div>
   );

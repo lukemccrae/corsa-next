@@ -23,6 +23,7 @@ async function fetchUserProfile(username: string) {
             stream {
               finishTime
               deviceLogo
+              streamId
               currentLocation {
                 lat
                 lng
