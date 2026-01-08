@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { Dropdown } from "primereact/dropdown";
 import { Card } from "primereact/card";
 import { useTheme } from "@/src/components/ThemeProvider";
@@ -8,7 +8,6 @@ import SegmentLeaderboard from "@/src/components/SegmentLeaderboard";
 import dynamic from "next/dynamic";
 import { Button } from "primereact/button";
 import { useSearchParams } from "next/navigation";
-
 
 const SmallTrackMap = dynamic(() => import("@/src/components/SmallTrackMap"), {
   ssr: false,
@@ -24,10 +23,10 @@ const SEGMENTS = [
     country: "CAN",
   },
   {
-    label: "Burrito League Blairmore",
+    label:  "Burrito League Blairmore",
     value: "burrito-league-blairmore",
     city: "Crowsnest Pass",
-    state: "Alberta",
+    state:  "Alberta",
     country: "CAN",
   },
   {
@@ -48,14 +47,14 @@ const SEGMENTS = [
     label: "Tucson Burrito League",
     value: "tucson-burrito-league",
     city: "Tucson",
-    state: "AZ",
+    state:  "AZ",
     country: "USA",
   },
   {
     label: "Prescott Burrito League",
     value: "prescott-burrito-league",
     city: "Prescott",
-    state: "AZ",
+    state:  "AZ",
     country: "USA",
   },
   {
@@ -68,12 +67,12 @@ const SEGMENTS = [
   {
     label: "Gila Bend Burrito League",
     value: "gila-bend-burrito-league",
-    city: "Gila Bend",
+    city:  "Gila Bend",
     state: "AZ",
     country: "USA",
   },
   {
-    label: "Burrito League - Oscar's Mexican Restaurant",
+    label:  "Burrito League - Oscar's Mexican Restaurant",
     value: "burrito-league-oscars",
     city: "Redlands",
     state: "CA",
@@ -84,7 +83,7 @@ const SEGMENTS = [
     value: "burrito-league-sf",
     city: "San Francisco",
     state: "CA",
-    country: "USA",
+    country:  "USA",
   },
   {
     label: "Burrito League - Santa Barbara w/ rabbit",
@@ -108,10 +107,10 @@ const SEGMENTS = [
     country: "USA",
   },
   {
-    label: "Castle Rock Burrito League",
+    label:  "Castle Rock Burrito League",
     value: "castle-rock-burrito-league",
-    city: "Castle Rock",
-    state: "CO",
+    city:  "Castle Rock",
+    state:  "CO",
     country: "USA",
   },
 ];
@@ -124,49 +123,48 @@ const generateMockLeaderboard = (segmentName: string) => {
       profilePicture: "https://i.pravatar.cc/150? img=12",
     },
     {
-      username: "jamilcoury",
-      profilePicture: "https://i.pravatar.cc/150?img=33",
+      username:  "jamilcoury",
+      profilePicture:  "https://i.pravatar.cc/150?img=33",
     },
     {
       username: "dirty. t. run. club",
-      profilePicture: "https://i.pravatar.cc/150?img=45",
+      profilePicture:  "https://i.pravatar.cc/150?img=45",
     },
     {
       username: "finding_my_dirt",
-      profilePicture: "https://i.pravatar.cc/150?img=8",
+      profilePicture:  "https://i.pravatar.cc/150?img=8",
     },
     {
       username: "cprunsfar",
-      profilePicture: "https://i.pravatar.cc/150?img=28",
+      profilePicture:  "https://i.pravatar.cc/150?img=28",
     },
     { username: "amglaze", profilePicture: "https://i.pravatar.cc/150?img=15" },
     {
       username: "zachmayfield95",
-      profilePicture: "https://i.pravatar.cc/150?img=22",
+      profilePicture:  "https://i.pravatar.cc/150?img=22",
     },
     {
       username: "sam_marks",
-      profilePicture: "https://i.pravatar.cc/150?img=37",
+      profilePicture:  "https://i.pravatar.cc/150?img=37",
     },
     {
       username: "lukejay180",
-      profilePicture: "https://i.pravatar.cc/150?img=42",
+      profilePicture:  "https://i.pravatar.cc/150?img=42",
     },
     {
       username: "trappephoto",
-      profilePicture: "https://i.pravatar.cc/150?img=50",
+      profilePicture:  "https://i.pravatar.cc/150?img=50",
     },
   ];
 
-  // Randomize order and times for each segment
   const shuffled = [...baseUsers].sort(() => Math.random() - 0.5);
 
   return shuffled.map((user, index) => ({
     rank: index + 1,
     userId: `user-${index}`,
     username: user.username,
-    profilePicture: user.profilePicture,
-    time: 600 + Math.floor(Math.random() * 300) + index * 15, // 10-20 minutes
+    profilePicture:  user.profilePicture,
+    time: 600 + Math.floor(Math.random() * 300) + index * 15,
     date: new Date(
       Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
     ).toISOString(),
@@ -174,7 +172,7 @@ const generateMockLeaderboard = (segmentName: string) => {
     lastEffort: new Date(
       Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000
     ).toISOString(),
-    gender: Math.random() > 0.5 ? "M" : ("F" as "M" | "F"),
+    gender: Math.random() > 0.5 ? ("M" as const) : ("F" as const),
   }));
 };
 
@@ -204,13 +202,13 @@ type StravaAthlete = {
   country: string;
 };
 
-export default function SegmentDemoPage() {
+// Extract the component that uses useSearchParams into a separate component
+function SegmentContent() {
   const { theme } = useTheme();
   const { user } = useUser();
-    const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
 
-
-  const [selectedSegment, setSelectedSegment] = useState<string>(
+  const [selectedSegment, setSelectedSegment] = useState(
     "tempe-burrito-league"
   );
   const [loading, setLoading] = useState(false);
@@ -228,28 +226,13 @@ export default function SegmentDemoPage() {
     }
   }, [searchParams]);
 
-  const handleStravaCallback = async (code: string, scope:  string | null) => {
+  const handleStravaCallback = async (code: string, scope: string | null) => {
     setStravaLoading(true);
     setStravaError(null);
 
     try {
-      // TODO: Replace with your actual token exchange endpoint
-      // This would call your backend to exchange the code for an access token
-      // and retrieve the athlete profile
-      
-      // For now, using mock data to demonstrate the UI
-      // In production, you'd do: 
-      // const response = await fetch('/api/strava/token', {
-      //   method:  'POST',
-      //   body: JSON.stringify({ code }),
-      //   headers: { 'Content-Type': 'application/json' }
-      // });
-      // const data = await response.json();
-      
-      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Mock Strava athlete data
       const mockAthlete: StravaAthlete = {
         id: 12345678,
         username: "strava_runner_" + Math.floor(Math.random() * 1000),
@@ -262,11 +245,7 @@ export default function SegmentDemoPage() {
       };
 
       setStravaAthlete(mockAthlete);
-
-      // Store in localStorage for persistence
       localStorage.setItem("strava_athlete", JSON.stringify(mockAthlete));
-
-      // Clean up URL
       window.history.replaceState({}, "", "/demo-segment");
 
     } catch (error) {
@@ -291,16 +270,15 @@ export default function SegmentDemoPage() {
 
   const handleStravaConnect = () => {
     const stravaAuthUrl =
-      "https://www.strava.com/oauth/authorize?client_id=69281&redirect_uri=https://corsa-next-735i.vercel.app/demo-segment&response_type=code&scope=activity%3Aread";
-    window.location.href = stravaAuthUrl;
+      "https://www.strava.com/oauth/authorize? client_id=69281&redirect_uri=https://corsa-next-735i.vercel.app/demo-segment&response_type=code&scope=activity%3Aread";
+    window. location.href = stravaAuthUrl;
   };
 
-  // In a real implementation, you'd fetch this from GraphQL
   const segmentData = selectedSegment
     ? {
-        name: SEGMENTS.find((s) => s.value === selectedSegment)?.label || "",
-        distance: 3.1 + Math.random() * 2, // 3-5 miles
-        elevationGain: 150 + Math.floor(Math.random() * 300), // 150-450 ft
+        name:  SEGMENTS.find((s) => s.value === selectedSegment)?.label || "",
+        distance: 3.1 + Math.random() * 2,
+        elevationGain: 150 + Math.floor(Math.random() * 300),
         leaderboard: generateMockLeaderboard(selectedSegment),
         routePoints: generateMockRoute(),
       }
@@ -309,14 +287,7 @@ export default function SegmentDemoPage() {
   const handleSegmentChange = async (e: { value: string }) => {
     setLoading(true);
     setSelectedSegment(e.value);
-
-    // Simulate GraphQL query delay
     await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // TODO: Replace with actual GraphQL query
-    // const result = await fetchSegmentDetails({ segmentId: e.value });
-    // const leaderboard = await fetchSegmentLeaderboard({ segmentId: e.value });
-
     setLoading(false);
   };
 
@@ -326,39 +297,35 @@ export default function SegmentDemoPage() {
       : "bg-white border-gray-200";
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-12">
       {/* Hero Section with Image */}
-      <div className="mb-8">
-        <div className="relative w-full h-40 rounded-lg overflow-hidden mb-6">
-          <img
-            src="https://www.mountainoutpost.com/wp-content/uploads/2026/01/Untitled-design-1024x576.png"
-            alt="Burrito League runners"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
-            <div className="p-4 md:p-6 text-white">
-              <h1 className="text-3xl md:text-4xl font-bold mb-1">
-                Burrito League Segments
-              </h1>
-              <p className="text-sm md:text-base text-gray-200">
-                Run, compete, and enjoy burritos across North America
-              </p>
-            </div>
+      <div className="relative w-full h-[400px] mb-8 overflow-hidden">
+        <img
+          src="https://www.mountainoutpost.com/wp-content/uploads/2026/01/Untitled-design-1024x576.png"
+          alt="Burrito League runners"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+          <div className="container mx-auto px-4 pb-12">
+            <h1 className="text-5xl font-bold text-white mb-2">
+              Burrito League Segments
+            </h1>
+            <p className="text-xl text-gray-200">
+              Run, compete, and enjoy burritos across North America
+            </p>
           </div>
         </div>
       </div>
 
       {/* Strava Integration Section */}
-      <div
-        className={`p-6 mb-8 rounded-lg border ${cardBg} flex flex-col md:flex-row items-center justify-between gap-4`}
-      >
-        <div className="flex items-center gap-4">
+      <div className={`max-w-4xl mx-auto px-4 mb-8 ${cardBg} rounded-lg border p-6`}>
+        <div className="flex items-center gap-4 mb-4">
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/c/cb/Strava_Logo.svg"
             alt="Powered by Strava"
-            className="h-8 md:h-10"
+            className="h-8"
           />
-          <div>
+          <div className="flex-1">
             <h3 className="text-lg font-semibold">Connect with Strava</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Sync your activities and compete on leaderboards
@@ -366,119 +333,128 @@ export default function SegmentDemoPage() {
           </div>
         </div>
         <Button
-          label="Connect Strava"
-          icon="pi pi-link"
+          label={stravaAthlete ? `Connected as ${stravaAthlete. username}` : "Connect with Strava"}
+          icon={stravaLoading ? "pi pi-spin pi-spinner" : "pi pi-link"}
           onClick={handleStravaConnect}
-          className="p-button-lg"
-          severity="warning"
+          disabled={!! stravaAthlete || stravaLoading}
+          className="w-full"
+          severity={stravaAthlete ? "success" : "info"}
         />
       </div>
 
       {/* Segment Selector */}
-      <Card className={`mb-8 ${cardBg} border`}>
-        <div className="flex flex-col gap-4">
+      <div className={`max-w-4xl mx-auto px-4 mb-8 ${cardBg} rounded-lg border p-6`}>
+        <div className="space-y-4">
           <label className="text-lg font-semibold">Choose a Segment</label>
           <Dropdown
             value={selectedSegment}
-            onChange={handleSegmentChange}
             options={SEGMENTS}
-            optionLabel="label"
-            placeholder="Select a Burrito League segment..."
+            onChange={handleSegmentChange}
+            placeholder="Select a Burrito League segment"
             className="w-full"
             filter
-            filterPlaceholder="Search segments..."
-            emptyMessage="No segments found"
           />
 
           {selectedSegment && (
             <div className="flex gap-4 text-sm text-gray-600 dark:text-gray-400">
-              <span>
-                <i className="pi pi-map-marker mr-1" />
+              <div className="flex items-center gap-1">
+                <i className="pi pi-map-marker" />
                 {SEGMENTS.find((s) => s.value === selectedSegment)?.city}
-              </span>
-              <span>
-                <i className="pi pi-globe mr-1" />
-                {SEGMENTS.find((s) => s.value === selectedSegment)?.state},{" "}
+              </div>
+              <div className="flex items-center gap-1">
+                <i className="pi pi-globe" />
+                {SEGMENTS. find((s) => s.value === selectedSegment)?.state},{" "}
                 {SEGMENTS.find((s) => s.value === selectedSegment)?.country}
-              </span>
+              </div>
             </div>
           )}
         </div>
-      </Card>
+      </div>
 
       {/* Loading State */}
       {loading && (
-        <div className="flex justify-center items-center py-12">
+        <div className="max-w-6xl mx-auto px-4 text-center py-12">
           <i className="pi pi-spin pi-spinner text-4xl text-blue-500" />
         </div>
       )}
 
       {/* Segment Details */}
       {!loading && segmentData && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Leaderboard - takes up 2 columns */}
           <div className="lg:col-span-2">
             <SegmentLeaderboard
               segmentName={segmentData.name}
               segmentDistance={segmentData.distance}
               segmentElevationGain={segmentData.elevationGain}
-              unitOfMeasure="IMPERIAL"
               entries={segmentData.leaderboard}
               currentUserId={user?.userId}
             />
           </div>
 
           {/* Map - takes up 1 column */}
-          <div className="lg: col-span-1">
-            <Card className={`${cardBg} border h-full`}>
+          <div className="lg:col-span-1">
+            <Card className={cardBg}>
               <h3 className="text-xl font-semibold mb-4">Route Map</h3>
-              <div className="rounded-lg overflow-hidden">
+              <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                 <SmallTrackMap
                   points={segmentData.routePoints}
-                  zoom={12}
-                  className="h-96"
+                  zoom={13}
+                  className="h-64"
                 />
               </div>
 
-              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Distance
-                    </span>
-                    <p className="font-semibold text-lg">
-                      {segmentData.distance.toFixed(2)} mi
-                    </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                    Distance
                   </div>
-                  <div>
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Elevation
-                    </span>
-                    <p className="font-semibold text-lg">
-                      {segmentData.elevationGain} ft
-                    </p>
+                  <p className="text-lg font-semibold">
+                    {segmentData. distance.toFixed(2)} mi
+                  </p>
+                </div>
+                <div className="text-center p-3 bg-gray-50 dark: bg-gray-700 rounded-lg">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                    Elevation
                   </div>
+                  <p className="text-lg font-semibold">
+                    {segmentData.elevationGain} ft
+                  </p>
                 </div>
               </div>
             </Card>
           </div>
         </div>
       )}
+      
       {/* Info Card */}
-      <Card className={`mt-8 ${cardBg} border`}>
+      <div className={`max-w-6xl mx-auto px-4 mt-8 ${cardBg} rounded-lg border p-6`}>
         <div className="flex items-start gap-4">
-          <i className="pi pi-info-circle text-blue-500 text-2xl" />
+          <i className="pi pi-info-circle text-2xl text-blue-500 mt-1" />
           <div>
-            <h3 className="font-semibold mb-2">About Burrito Leagues</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
+            <h3 className="text-xl font-semibold mb-2">About Burrito Leagues</h3>
+            <p className="text-gray-600 dark:text-gray-400">
               Burrito Leagues are community running events where participants
               race to a local burrito restaurant. Each segment represents a
-              different location across North America. Track your times, compete
+              different location across North America.  Track your times, compete
               on leaderboards, and join the community!
             </p>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
+  );
+}
+
+// Main page component wrapped with Suspense
+export default function SegmentDemoPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <i className="pi pi-spin pi-spinner text-4xl text-blue-500" />
+      </div>
+    }>
+      <SegmentContent />
+    </Suspense>
   );
 }

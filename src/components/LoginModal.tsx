@@ -13,14 +13,31 @@ type LoginModalProps = {
 
 export default function LoginModal({ visible, onHide }: LoginModalProps) {
   const { loginUser, registerUser } = useUser();
-  const formRef = useRef<HTMLFormElement | null>(null);
-  const registerFormRef = useRef<HTMLFormElement | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const registerFormRef = useRef<HTMLFormElement>(null);
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Registration form state
+  const [registerForm, setRegisterForm] = useState({
+    firstName: "",
+    lastName: "",
+    username: "",
+    registerEmail: "",
+    registerPassword:  "",
+    bio: "",
+    pictureUrl: "",
+  });
+
+  // Login form state
+  const [loginForm, setLoginForm] = useState({
+    email: "",
+    password: "",
+  });
+
   // Handle login submit
-  const submitLogin = async (e: React.FormEvent) => {
+  const submitLogin = async (e: React. FormEvent) => {
     setErrorMsg("");
     setLoading(true);
     try {
@@ -50,29 +67,27 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
 
   // Dialog footer (switch/sign in/register/cancel)
   const footer = (
-    <div className="flex justify-between items-center gap-2">
-      <div>
-        <Button
-          label={
-            mode === "login" ? "Create Account" : "Already have an account?"
-          }
-          className="p-button-text"
-          onClick={() => {
-            setErrorMsg("");
-            setMode(mode === "login" ? "register" : "login");
-          }}
-        />
-      </div>
+    <div className="flex items-center justify-between gap-3 pt-4">
+      <Button
+        label={mode === "login" ? "Need an account?" : "Have an account?"}
+        link
+        type="button"
+        onClick={() => {
+          setErrorMsg("");
+          setMode(mode === "login" ? "register" : "login");
+        }}
+      />
       <div className="flex gap-2">
-        <Button label="Cancel" className="p-button-text" onClick={onHide} />
+        <Button label="Cancel" severity="secondary" onClick={onHide} type="button" />
         <Button
           label={mode === "login" ? "Sign In" : "Register"}
           loading={loading}
+          type="button"
           onClick={() => {
             if (mode === "login") {
               formRef.current?.requestSubmit();
             } else {
-              registerFormRef.current?.requestSubmit();
+              registerFormRef.current?. requestSubmit();
             }
           }}
         />
@@ -82,135 +97,136 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
 
   return (
     <Dialog
-      header={mode === "login" ? "Sign in" : "Create Account"}
+      header={mode === "login" ? "Sign In" : "Create Account"}
       visible={visible}
       onHide={onHide}
       modal
       dismissableMask
-      className="w-half max-w-md"
+      className="w-full max-w-md"
       footer={footer}
     >
       {errorMsg && (
-        <div className="mb-2 text-xs text-red-500 text-center">{errorMsg}</div>
+        <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">
+          {errorMsg}
+        </div>
       )}
 
-      {mode === "login" ? (
-        <form
-          ref={formRef}
-          onSubmit={submitLogin}
-          className="flex flex-col gap-4"
-          aria-label="login-form"
-        >
+      {mode === "login" ?  (
+        <form ref={formRef} onSubmit={submitLogin} className="flex flex-col gap-4">
           <label className="text-sm font-medium text-gray-700">Email</label>
           <InputText
+            id="email"
             name="email"
             type="email"
-            placeholder="you@example.com"
             required
             className="w-full"
+            value={loginForm.email}
+            onChange={(e) => setLoginForm({ ...loginForm, email: e. target.value })}
           />
 
           <label className="text-sm font-medium text-gray-700">Password</label>
           <Password
+            id="password"
             name="password"
-            placeholder="Enter your password"
-            toggleMask
             feedback={false}
+            toggleMask
             required
             className="w-full"
+            inputClassName="w-full"
+            value={loginForm.password}
+            onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
           />
 
           {/* Hidden submit for accessibility; footer Sign In triggers requestSubmit */}
-          <button type="submit" className="hidden" aria-hidden />
+          <button type="submit" className="hidden" />
         </form>
       ) : (
-        <form
-          ref={registerFormRef}
-          onSubmit={submitRegister}
-          className="flex flex-col gap-4"
-          aria-label="register-form"
-        >
+        <form ref={registerFormRef} onSubmit={submitRegister} className="flex flex-col gap-4">
           <label className="text-sm font-medium text-gray-700">
             First Name
           </label>
           <InputText
+            id="firstName"
             name="firstName"
-            type="text"
-            placeholder="First name"
-            autoComplete="given-name"
             required
             className="w-full"
-            value="luke"
+            value={registerForm.firstName}
+            onChange={(e) => setRegisterForm({ ...registerForm, firstName: e.target.value })}
           />
 
           {/* Last Name */}
           <label className="text-sm font-medium text-gray-700">Last Name</label>
           <InputText
+            id="lastName"
             name="lastName"
-            type="text"
-            placeholder="Last name"
-            autoComplete="family-name"
             required
             className="w-full"
-            value="mccrae"
+            value={registerForm.lastName}
+            onChange={(e) => setRegisterForm({ ...registerForm, lastName: e.target.value })}
           />
+
           <label className="text-sm font-medium text-gray-700">Username</label>
           <InputText
+            id="username"
             name="username"
-            type="text"
-            placeholder="Pick a username"
-            autoComplete="username"
             required
             className="w-full"
-            value="corsa"
+            value={registerForm.username}
+            onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
           />
 
           <label className="text-sm font-medium text-gray-700">Email</label>
           <InputText
+            id="registerEmail"
             name="registerEmail"
             type="email"
-            placeholder="your@email.com"
-            autoComplete="email"
             required
             className="w-full"
-            value="lukemccrae@corsa.run"
+            value={registerForm.registerEmail}
+            onChange={(e) => setRegisterForm({ ...registerForm, registerEmail: e.target.value })}
           />
 
           <label className="text-sm font-medium text-gray-700">Password</label>
           <Password
+            id="registerPassword"
             name="registerPassword"
-            placeholder="Enter a password"
-            toggleMask
             feedback={false}
+            toggleMask
             required
             className="w-full"
-            value="Eeeee4444$$$$"
+            inputClassName="w-full"
+            value={registerForm.registerPassword}
+            onChange={(e) => setRegisterForm({ ...registerForm, registerPassword: e.target.value })}
           />
 
           <label className="text-sm font-medium text-gray-700">
-            Bio <span className="text-xs text-gray-400">(optional)</span>
+            Bio (optional)
           </label>
           <InputText
+            id="bio"
             name="bio"
-            type="text"
-            placeholder="Tell us about yourself"
             className="w-full"
+            value={registerForm.bio}
+            onChange={(e) => setRegisterForm({ ...registerForm, bio: e.target.value })}
           />
 
           <label className="text-sm font-medium text-gray-700">
             Profile Picture URL{" "}
-            <span className="text-xs text-gray-400">(optional)</span>
+            <span className="font-normal text-gray-500 dark:text-gray-400">
+              (optional)
+            </span>
           </label>
           <InputText
+            id="pictureUrl"
             name="pictureUrl"
             type="url"
-            placeholder="https://your.image.url"
             className="w-full"
-            value="https://i.imgur.com/MXffVYs.png"
+            value={registerForm.pictureUrl}
+            onChange={(e) => setRegisterForm({ ...registerForm, pictureUrl: e.target.value })}
           />
 
           {/* Hidden submit for accessibility; footer Register triggers requestSubmit */}
-          <button type="submit" className="hidden" aria-hidden />
+          <button type="submit" className="hidden" />
         </form>
       )}
     </Dialog>
