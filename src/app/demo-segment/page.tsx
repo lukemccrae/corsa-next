@@ -194,7 +194,7 @@ export default function SegmentDemoPage() {
   const { theme } = useTheme();
   const { user } = useUser();
 
-  const [selectedSegment, setSelectedSegment] = useState<string | null>(null);
+  const [selectedSegment, setSelectedSegment] = useState<string>('tempe-burrito-league');
   const [loading, setLoading] = useState(false);
 
   // In a real implementation, you'd fetch this from GraphQL
@@ -340,21 +340,6 @@ export default function SegmentDemoPage() {
           </div>
         </div>
       )}
-
-      {/* Empty State */}
-      {!loading && !selectedSegment && (
-        <Card className={`${cardBg} border`}>
-          <div className="text-center py-12">
-            <i className="pi pi-map text-6xl text-gray-300 dark:text-gray-600 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Select a Segment</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Choose a Burrito League segment from the dropdown above to view
-              leaderboard and route details
-            </p>
-          </div>
-        </Card>
-      )}
-
       {/* Info Card */}
       <Card className={`mt-8 ${cardBg} border`}>
         <div className="flex items-start gap-4">
