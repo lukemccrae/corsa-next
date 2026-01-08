@@ -17,7 +17,7 @@ type SmallTrackMapProps = {
 export default function SmallTrackMap({
   points,
   className = "",
-  zoom = 13,
+  zoom = 5,
   center,
   onClick,
 }: SmallTrackMapProps) {
