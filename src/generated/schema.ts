@@ -101,6 +101,11 @@ export type LatLng = {
   lng: Scalars['Float']['output'];
 };
 
+export type LatLngInput = {
+  lat: Scalars['Float']['input'];
+  lng: Scalars['Float']['input'];
+};
+
 /**
  *   -----------------------
  *  LiveStream
@@ -138,6 +143,7 @@ export type LivestreamPost = Post & {
   mentions?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   stream: LiveStream;
   tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  text?: Maybe<Scalars['String']['output']>;
   type: PostType;
   userId: Scalars['ID']['output'];
 };
@@ -152,8 +158,14 @@ export type Mutation = {
   __typename?: 'Mutation';
   publishChat: ChatMessage;
   publishWaypoint: Waypoint;
+  upsertDevice: Device;
   upsertLiveStream: LiveStream;
+  upsertPost: Post;
   upsertRoute: Route;
+  upsertSegment: Segment;
+  upsertSegmentEffort: SegmentLeaderboardEntry;
+  upsertTrackerGroup: TrackerGroup;
+  upsertUser: User;
 };
 
 
@@ -167,14 +179,44 @@ export type MutationPublishWaypointArgs = {
 };
 
 
+export type MutationUpsertDeviceArgs = {
+  input: DeviceInput;
+};
+
+
 export type MutationUpsertLiveStreamArgs = {
   startTime: Scalars['AWSDateTime']['input'];
   streamId: Scalars['ID']['input'];
 };
 
 
+export type MutationUpsertPostArgs = {
+  input: PostInput;
+};
+
+
 export type MutationUpsertRouteArgs = {
   input: RouteInput;
+};
+
+
+export type MutationUpsertSegmentArgs = {
+  input: SegmentInput;
+};
+
+
+export type MutationUpsertSegmentEffortArgs = {
+  input: SegmentEffortInput;
+};
+
+
+export type MutationUpsertTrackerGroupArgs = {
+  input: TrackerGroupInput;
+};
+
+
+export type MutationUpsertUserArgs = {
+  input: UserInput;
 };
 
 export type PhotoPost = Post & {
@@ -194,6 +236,20 @@ export type Post = {
   tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   type: PostType;
   userId: Scalars['ID']['output'];
+};
+
+export type PostInput = {
+  createdAt: Scalars['AWSDateTime']['input'];
+  imageUrl?: InputMaybe<Scalars['String']['input']>;
+  images?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  mentions?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  postId: Scalars['ID']['input'];
+  streamId?: InputMaybe<Scalars['ID']['input']>;
+  tags?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  text?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  type: PostType;
+  userId: Scalars['ID']['input'];
 };
 
 export enum PostType {
@@ -267,6 +323,24 @@ export type Segment = {
   title: Scalars['String']['output'];
 };
 
+export type SegmentEffortInput = {
+  attemptCount: Scalars['Int']['input'];
+  lastEffortAt?: InputMaybe<Scalars['String']['input']>;
+  profilePicture?: InputMaybe<Scalars['String']['input']>;
+  segmentId: Scalars['ID']['input'];
+  userId: Scalars['ID']['input'];
+  username: Scalars['String']['input'];
+};
+
+export type SegmentInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  routeName?: InputMaybe<Scalars['String']['input']>;
+  routeStorageUrl?: InputMaybe<Scalars['String']['input']>;
+  segmentId: Scalars['ID']['input'];
+  startTime: Scalars['AWSDateTime']['input'];
+  title: Scalars['String']['input'];
+};
+
 export type SegmentLeaderboardEntry = {
   __typename?: 'SegmentLeaderboardEntry';
   attemptCount: Scalars['Int']['output'];
@@ -289,7 +363,7 @@ export type StatusPost = Post & {
   createdAt: Scalars['AWSDateTime']['output'];
   mentions?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
-  text: Scalars['String']['output'];
+  text?: Maybe<Scalars['String']['output']>;
   type: PostType;
   userId: Scalars['ID']['output'];
 };
@@ -324,6 +398,14 @@ export type TrackerGroup = {
   name?: Maybe<Scalars['String']['output']>;
   user?: Maybe<User>;
   userId: Scalars['String']['output'];
+};
+
+export type TrackerGroupInput = {
+  createdAt: Scalars['AWSDateTime']['input'];
+  currentLocation: LatLngInput;
+  groupId: Scalars['ID']['input'];
+  name: Scalars['String']['input'];
+  userId: Scalars['String']['input'];
 };
 
 export enum UnitOfMeasure {
@@ -362,6 +444,15 @@ export type UserLiveStreamsArgs = {
   slug?: InputMaybe<Scalars['String']['input']>;
   streamId?: InputMaybe<Scalars['ID']['input']>;
   username?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UserInput = {
+  bio?: InputMaybe<Scalars['String']['input']>;
+  live?: InputMaybe<Scalars['Boolean']['input']>;
+  profilePicture: Scalars['String']['input'];
+  streamId?: InputMaybe<Scalars['String']['input']>;
+  userId: Scalars['ID']['input'];
+  username: Scalars['String']['input'];
 };
 
 export enum UserRole {

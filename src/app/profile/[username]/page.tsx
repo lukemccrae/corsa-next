@@ -35,12 +35,6 @@ async function fetchUserProfile(username: string) {
             }
             createdAt
           }
-          ... on BlogPost {
-            title
-            text
-            type
-            imageUrl
-          }
         }
       }
     }
