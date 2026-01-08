@@ -1,0 +1,41 @@
+import { domain } from '../context/domain.context';
+import { retrieveUserToken } from '../helpers/token.helper';
+
+export interface StravaCallbackArgs {
+  code: string;
+  userId: string;
+  username: string;
+}
+
+export const exchangeStravaCode = async (args: StravaCallbackArgs) => {
+  const { code, userId, username } = args;
+
+  try {
+    const response = await fetch(`${domain.utilityApi}/integration`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${retrieveUserToken()}`,
+      },
+      body: JSON.stringify({
+        code,
+        userId,
+        username,
+        provider: 'strava'
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response. json().catch(() => ({}));
+      throw new Error(
+        errorData. message || `Integration failed with status ${response.status}`
+      );
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error:  any) {
+    console.error('Strava integration error:', error);
+    throw error;
+  }
+};

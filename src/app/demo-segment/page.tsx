@@ -270,7 +270,7 @@ function SegmentContent() {
 
   const handleStravaConnect = () => {
     const stravaAuthUrl =
-      "https://www.strava.com/oauth/authorize? client_id=69281&redirect_uri=https://corsa-next-735i.vercel.app/demo-segment&response_type=code&scope=activity%3Aread";
+      "https://www.strava.com/oauth/authorize?client_id=69281&redirect_uri=https://corsa-next-735i.vercel.app/demo-segment&response_type=code&scope=activity:read";
     window. location.href = stravaAuthUrl;
   };
 
