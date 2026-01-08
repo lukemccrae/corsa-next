@@ -76,7 +76,7 @@ export default function FeedItem(args: FeedItemsArgs) {
           <p className="mb-2">{(args.entry as any).text}</p>
           {(args.entry as any).imageUrl && (
             <a
-              href={`/profile/${args.user.username}`}
+              href={`/blog/${args.entry.slug}`}
               className="font-medium hover:underline transition-opacity"
             >
               <img

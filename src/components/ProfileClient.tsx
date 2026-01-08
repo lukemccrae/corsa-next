@@ -47,6 +47,22 @@ export default function ProfileClient({ user, username, }: Props) {
       });
   }, [user]);
 
+
+  const handleQuickPost = (text: string) => {
+    console.log("Quick post:", text);
+    // TODO: Implement quick status post API call
+  };
+
+    const handleBlogPublish = (blog: {
+    title: string;
+    content: string;
+    coverImage?: string;
+    tags: string[];
+  }) => {
+    console.log("Blog published:", blog);
+    // TODO: Implement blog post API call
+  };
+
   return (
     <div className="max-w-xl mx-auto px-4 py-6">
       {/* Profile header */}
@@ -132,8 +148,11 @@ export default function ProfileClient({ user, username, }: Props) {
         <div className="max-w-xl mx-auto py-8">
 
           {isOwnProfile && (
-            <div className="mb-4">
-              <PostInputBar />
+            <div className="w-full">
+              <PostInputBar
+                onPost={handleQuickPost}
+                onBlogPublish={handleBlogPublish}
+              />
             </div>
           )}
           {sortedFeed.map((item: PostEntry) => (
