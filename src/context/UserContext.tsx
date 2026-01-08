@@ -47,7 +47,7 @@ type UserContextType = {
   setAnonCreds: () => Promise<Anon | undefined>;
   getAnon: () => Promise<Anon>;
   logoutUser: () => Promise<void>;
-  loginUser: (event: any) => Promise<void>;
+  loginUser: (event: any) => Promise<unknown>;
   registerUser: (event: any) => Promise<void>;
   maybeRefreshUser: () => Promise<void>;
   // signInWithFacebook: (provider: string) => Promise<void>;
@@ -199,9 +199,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       await setAnonCreds();
     }
   };
-
   const registerUser = async (event: any) => {
-    console.log(event, '<< event')
     event.preventDefault();
     const data = new FormData(event.currentTarget);
 
@@ -214,12 +212,13 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     const lastName = data.get("lastName")?.toString();
 
     if (!email || !password) {
-      throw new Error("Your user credentials are invalid");
+      throw new Error("Email and password are required");
     }
 
-    if(!username!) throw new Error("username is required");
+    if (!username) {
+      throw new Error("Username is required");
+    }
 
-    console.log(firstName, lastName, bio, email, username)
     try {
       const response = await fetch(`${domain.utilityApi}/register`, {
         method: "POST",
@@ -237,12 +236,20 @@ export const UserProvider = ({ children }: UserProviderProps) => {
           lastName,
         }),
       });
-      console.log(response)
+
       if (!response.ok) {
-        throw new Error("Failed to register user");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message ||
+            `Registration failed with status ${response.status}`
+        );
       }
-    } catch (e) {
-      console.log(e);
+
+      const result = await response.json();
+      console.log(result, '<< res')
+    } catch (e: any) {
+      console.error("Registration error:", e);
+      throw e;
     }
   };
 
@@ -254,7 +261,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     setUser({ email, exp, userId, idToken, preferred_username, picture });
     localStorage.setItem("user", idToken);
   };
-
+  // In the loginUser function, improve error handling:
   const loginUser = async (event: any) => {
     const data = new FormData(event.currentTarget);
 
@@ -262,7 +269,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     const password = data.get("password")?.toString();
 
     if (!email || !password) {
-      throw new Error("Your user credentials are invalid");
+      throw new Error("Email and password are required");
     }
 
     event.preventDefault();
@@ -270,23 +277,29 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       Username: email,
       Password: password,
     });
+
     var userData = {
       Username: email,
       Pool: UserPool,
     };
+
     var cognitoUser = new CognitoUser(userData);
 
-    cognitoUser.authenticateUser(authenticationDetails, {
-      onSuccess: function (result) {
-        const idToken = result.getIdToken().getJwtToken();
-        const refreshToken = result.getRefreshToken().getToken();
-        localStorage.setItem("refreshToken", refreshToken);
+    return new Promise((resolve, reject) => {
+      cognitoUser.authenticateUser(authenticationDetails, {
+        onSuccess: function (result) {
+          const idToken = result.getIdToken().getJwtToken();
+          const refreshToken = result.getRefreshToken().getToken();
+          localStorage.setItem("refreshToken", refreshToken);
 
-        setUserInStorage(idToken);
-      },
-      onFailure: function (err) {
-        console.log(err, "auth failure");
-      },
+          setUserInStorage(idToken);
+          resolve(result);
+        },
+        onFailure: function (err) {
+          console.error("Authentication failure:", err);
+          reject(err);
+        },
+      });
     });
   };
 

@@ -1,9 +1,11 @@
+// src/components/LoginModal.tsx
 "use client";
 import React, { useRef, useState } from "react";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
 import { Button } from "primereact/button";
+import { Toast } from "primereact/toast"; // Add this import
 import { useUser } from "../context/UserContext";
 
 type LoginModalProps = {
@@ -15,6 +17,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
   const { loginUser, registerUser } = useUser();
   const formRef = useRef<HTMLFormElement>(null);
   const registerFormRef = useRef<HTMLFormElement>(null);
+  const toast = useRef<Toast>(null); // Add this ref
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -25,7 +28,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
     lastName: "",
     username: "",
     registerEmail: "",
-    registerPassword:  "",
+    registerPassword: "",
     bio: "",
     pictureUrl: "",
   });
@@ -57,9 +60,30 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
     console.log(e, "<< form event");
     try {
       await registerUser(e);
-      onHide();
-    } catch (err) {
-      setErrorMsg("Registration failed. Please check your info and try again.");
+      
+      // Show success toast
+      toast.current?.show({
+        severity: "success",
+        summary:  "Registration Successful",
+        detail: "Please check your email to verify your account.",
+        life: 6000,
+      });
+      
+      // Close modal after a short delay to let user see the toast
+      setTimeout(() => {
+        onHide();
+      }, 1500);
+    } catch (err: any) {
+      const errorMessage = err?. message || "Registration failed. Please check your info and try again.";
+      setErrorMsg(errorMessage);
+      
+      // Also show error toast
+      toast.current?.show({
+        severity: "error",
+        summary: "Registration Failed",
+        detail: errorMessage,
+        life: 5000,
+      });
     } finally {
       setLoading(false);
     }
@@ -67,27 +91,25 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
 
   // Dialog footer (switch/sign in/register/cancel)
   const footer = (
-    <div className="flex items-center justify-between gap-3 pt-4">
+    <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
       <Button
-        label={mode === "login" ? "Need an account?" : "Have an account?"}
-        link
-        type="button"
+        label={mode === "login" ? "Need an account?" : "Already registered?"}
+        text
         onClick={() => {
           setErrorMsg("");
           setMode(mode === "login" ? "register" : "login");
         }}
       />
       <div className="flex gap-2">
-        <Button label="Cancel" severity="secondary" onClick={onHide} type="button" />
+        <Button label="Cancel" text onClick={onHide} disabled={loading} />
         <Button
           label={mode === "login" ? "Sign In" : "Register"}
           loading={loading}
-          type="button"
           onClick={() => {
             if (mode === "login") {
               formRef.current?.requestSubmit();
             } else {
-              registerFormRef.current?. requestSubmit();
+              registerFormRef.current?.requestSubmit();
             }
           }}
         />
@@ -96,139 +118,118 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
   );
 
   return (
-    <Dialog
-      header={mode === "login" ? "Sign In" : "Create Account"}
-      visible={visible}
-      onHide={onHide}
-      modal
-      dismissableMask
-      className="w-full max-w-md"
-      footer={footer}
-    >
-      {errorMsg && (
-        <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">
-          {errorMsg}
-        </div>
-      )}
+    <>
+      <Toast ref={toast} /> {/* Add Toast component */}
+      <Dialog
+        header={mode === "login" ? "Sign In" : "Create Account"}
+        visible={visible}
+        onHide={onHide}
+        footer={footer}
+        modal
+        dismissableMask
+        className="w-full max-w-md mx-4"
+      >
+        {errorMsg && (
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-md text-sm">
+            {errorMsg}
+          </div>
+        )}
 
-      {mode === "login" ?  (
-        <form ref={formRef} onSubmit={submitLogin} className="flex flex-col gap-4">
-          <label className="text-sm font-medium text-gray-700">Email</label>
-          <InputText
-            id="email"
-            name="email"
-            type="email"
-            required
-            className="w-full"
-            value={loginForm.email}
-            onChange={(e) => setLoginForm({ ...loginForm, email: e. target.value })}
-          />
+        {mode === "login" ?  (
+          <form ref={formRef} onSubmit={submitLogin} className="flex flex-col gap-4">
+            <label className="text-sm font-medium text-gray-700">Email</label>
+            <InputText
+              type="email"
+              name="email"
+              value={loginForm.email}
+              onChange={(e) => setLoginForm({ ...loginForm, email: e. target.value })}
+              required
+            />
 
-          <label className="text-sm font-medium text-gray-700">Password</label>
-          <Password
-            id="password"
-            name="password"
-            feedback={false}
-            toggleMask
-            required
-            className="w-full"
-            inputClassName="w-full"
-            value={loginForm.password}
-            onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-          />
+            <label className="text-sm font-medium text-gray-700">Password</label>
+            <Password
+              name="password"
+              value={loginForm.password}
+              onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+              feedback={false}
+              toggleMask
+              required
+            />
 
-          {/* Hidden submit for accessibility; footer Sign In triggers requestSubmit */}
-          <button type="submit" className="hidden" />
-        </form>
-      ) : (
-        <form ref={registerFormRef} onSubmit={submitRegister} className="flex flex-col gap-4">
-          <label className="text-sm font-medium text-gray-700">
-            First Name
-          </label>
-          <InputText
-            id="firstName"
-            name="firstName"
-            required
-            className="w-full"
-            value={registerForm.firstName}
-            onChange={(e) => setRegisterForm({ ...registerForm, firstName: e.target.value })}
-          />
+            {/* Hidden submit for accessibility; footer Sign In triggers requestSubmit */}
+            <button type="submit" className="hidden" />
+          </form>
+        ) : (
+          <form ref={registerFormRef} onSubmit={submitRegister} className="flex flex-col gap-4">
+            <label className="text-sm font-medium text-gray-700">
+              First Name
+            </label>
+            <InputText
+              name="firstName"
+              value={registerForm.firstName}
+              onChange={(e) => setRegisterForm({ ...registerForm, firstName: e. target.value })}
+            />
 
-          {/* Last Name */}
-          <label className="text-sm font-medium text-gray-700">Last Name</label>
-          <InputText
-            id="lastName"
-            name="lastName"
-            required
-            className="w-full"
-            value={registerForm.lastName}
-            onChange={(e) => setRegisterForm({ ...registerForm, lastName: e.target.value })}
-          />
+            {/* Last Name */}
+            <label className="text-sm font-medium text-gray-700">Last Name</label>
+            <InputText
+              name="lastName"
+              value={registerForm.lastName}
+              onChange={(e) => setRegisterForm({ ...registerForm, lastName: e.target.value })}
+            />
 
-          <label className="text-sm font-medium text-gray-700">Username</label>
-          <InputText
-            id="username"
-            name="username"
-            required
-            className="w-full"
-            value={registerForm.username}
-            onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
-          />
+            <label className="text-sm font-medium text-gray-700">Username</label>
+            <InputText
+              name="username"
+              value={registerForm.username}
+              onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
+              required
+            />
 
-          <label className="text-sm font-medium text-gray-700">Email</label>
-          <InputText
-            id="registerEmail"
-            name="registerEmail"
-            type="email"
-            required
-            className="w-full"
-            value={registerForm.registerEmail}
-            onChange={(e) => setRegisterForm({ ...registerForm, registerEmail: e.target.value })}
-          />
+            <label className="text-sm font-medium text-gray-700">Email</label>
+            <InputText
+              type="email"
+              name="registerEmail"
+              value={registerForm.registerEmail}
+              onChange={(e) => setRegisterForm({ ...registerForm, registerEmail: e.target.value })}
+              required
+            />
 
-          <label className="text-sm font-medium text-gray-700">Password</label>
-          <Password
-            id="registerPassword"
-            name="registerPassword"
-            feedback={false}
-            toggleMask
-            required
-            className="w-full"
-            inputClassName="w-full"
-            value={registerForm.registerPassword}
-            onChange={(e) => setRegisterForm({ ...registerForm, registerPassword: e.target.value })}
-          />
+            <label className="text-sm font-medium text-gray-700">Password</label>
+            <Password
+              name="registerPassword"
+              value={registerForm.registerPassword}
+              onChange={(e) => setRegisterForm({ ...registerForm, registerPassword: e.target.value })}
+              toggleMask
+              required
+            />
 
-          <label className="text-sm font-medium text-gray-700">
-            Bio (optional)
-          </label>
-          <InputText
-            id="bio"
-            name="bio"
-            className="w-full"
-            value={registerForm.bio}
-            onChange={(e) => setRegisterForm({ ...registerForm, bio: e.target.value })}
-          />
+            <label className="text-sm font-medium text-gray-700">
+              Bio (optional)
+            </label>
+            <InputText
+              name="bio"
+              value={registerForm. bio}
+              onChange={(e) => setRegisterForm({ ...registerForm, bio: e.target. value })}
+            />
 
-          <label className="text-sm font-medium text-gray-700">
-            Profile Picture URL{" "}
-            <span className="font-normal text-gray-500 dark:text-gray-400">
-              (optional)
-            </span>
-          </label>
-          <InputText
-            id="pictureUrl"
-            name="pictureUrl"
-            type="url"
-            className="w-full"
-            value={registerForm.pictureUrl}
-            onChange={(e) => setRegisterForm({ ...registerForm, pictureUrl: e.target.value })}
-          />
+            <label className="text-sm font-medium text-gray-700">
+              Profile Picture URL{" "}
+              <span className="text-gray-500 font-normal">
+                (optional)
+              </span>
+            </label>
+            <InputText
+              name="pictureUrl"
+              value={registerForm.pictureUrl}
+              onChange={(e) => setRegisterForm({ ...registerForm, pictureUrl: e.target.value })}
+            />
 
-          {/* Hidden submit for accessibility; footer Register triggers requestSubmit */}
-          <button type="submit" className="hidden" />
-        </form>
-      )}
-    </Dialog>
+            {/* Hidden submit for accessibility; footer Register triggers requestSubmit */}
+            <button type="submit" className="hidden" />
+          </form>
+        )}
+      </Dialog>
+    </>
   );
 }
