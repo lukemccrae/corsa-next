@@ -4,9 +4,9 @@ import { Card } from "primereact/card";
 import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
 import dynamic from "next/dynamic";
-import { BlogPost, LivestreamPost, PhotoPost, StatusPost, User } from "../generated/graphql";
 import { PostEntry } from "../types";
 import { userAgent } from "next/server";
+import { LivestreamPost, PhotoPost, StatusPost, User } from "../generated/schema";
 
 interface FeedItemsArgs {
     entry: PostEntry;
@@ -87,12 +87,14 @@ export default function FeedItem(args: FeedItemsArgs) {
                             {new Date(Number(stream.stream.finishTime)).toLocaleString()}
                         </span>
                     </div>
-                    <div className="w-full mb-2 rounded-lg overflow-hidden">
-                        <TrackerMap
-                            lat={stream.stream.currentLocation?.lat ?? 0}
-                            lng={stream.stream.currentLocation?.lng ?? 0}
-                        />
-                    </div>
+                    {stream.stream.currentLocation?.lat != null && stream.stream.currentLocation?.lng != null && (
+                        <div className="w-full mb-2 rounded-lg overflow-hidden">
+                            <TrackerMap
+                                lat={stream.stream.currentLocation.lat}
+                                lng={stream.stream.currentLocation.lng}
+                            />
+                        </div>
+                    )}
                 </Card>
             );
         case "STATUS":

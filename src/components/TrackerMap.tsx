@@ -22,13 +22,7 @@ const DefaultIcon = L.icon({
 // set default globally
 L.Marker.prototype.options.icon = DefaultIcon;
 
-export default function TrackerMap({
-  lat,
-  lng,
-}: {
-  lat: number;
-  lng: number;
-}) {
+export default function TrackerMap({ lat, lng }: { lat: number; lng: number }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -49,13 +43,13 @@ export default function TrackerMap({
   }, []);
 
   if (!mounted) return null; // don't render map until mounted
-console.log(lat, lng, '<< TrackerMap coords');
+  console.log(lat, lng, "<< TrackerMap coords");
   return (
     // hack to make it show
     <div className="h-[300px]">
       <MapContainer
         center={[lat, lng]}
-        zoom={11}
+        zoom={4}
         style={{ height: "100%", width: "100%" }}
         dragging={false}
         zoomControl={false}
@@ -64,7 +58,10 @@ console.log(lat, lng, '<< TrackerMap coords');
         touchZoom={false}
         keyboard={false}
       >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+        />
         <Marker position={[lat, lng] as LatLngExpression} />
       </MapContainer>
     </div>

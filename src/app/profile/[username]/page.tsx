@@ -7,14 +7,40 @@ const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 
 async function fetchUserProfile(username: string) {
   const query = `
-    query GetUserProfile($username: ID!) {
-      getUserByUserName(username: $username) {
+    query MyQuery {
+      getUserByUserName(username: "${username}") {
         bio
-        profilePicture
-        userId
-        username
         live
-        streamId
+        username
+        userId
+        profilePicture
+        posts {
+          ... on LivestreamPost {
+            __typename
+            tags
+            type
+            userId
+            stream {
+              finishTime
+              deviceLogo
+              currentLocation {
+                lat
+                lng
+              }
+              live
+              username
+              userId
+              title
+            }
+            createdAt
+          }
+          ... on BlogPost {
+            title
+            text
+            type
+            imageUrl
+          }
+        }
       }
     }
   `;

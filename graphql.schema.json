@@ -1075,6 +1075,120 @@
         "possibleTypes": null
       },
       {
+        "kind": "OBJECT",
+        "name": "LivestreamPost",
+        "description": "  LiveStream as a post",
+        "isOneOf": null,
+        "fields": [
+          {
+            "name": "createdAt",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "AWSDateTime",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "mentions",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "stream",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "LiveStream",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "tags",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "type",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "PostType",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "userId",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "ID",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [
+          {
+            "kind": "INTERFACE",
+            "name": "Post",
+            "ofType": null
+          }
+        ],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
         "kind": "ENUM",
         "name": "MessageType",
         "description": null,
@@ -1484,6 +1598,11 @@
           {
             "kind": "OBJECT",
             "name": "BlogPost",
+            "ofType": null
+          },
+          {
+            "kind": "OBJECT",
+            "name": "LivestreamPost",
             "ofType": null
           },
           {
@@ -2872,7 +2991,7 @@
       {
         "kind": "INPUT_OBJECT",
         "name": "WaypointInput",
-        "description": "  LiveStream as a post\n type LivestreamPost implements Post\n   @aws_iam\n   @aws_cognito_user_pools\n   @aws_api_key {\n   type: PostType!\n   userId: ID!\n   createdAt: AWSDateTime!\n   tags: [String]\n   mentions: [String]\n   stream: LiveStream!\n }\n -----------------------\n Inputs\n -----------------------",
+        "description": "  -----------------------\n Inputs\n -----------------------",
         "isOneOf": false,
         "fields": null,
         "inputFields": [

@@ -131,6 +131,17 @@ export type LiveStream = {
   waypoints?: Maybe<Array<Maybe<Waypoint>>>;
 };
 
+/**   LiveStream as a post */
+export type LivestreamPost = Post & {
+  __typename?: 'LivestreamPost';
+  createdAt: Scalars['AWSDateTime']['output'];
+  mentions?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  stream: LiveStream;
+  tags?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  type: PostType;
+  userId: Scalars['ID']['output'];
+};
+
 export enum MessageType {
   Chat = 'CHAT',
   Pinned = 'PINNED',
@@ -379,19 +390,7 @@ export type Waypoint = {
 };
 
 /**
- *   LiveStream as a post
- *  type LivestreamPost implements Post
- *    @aws_iam
- *    @aws_cognito_user_pools
- *    @aws_api_key {
- *    type: PostType!
- *    userId: ID!
- *    createdAt: AWSDateTime!
- *    tags: [String]
- *    mentions: [String]
- *    stream: LiveStream!
- *  }
- *  -----------------------
+ *   -----------------------
  *  Inputs
  *  -----------------------
  */
