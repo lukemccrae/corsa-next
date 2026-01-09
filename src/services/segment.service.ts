@@ -54,14 +54,14 @@ export const fetchSegmentDetails = async ({ segmentId }: FetchSegmentDetailsArgs
 
 export const fetchSegmentLeaderboard = async ({ segmentId }: FetchSegmentLeaderboardArgs) => {
   const query = `
-    query GetSegmentLeaderboard($segmentId: ID!) {
-      getSegmentLeaderboard(segmentId: $segmentId) {
+    query MyQuery {
+      getSegmentLeaderboard(segmentId: "${segmentId}") {
+        attemptCount
+        lastEffortAt
+        profilePicture
         segmentId
         userId
         username
-        profilePicture
-        attemptCount
-        lastEffortAt
       }
     }
   `;
@@ -81,6 +81,6 @@ export const fetchSegmentLeaderboard = async ({ segmentId }: FetchSegmentLeaderb
     throw new Error(`Failed to fetch segment leaderboard: ${response.statusText}`);
   }
 
-  const result = await response. json();
+  const result = await response.json();
   return result;
 };

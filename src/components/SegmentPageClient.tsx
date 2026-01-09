@@ -9,10 +9,11 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import { useTheme } from "./ThemeProvider";
-import { Dialog } from "primereact/dialog";
-import { Button } from "primereact/button";
-import type { Segment, Waypoint } from "../generated/schema";
-import { profile } from "console";
+import type { Segment } from "../generated/schema";
+import ProfileLiveChat from "./ProfileLiveChat";
+import SegmentLeaderboard from "./SegmentLeaderboard";
+import SegmentEffortLeaderboard from "./SegmentLeaderboard";
+import { Dropdown } from "primereact/dropdown";
 
 type CoverMapProps = {
   segments: Segment[];
@@ -20,8 +21,17 @@ type CoverMapProps = {
 
 export default function CoverMap(props: CoverMapProps) {
   const { theme } = useTheme();
-  const [expanded, setExpanded] = useState(false);
+  const [selectedSegment, setSelectedSegment] = useState<string>("407488430");
   const tileUrl = "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png";
+
+  const segmentOptions = useMemo(
+    () =>
+      props.segments.map((segment) => ({
+        label: segment.title,
+        value: segment.segmentId,
+      })),
+    [props.segments]
+  );
 
   // Create icon for the athlete's current position
   const createSegmentIcon = () => {
@@ -60,7 +70,6 @@ export default function CoverMap(props: CoverMapProps) {
 
       {/* Current location marker with profile picture */}
       {props.segments.map((segment, index) => {
-        console.log(segment);
         if (!segment.location) return null;
         return (
           <Marker
@@ -81,7 +90,6 @@ export default function CoverMap(props: CoverMapProps) {
                     Strava Segment Info
                   </a>
                 )}
-
               </div>
             </Popup>
           </Marker>
@@ -93,38 +101,29 @@ export default function CoverMap(props: CoverMapProps) {
   return (
     <>
       <div className="relative w-full max-w-3xl mx-auto aspect-[16/9] rounded-lg overflow-hidden mt-10">
+        <h2 className="text-2xl font-bold mb-3">🌯 Burrito League</h2>
         <MapContent />
-        <div className="absolute top-2 right-2 z-[1000]">
-          <Button
-            icon="pi pi-window-maximize"
-            rounded
-            text
-            severity="secondary"
-            onClick={() => setExpanded(true)}
-            className="bg-white dark:bg-gray-800 shadow-md hover:shadow-lg"
-            aria-label="Expand map"
-            tooltip="Expand map"
-            tooltipOptions={{ position: "left" }}
-          />
-        </div>
-      </div>
 
-      <Dialog
-        visible={expanded}
-        onHide={() => setExpanded(false)}
-        header="Map View"
-        modal
-        dismissableMask
-        maximizable
-        style={{ width: "90vw", height: "90vh" }}
-        contentClassName="p-0"
-      >
-        <div className="w-full h-full" style={{ minHeight: "70vh" }}>
-          <div className={`h-full ${theme === "dark" ? "dark-topo" : ""}`}>
-            <MapContent />
-          </div>
-        </div>
-      </Dialog>
+        {/* <ProfileLiveChat
+          profileUsername={user.username}
+          initialMessages={chatMessgaes as unknown as ChatMessage[]}
+        /> */}
+      </div>
+      <div className="max-w-3xl mx-auto mt-10">
+        <h2 className="text-2xl font-bold mb-3">Leaderboard</h2>
+        <Dropdown
+          value={selectedSegment}
+          options={segmentOptions}
+          onChange={(e) => {setSelectedSegment(e.value)}}
+          placeholder="Select a segment"
+          className="w-full mb-5"
+          panelClassName="shadow-lg"
+        />
+        <SegmentEffortLeaderboard
+          segmentId={selectedSegment}
+          className="max-w-4xl mx-auto"
+        />
+      </div>
     </>
   );
 }

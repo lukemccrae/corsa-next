@@ -1,231 +1,140 @@
 "use client";
-import React, { useState, useMemo } from "react";
-import { Card } from "primereact/card";
+import React, { useEffect, useRef, useState } from "react";
 import { Avatar } from "primereact/avatar";
-import { Dropdown } from "primereact/dropdown";
 import { useTheme } from "./ThemeProvider";
+import { fetchSegmentLeaderboard } from "../services/segment.service";
 
-export type LeaderboardEntry = {
-  rank: number;
+type SegmentEffort = {
+  segmentId: string;
   userId: string;
   username: string;
   profilePicture?: string;
-  time: number; // in seconds
-  date: string; // ISO date
-  gender?: "M" | "F";
-  attemptCount?: number;
-  lastEffort?: string; // ISO date of last attempt
+  attemptCount: number;
+  lastEffortAt?: string | null;
 };
 
-export type SegmentLeaderboardProps = {
-  segmentName: string;
-  segmentDistance: number;
-  segmentElevationGain?: number;
-  unitOfMeasure?: "IMPERIAL" | "METRIC";
-  entries: LeaderboardEntry[];
-  currentUserId?: string;
+type SegmentEffortLeaderboardProps = {
+  segmentId: string;
+  selectedUserId?: string | null;
+  onUserSelect?: (userId: string) => void;
   className?: string;
 };
 
-export default function SegmentLeaderboard({
-  segmentName,
-  segmentDistance,
-  segmentElevationGain,
-  unitOfMeasure = "IMPERIAL",
-  entries,
-  currentUserId,
+export default function SegmentEffortLeaderboard({
+  segmentId,
+  selectedUserId,
+  onUserSelect,
   className = "",
-}: SegmentLeaderboardProps) {
+}: SegmentEffortLeaderboardProps) {
   const { theme } = useTheme();
+  const selectedRowRef = useRef<HTMLTableRowElement>(null);
 
-  const [timeFilter, setTimeFilter] = useState<"all" | "year" | "month">("all");
-  const [genderFilter, setGenderFilter] = useState<"all" | "M" | "F">("all");
+  const [efforts, setEfforts] = useState<SegmentEffort[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Filter entries
-  const filteredEntries = useMemo(() => {
-    let filtered = [...entries].sort((a, b) => (b.attemptCount || 0) - (a.attemptCount || 0));;
+  // Fetch leaderboard data when segmentId changes
+  useEffect(() => {
+    if (!segmentId) return;
 
-    // Gender filter
-    if (genderFilter !== "all") {
-      filtered = filtered.filter((e) => e.gender === genderFilter);
-    }
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
 
-    // Time filter
-    const now = new Date();
-    if (timeFilter === "year") {
-      const yearStart = new Date(now.getFullYear(), 0, 1);
-      filtered = filtered.filter((e) => new Date(e.date) >= yearStart);
-    } else if (timeFilter === "month") {
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      filtered = filtered.filter((e) => new Date(e.date) >= monthStart);
-    }
+      try {
+        const result = await fetchSegmentLeaderboard({ segmentId });
+        console.log(result);
+        const leaderboardData = result?.data?.getSegmentLeaderboard || [];
+        setEfforts(leaderboardData);
+      } catch (err) {
+        console.error("Failed to fetch segment leaderboard:", err);
+        setError("Failed to load leaderboard data");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Re-rank after filtering
-    return filtered
-      .sort((a, b) => a.time - b.time)
-      .map((entry, idx) => ({ ...entry, rank: idx + 1 }));
-  }, [entries, timeFilter, genderFilter]);
-
-  const userEntry = currentUserId
-    ? filteredEntries.find((e) => e.userId === currentUserId)
-    : null;
-  const showUserRow = userEntry && userEntry.rank > 10;
-  const top10 = filteredEntries.slice(0, 10);
-
-  // Format time as MM:SS or HH:MM: SS
-  const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    if (h > 0) {
-      return `${h}:${m.toString().padStart(2, "0")}:${s
-        .toString()
-        .padStart(2, "0")}`;
-    }
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
-
-  // Format last effort as relative time
-  const formatLastEffort = (iso?: string) => {
-    if (!iso) return "—";
-    const d = new Date(iso).getTime();
-    const now = Date.now();
-    const diffDays = Math.floor((now - d) / 86400000);
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays}d ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-    return new Date(iso).toLocaleDateString();
-  };
+    fetchData();
+  }, [segmentId]);
 
   const bg =
-    theme === "dark"
-      ? "bg-gray-800 text-gray-100 border-gray-700"
-      : "bg-white text-gray-900 border-gray-200";
+    theme === "dark" ? "bg-gray-800 text-gray-100" : "bg-white text-gray-900";
   const headerBg = theme === "dark" ? "bg-gray-900" : "bg-gray-50";
-  const hoverBg = theme === "dark" ? "hover:bg-gray-700" : "hover:bg-gray-50";
-  const userHighlight = theme === "dark" ? "bg-blue-900/30" : "bg-blue-50";
-  const borderColor = theme === "dark" ? "border-gray-700" : "border-gray-200";
+  const border = theme === "dark" ? "border-gray-700" : "border-gray-200";
 
-  const RankIcon = ({ rank }: { rank: number }) => {
-    if (rank === 1) return <span className="text-2xl">🥇</span>;
-    if (rank === 2) return <span className="text-2xl">🥈</span>;
-    if (rank === 3) return <span className="text-2xl">🥉</span>;
-    return (
-      <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
-        #{rank}
-      </span>
-    );
-  };
-const LeaderboardRow = ({
-  entry,
-  isUser = false,
-}: {
-  entry: LeaderboardEntry;
-  isUser?: boolean;
-}) => (
-  <div
-    className={`flex items-center justify-between px-4 py-3 rounded-md transition-colors ${
-      isUser ? "bg-blue-100 dark:bg-blue-900" : "hover:bg-gray-100 dark:hover:bg-gray-800"
-    }`}
-  >
-    {/* Profile Picture + Username */}
-    <div className="flex items-center gap-3 min-w-0">
-      <Avatar
-        image={entry.profilePicture}
-        label={entry.username.charAt(0).toUpperCase()}
-        shape="circle"
-        size="normal"
-        className="flex-shrink-0"
-      />
-      <a
-        href={`/profile/${entry.username}`}
-        className="font-semibold text-sm md:text-base truncate hover:underline"
-      >
-        {entry.username}
-      </a>
-    </div>
-
-    {/* Efforts and Last Effort */}
-    <div className="flex items-center gap-4 text-sm md:text-base text-gray-700 dark:text-gray-300">
-      {entry.attemptCount && (
-        <span>
-          {entry.attemptCount} effort{entry.attemptCount !== 1 ? "s" : ""}
-        </span>
-      )}
-      {entry.lastEffort && <span>Last: {formatLastEffort(entry.lastEffort)}</span>}
-    </div>
-  </div>
-);
-
+  // Auto-scroll to selected row when selectedUserId changes
+  useEffect(() => {
+    if (selectedUserId && selectedRowRef.current) {
+      selectedRowRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [selectedUserId]);
 
   return (
-    <Card className={`${bg} border ${className}`}>
-      {/* Header */}
-      <div
-        className={`${headerBg} px-3 md:px-4 py-3 border-b ${borderColor} rounded-t-lg`}
-      >
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex-1 min-w-0">
-            <h3 className="text-base md:text-lg font-bold truncate">
-              Leaderboard
-            </h3>
-            <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1">
-              <span className="flex items-center gap-1">
-                <i className="pi pi-map-marker text-[10px]" />
-                {segmentDistance.toFixed(2)}{" "}
-                {unitOfMeasure === "IMPERIAL" ? "mi" : "km"}
-              </span>
-              {segmentElevationGain !== undefined && (
-                <>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    <i className="pi pi-chart-line text-[10px]" />
-                    {Math.round(segmentElevationGain)}{" "}
-                    {unitOfMeasure === "IMPERIAL" ? "ft" : "m"}
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Leaderboard Entries */}
-      <div className="max-h-[500px] md:max-h-[600px] overflow-y-auto">
-        {top10.length === 0 ? (
-          <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-            <i className="pi pi-trophy text-3xl md:text-4xl mb-2 block" />
-            <p className="text-sm md:text-base">
-              No entries yet. Be the first!
-            </p>
-          </div>
-        ) : (
-          <>
-            {top10.map((entry) => (
-              <LeaderboardRow
-                key={`${entry.userId}-${entry.date}`}
-                entry={entry}
-                isUser={currentUserId === entry.userId}
-              />
-            ))}
-
-            {/* User's rank if outside top 10 */}
-            {showUserRow && userEntry && (
-              <>
-                <div
-                  className={`px-4 py-2 text-center text-xs text-gray-500 dark:text-gray-400 ${
-                    theme === "dark" ? "bg-gray-900" : "bg-gray-100"
-                  }`}
+    <div className={`${bg} rounded-lg border ${border} overflow-hidden`}>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className={`${headerBg}`}>
+            <tr className="border-b ${border}">
+              <th className="px-4 py-3 text-left text-sm font-semibold">
+                Rank
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold">
+                User
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold">
+                Attempts
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold">
+                Last Effort
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {efforts.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                  No entries yet
+                </td>
+              </tr>
+            ) : (
+              // sort efforts by attemptCount descending
+              efforts.sort((a, b) => b.attemptCount - a.attemptCount).map((entry, index) => (
+                <tr
+                  key={entry.userId}
+                  className={`border-b ${border} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
                 >
-                  <i className="pi pi-ellipsis-h" />
-                </div>
-                <LeaderboardRow entry={userEntry} isUser={true} />
-              </>
+                  <td className="px-4 py-3">
+                    <span className="font-semibold text-lg">#{index + 1}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar
+                        image={entry.profilePicture}
+                        label={entry.username?.charAt(0).toUpperCase()}
+                        shape="circle"
+                        size="normal"
+                      />
+                      {entry.username}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm">
+                      {entry.attemptCount}{" "}
+                      {entry.attemptCount === 1 ? "attempt" : "attempts"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                    {entry.lastEffortAt}
+                  </td>
+                </tr>
+              ))
             )}
-          </>
-        )}
+          </tbody>
+        </table>
       </div>
-    </Card>
+    </div>
   );
 }
