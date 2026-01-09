@@ -156,6 +156,7 @@ export enum MessageType {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  disconnectStyravaIntegration: Scalars['Boolean']['output'];
   publishChat: ChatMessage;
   publishWaypoint: Waypoint;
   upsertDevice: Device;
@@ -166,6 +167,11 @@ export type Mutation = {
   upsertSegmentEffort: SegmentLeaderboardEntry;
   upsertTrackerGroup: TrackerGroup;
   upsertUser: User;
+};
+
+
+export type MutationDisconnectStyravaIntegrationArgs = {
+  provider: StravaIntegrationInput;
 };
 
 
@@ -264,6 +270,7 @@ export type Query = {
   getAllTrackerGroups?: Maybe<Array<Maybe<TrackerGroup>>>;
   getSegmentBySegmentId?: Maybe<Segment>;
   getSegmentLeaderboard?: Maybe<Array<Maybe<SegmentLeaderboardEntry>>>;
+  getSegmentsByEntity?: Maybe<Array<Maybe<Segment>>>;
   getStreamsByEntity?: Maybe<Array<Maybe<LiveStream>>>;
   getTrackerGroupData?: Maybe<TrackerGroup>;
   getUserByUserName?: Maybe<User>;
@@ -277,6 +284,11 @@ export type QueryGetSegmentBySegmentIdArgs = {
 
 export type QueryGetSegmentLeaderboardArgs = {
   segmentId: Scalars['ID']['input'];
+};
+
+
+export type QueryGetSegmentsByEntityArgs = {
+  entity: Scalars['String']['input'];
 };
 
 
@@ -316,10 +328,14 @@ export type RouteInput = {
 
 export type Segment = {
   __typename?: 'Segment';
+  city?: Maybe<Scalars['String']['output']>;
+  country?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
-  route?: Maybe<Route>;
+  entity: Scalars['String']['output'];
+  link?: Maybe<Scalars['String']['output']>;
+  location?: Maybe<LatLng>;
   segmentId: Scalars['ID']['output'];
-  startTime?: Maybe<Scalars['AWSDateTime']['output']>;
+  state?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
 };
 
@@ -333,11 +349,14 @@ export type SegmentEffortInput = {
 };
 
 export type SegmentInput = {
+  city?: InputMaybe<Scalars['String']['input']>;
+  country?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
-  routeName?: InputMaybe<Scalars['String']['input']>;
-  routeStorageUrl?: InputMaybe<Scalars['String']['input']>;
+  entity: Scalars['String']['input'];
+  link?: InputMaybe<Scalars['String']['input']>;
+  location: LatLngInput;
   segmentId: Scalars['ID']['input'];
-  startTime: Scalars['AWSDateTime']['input'];
+  state?: InputMaybe<Scalars['String']['input']>;
   title: Scalars['String']['input'];
 };
 
@@ -366,6 +385,25 @@ export type StatusPost = Post & {
   text?: Maybe<Scalars['String']['output']>;
   type: PostType;
   userId: Scalars['ID']['output'];
+};
+
+export type StravaIntegration = {
+  __typename?: 'StravaIntegration';
+  athleteFirstName?: Maybe<Scalars['String']['output']>;
+  athleteId?: Maybe<Scalars['String']['output']>;
+  athleteLastName?: Maybe<Scalars['String']['output']>;
+  athleteProfile?: Maybe<Scalars['String']['output']>;
+  athleteProfileMedium?: Maybe<Scalars['String']['output']>;
+  athleteUsername?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['String']['output']>;
+  expiresAt?: Maybe<Scalars['String']['output']>;
+  provider?: Maybe<Scalars['String']['output']>;
+  updatedAt?: Maybe<Scalars['String']['output']>;
+};
+
+export type StravaIntegrationInput = {
+  provider: Scalars['String']['input'];
+  userId: Scalars['String']['input'];
 };
 
 export type Subscription = {
@@ -428,6 +466,7 @@ export type User = {
   posts?: Maybe<Array<Maybe<Post>>>;
   profilePicture: Scalars['String']['output'];
   routes?: Maybe<Array<Maybe<Route>>>;
+  stravaIntegration?: Maybe<StravaIntegration>;
   streamId?: Maybe<Scalars['String']['output']>;
   trackerGroups?: Maybe<Array<Maybe<TrackerGroup>>>;
   userId: Scalars['ID']['output'];

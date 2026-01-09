@@ -10,19 +10,14 @@ import { useUser } from "../../../context/UserContext";
 import { useSearchParams } from "next/navigation";
 import { exchangeStravaCode } from "../../../services/integration.service";
 
-// Types
-type Integration = {
-  id: string;
-  provider: "strava" | "garmin" | "polar" | "coros" | "suunto";
-  name: string;
-  description: string;
-  icon: string;
-  connected: boolean;
-  connectedAt?:  string;
-  athleteId?:  string;
-  athleteName?: string;
-  athleteAvatar?:  string;
-  scopes?:  string[];
+const APPSYNC_ENDPOINT = "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
+const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
+
+type StravaIntegration = {
+  athleteFirstName: string;
+  athleteId: string;
+  athleteLastName: string;
+  athleteProfile: string;
 };
 
 export default function IntegrationsSettingsPage() {
@@ -31,23 +26,59 @@ export default function IntegrationsSettingsPage() {
   const { user } = useUser();
   const searchParams = useSearchParams();
 
-  const [integrations, setIntegrations] = useState<Integration[]>([
-    {
-      id: "strava",
-      provider: "strava",
-      name: "Strava",
-      description: "Sync your activities, routes, and segments from Strava",
-      icon:  "https://upload.wikimedia.org/wikipedia/commons/c/cb/Strava_Logo.svg",
-      connected: false,
-    },
-  ]);
+  const [stravaIntegration, setStravaIntegration] = useState<StravaIntegration | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [fetchingIntegration, setFetchingIntegration] = useState(true);
+  const [disconnectDialog, setDisconnectDialog] = useState(false);
 
-  const [disconnectDialog, setDisconnectDialog] = useState<{
-    visible: boolean;
-    integration: Integration | null;
-  }>({ visible: false, integration: null });
+  // Fetch user's Strava integration on mount
+  useEffect(() => {
+    if (!user?.preferred_username) return;
+    
+    fetchStravaIntegration(user.preferred_username);
+  }, [user?.preferred_username]);
 
-  const [loading, setLoading] = useState<string | null>(null);
+  const fetchStravaIntegration = async (username: string) => {
+    setFetchingIntegration(true);
+    try {
+      const query = `
+        query GetUserStravaIntegration {
+          getUserByUserName(username: "${username}") {
+            stravaIntegration {
+              athleteFirstName
+              athleteId
+              athleteLastName
+              athleteProfile
+            }
+          }
+        }
+      `;
+
+      const response = await fetch(APPSYNC_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": APPSYNC_API_KEY,
+        },
+        body: JSON.stringify({ query }),
+      });
+
+      const { data } = await response.json();
+      const integration = data?.getUserByUserName?.stravaIntegration;
+      
+      setStravaIntegration(integration || null);
+    } catch (error) {
+      console.error("Failed to fetch Strava integration:", error);
+      toast.current?.show({
+        severity: "error",
+        summary: "Failed to load integration",
+        detail: "Could not fetch Strava connection status",
+        life: 5000,
+      });
+    } finally {
+      setFetchingIntegration(false);
+    }
+  };
 
   // Check for OAuth callback
   useEffect(() => {
@@ -56,142 +87,91 @@ export default function IntegrationsSettingsPage() {
     const error = searchParams?.get("error");
 
     if (error) {
-      toast.current?.show({
+      toast.current?. show({
         severity: "error",
-        summary:  "Connection failed",
+        summary: "Connection failed",
         detail: error,
         life: 5000,
       });
-      window.history.replaceState({}, "", "/settings/integrations");
+      window.history. replaceState({}, "", "/settings/integrations");
       return;
     }
 
-    if (code && state && user) {
-      handleOAuthCallback(code, state);
+    if (code && state === "strava" && user) {
+      handleOAuthCallback(code);
     }
   }, [searchParams, user]);
 
-  const handleOAuthCallback = async (code:  string, state: string) => {
-    setLoading(state);
+  const handleOAuthCallback = async (code: string) => {
+    setLoading(true);
 
     try {
       // Call backend to exchange code for tokens
-      const result = await exchangeStravaCode({
+      await exchangeStravaCode({
         code,
         userId: user! .userId,
-        username: user!. preferred_username,
+        username: user!.preferred_username,
       });
 
-      setIntegrations((prev) =>
-        prev.map((int) =>
-          int.id === state
-            ? {
-                ...int,
-                connected: true,
-                connectedAt: result.connectedAt,
-                athleteId: result.athleteId,
-                athleteName: result.athleteName,
-                athleteAvatar: result.athleteAvatar,
-                scopes: ["activity:read", "profile:read_all"],
-              }
-            : int
-        )
-      );
+      // Refetch to get updated integration
+      await fetchStravaIntegration(user!.preferred_username);
 
       toast.current?.show({
         severity: "success",
         summary: "Connected successfully",
-        detail: `Your ${state} account has been connected`,
+        detail: "Your Strava account has been connected",
         life: 3000,
       });
 
       // Clean URL
       window.history.replaceState({}, "", "/settings/integrations");
-    } catch (error:  any) {
+    } catch (error: any) {
       console.error("OAuth callback error:", error);
       toast.current?.show({
         severity: "error",
-        summary:  "Connection failed",
-        detail:  error.message || "Failed to connect account.  Please try again.",
+        summary: "Connection failed",
+        detail: error.message || "Failed to connect account. Please try again.",
         life: 5000,
       });
     } finally {
-      setLoading(null);
+      setLoading(false);
     }
   };
 
-  const handleConnect = (integration: Integration) => {
-    if (! user) {
+  const handleConnect = () => {
+    if (!user) {
       toast.current?.show({
         severity: "warn",
         summary: "Login required",
-        detail: "Please log in to connect integrations",
+        detail: "Please log in to connect Strava",
         life: 3000,
       });
       return;
     }
 
-    setLoading(integration.id);
+    setLoading(true);
 
-    // OAuth URLs for each provider
     const STRAVA_CLIENT_ID = "69281";
     const REDIRECT_URI = `${window.location.origin}/settings/integrations`;
-
-    const oauthUrls:  Record<string, string> = {
-      strava: `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=activity:read,profile:read_all&state=strava`,
-      garmin: "#",
-      polar: "#",
-      coros: "#",
-      suunto: "#",
-    };
-
-    const url = oauthUrls[integration.id];
-
-    if (url === "#") {
-      toast.current?.show({
-        severity: "info",
-        summary: "Coming soon",
-        detail: `${integration.name} integration is coming soon! `,
-        life: 3000,
-      });
-      setLoading(null);
-      return;
-    }
+    const url = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=activity:read,profile:read_all&state=strava`;
 
     // Redirect to OAuth flow
     window.location.href = url;
   };
 
   const handleDisconnectConfirm = async () => {
-    if (!disconnectDialog.integration) return;
-
-    const integration = disconnectDialog.integration;
-    setLoading(integration.id);
+    setLoading(true);
 
     try {
-      // TODO: Call backend to revoke tokens
+      // TODO: Call backend to revoke tokens and remove integration
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      setIntegrations((prev) =>
-        prev.map((int) =>
-          int.id === integration.id
-            ? {
-                ...int,
-                connected: false,
-                connectedAt: undefined,
-                athleteId: undefined,
-                athleteName: undefined,
-                athleteAvatar: undefined,
-                scopes: undefined,
-              }
-            : int
-        )
-      );
+      setStravaIntegration(null);
 
       toast.current?.show({
         severity: "info",
         summary: "Disconnected",
-        detail: `${integration.name} has been disconnected`,
+        detail: "Strava has been disconnected",
         life: 3000,
       });
     } catch (error) {
@@ -203,14 +183,9 @@ export default function IntegrationsSettingsPage() {
         life: 5000,
       });
     } finally {
-      setLoading(null);
-      setDisconnectDialog({ visible:  false, integration: null });
+      setLoading(false);
+      setDisconnectDialog(false);
     }
-  };
-
-  const formatDate = (iso?:  string) => {
-    if (!iso) return "";
-    return new Date(iso).toLocaleDateString();
   };
 
   const cardBg =
@@ -218,66 +193,65 @@ export default function IntegrationsSettingsPage() {
       ? "bg-gray-800 border-gray-700"
       : "bg-white border-gray-200";
 
+  const isConnected = !!stravaIntegration;
+
   return (
     <>
-      <div className="min-h-screen p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-2">Integrations</h2>
+      <Toast ref={toast} />
+      
+      <div className="space-y-6">
+        <Card className={`${cardBg} border`}>
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Strava Integration</h2>
             <p className="text-gray-600 dark:text-gray-400">
-              Connect your fitness tracking accounts to sync activities,
-              routes, and training data. 
+              Connect your Strava account to sync activities, routes, and training data.
             </p>
           </div>
 
-          <div className="space-y-4">
-            {integrations.map((integration) => (
-              <Card key={integration.id} className={`${cardBg} border`}>
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {fetchingIntegration ? (
+            <div className="flex items-center justify-center py-12">
+              <i className="pi pi-spin pi-spinner text-3xl text-gray-400" />
+            </div>
+          ) : (
+            <div className="mt-6">
+              <Card className={`${cardBg} border`}>
+                <div className="flex items-start justify-between gap-4">
                   {/* Icon & Info */}
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
-                      {integration.icon.startsWith("http") ? (
-                        <img
-                          src={integration.icon}
-                          alt={integration.name}
-                          className="w-12 h-12 object-contain"
-                        />
-                      ) : (
-                        <i className={`${integration.icon} text-3xl`} />
-                      )}
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className="w-16 h-16 flex items-center justify-center rounded-lg flex-shrink-0">
+                      <img
+                        src="https://upload.wikimedia.org/wikipedia/commons/c/cb/Strava_Logo.svg"
+                        alt="Strava"
+                        className="w-12 h-12"
+                      />
                     </div>
 
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold mb-1">
-                        {integration.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark: text-gray-400 mb-2">
-                        {integration.description}
+                      <h3 className="text-xl font-semibold mb-2">Strava</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        Sync your activities, routes, and segments from Strava
                       </p>
 
-                      {integration.connected && (
-                        <div className="flex items-center gap-3 mt-2">
-                          {integration.athleteAvatar && (
+                      {isConnected && (
+                        <div className="flex items-center gap-3 text-sm">
+                          {stravaIntegration.athleteProfile && (
                             <img
-                              src={integration.athleteAvatar}
-                              alt={integration.athleteName}
+                              src={stravaIntegration. athleteProfile}
+                              alt={`${stravaIntegration.athleteFirstName} ${stravaIntegration.athleteLastName}`}
                               className="w-8 h-8 rounded-full"
                             />
                           )}
-                          <div className="text-sm">
-                            <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                              <i className="pi pi-check-circle" />
-                              <span>
-                                Connected{" "}
-                                {integration.connectedAt &&
-                                  `on ${formatDate(integration.connectedAt)}`}
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <i className="pi pi-check-circle text-green-500" />
+                              <span className="font-medium text-green-600 dark:text-green-400">
+                                Connected
                               </span>
                             </div>
-                            {integration.athleteName && (
-                              <div className="text-gray-600 dark:text-gray-400">
-                                as {integration.athleteName}
-                              </div>
+                            {stravaIntegration.athleteFirstName && (
+                              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                                as {stravaIntegration.athleteFirstName} {stravaIntegration.athleteLastName}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -286,100 +260,88 @@ export default function IntegrationsSettingsPage() {
                   </div>
 
                   {/* Action Button */}
-                  <div className="flex-shrink-0">
-                    {integration.connected ? (
+                  <div>
+                    {isConnected ? (
                       <Button
                         label="Disconnect"
                         icon="pi pi-times"
-                        className="p-button-danger p-button-outlined"
-                        onClick={() =>
-                          setDisconnectDialog({
-                            visible: true,
-                            integration,
-                          })
-                        }
-                        disabled={loading === integration.id}
-                        loading={loading === integration.id}
+                        severity="danger"
+                        outlined
+                        onClick={() => setDisconnectDialog(true)}
+                        disabled={loading}
+                        loading={loading}
                       />
                     ) : (
                       <Button
                         label="Connect"
                         icon="pi pi-link"
-                        onClick={() => handleConnect(integration)}
-                        disabled={!! loading}
-                        loading={loading === integration.id}
+                        onClick={handleConnect}
+                        disabled={loading}
+                        loading={loading}
                       />
                     )}
                   </div>
                 </div>
               </Card>
-            ))}
-          </div>
+            </div>
+          )}
 
           {/* Info Section */}
-          <Card className={`${cardBg} border mt-6`}>
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <div className="flex gap-3">
-              <i className="pi pi-info-circle text-blue-500 text-xl flex-shrink-0 mt-1" />
-              <div>
-                <h4 className="font-semibold mb-2">Privacy & Data Security</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <i className="pi pi-info-circle text-blue-600 dark:text-blue-400 mt-0.5" />
+              <div className="text-sm text-blue-900 dark:text-blue-100">
+                <h4 className="font-semibold mb-1">Privacy & Data Security</h4>
+                <p>
                   We only access data you explicitly grant permission for. You
-                  can disconnect any integration at any time, and we'll
+                  can disconnect your Strava account at any time, and we'll
                   immediately stop syncing your data.
                 </p>
               </div>
             </div>
-          </Card>
-        </div>
+          </div>
+        </Card>
 
         <Footer />
       </div>
 
       {/* Disconnect Confirmation Dialog */}
       <Dialog
-        header="Disconnect Integration"
-        visible={disconnectDialog.visible}
-        style={{ width: "90vw", maxWidth: "450px" }}
-        onHide={() =>
-          setDisconnectDialog({ visible: false, integration: null })
-        }
+        visible={disconnectDialog}
+        onHide={() => setDisconnectDialog(false)}
+        header="Disconnect Strava"
+        modal
         footer={
-          <div>
+          <div className="flex gap-2">
             <Button
               label="Cancel"
-              icon="pi pi-times"
-              className="p-button-text"
-              onClick={() =>
-                setDisconnectDialog({ visible: false, integration: null })
-              }
-              disabled={!! loading}
+              severity="secondary"
+              outlined
+              onClick={() => setDisconnectDialog(false)}
+              disabled={loading}
             />
             <Button
               label="Disconnect"
-              icon="pi pi-check"
-              className="p-button-danger"
+              severity="danger"
               onClick={handleDisconnectConfirm}
-              loading={!! loading}
+              loading={loading}
             />
           </div>
         }
       >
         <div className="flex gap-3">
-          <i className="pi pi-exclamation-triangle text-orange-500 text-2xl flex-shrink-0" />
+          <i className="pi pi-exclamation-triangle text-orange-500 text-2xl mt-1" />
           <div>
-            <p className="mb-3">
-              Are you sure you want to disconnect{" "}
-              <strong>{disconnectDialog.integration?.name}</strong>? 
+            <p className="mb-2">
+              Are you sure you want to disconnect <strong>Strava</strong>?
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               This will stop syncing your activities and data. You can reconnect
-              at any time.
+              at any time. 
             </p>
           </div>
         </div>
       </Dialog>
-
-      <Toast ref={toast} />
     </>
   );
 }

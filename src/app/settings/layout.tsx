@@ -96,12 +96,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       <div className="rounded-t-3xl bg-surface-0 dark:bg-surface-900 py-6 px-4 lg:px-20 w-full shadow">
         {/* header */}
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 mb-4">
-          <div>
-            <h1 className="text-2xl font-semibold">Settings</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Manage your account and preferences
-            </p>
-          </div>
+
 
           {/* mobile menu toggle */}
           <div className="md:hidden">
