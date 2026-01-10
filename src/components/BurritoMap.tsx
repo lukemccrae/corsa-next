@@ -4,16 +4,11 @@ import {
   MapContainer,
   TileLayer,
   Marker,
-  Polyline,
   Popup,
 } from "react-leaflet";
 import L from "leaflet";
 import { useTheme } from "./ThemeProvider";
 import type { Segment } from "../generated/schema";
-import ProfileLiveChat from "./ProfileLiveChat";
-import SegmentLeaderboard from "./SegmentLeaderboard";
-import SegmentEffortLeaderboard from "./SegmentLeaderboard";
-import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 
 type CoverMapProps = {
@@ -112,7 +107,7 @@ export default function BurritoMap(props: CoverMapProps) {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="grid grid-cols-1 gap-2 pt-1">
                   {segment.link && (
                     <a
                       href={segment.link}
@@ -120,7 +115,7 @@ export default function BurritoMap(props: CoverMapProps) {
                       rel="noopener noreferrer"
                     >
                       <Button
-                        label="Strava"
+                        label="Segment Details"
                         icon="pi pi-external-link"
                         size="small"
                         outlined

@@ -1,28 +1,42 @@
 "use server";
+import LiveProfileClient from "@/src/components/LiveProfileClient";
 import SegmentEffortLeaderboard from "@/src/components/SegmentLeaderboard";
 import React from "react";
 
+/**
+ * Server page for /profile/[username]
+ *
+ * - Fetches user (and associated liveStreams / posts) server-side using an AppSync API key.
+ * - Renders a small client wrapper (ProfileClient) to host the interactive bits (buttons, feed).
+ *
+ * Environment:
+ * - Prefer APPSYNC_ENDPOINT and APPSYNC_API_KEY from process.env.
+ * - If not provided, falls back to the endpoint/key used elsewhere in the repo.
+ */
+
 const APPSYNC_ENDPOINT =
+  process.env.APPSYNC_ENDPOINT ??
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
-const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
+const APPSYNC_API_KEY =
+  process.env.APPSYNC_API_KEY ?? "da2-5f7oqdwtvnfydbn226e6c2faga";
 
 async function fetchSegmentData(segmentId: string) {
   const query = `
-query GetSegmentBySegmentId {
-  getSegmentBySegmentId(segmentId: "${segmentId}") {
-    segmentId
-    title
-    description
-    city
-    country
-    state
-    link
-    location {
-      lat
-      lng
+    query GetSegmentBySegmentId {
+        getSegmentBySegmentId(segmentId: "${segmentId}") {
+            segmentId
+            title
+            description
+            city
+            country
+            state
+            link
+            location {
+                lat
+                lng
+            }
+        }
     }
-  }
-}
   `;
 
   const variables = { segmentId };
@@ -48,7 +62,7 @@ query GetSegmentBySegmentId {
 export default async function SegmentDetailPage({
   params,
 }: {
-  params: { segmentId: string };
+  params: { segmentId: string; };
 }) {
   const segmentId = params.segmentId;
 

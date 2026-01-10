@@ -90,6 +90,18 @@ export type FullDataWaypoint = {
   lng?: Maybe<Scalars['Float']['output']>;
 };
 
+export type JoinLeaderboardInput = {
+  segmentId: Scalars['ID']['input'];
+  userId: Scalars['ID']['input'];
+};
+
+export type JoinLeaderboardResponse = {
+  __typename?: 'JoinLeaderboardResponse';
+  message?: Maybe<Scalars['String']['output']>;
+  segmentId: Scalars['ID']['output'];
+  success: Scalars['Boolean']['output'];
+};
+
 /**
  *   -----------------------
  *  Supporting types
@@ -157,6 +169,7 @@ export enum MessageType {
 export type Mutation = {
   __typename?: 'Mutation';
   disconnectStyravaIntegration: Scalars['Boolean']['output'];
+  joinLeaderboard: JoinLeaderboardResponse;
   publishChat: ChatMessage;
   publishWaypoint: Waypoint;
   upsertDevice: Device;
@@ -172,6 +185,11 @@ export type Mutation = {
 
 export type MutationDisconnectStyravaIntegrationArgs = {
   provider: StravaIntegrationInput;
+};
+
+
+export type MutationJoinLeaderboardArgs = {
+  input: JoinLeaderboardInput;
 };
 
 
