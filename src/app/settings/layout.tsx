@@ -23,10 +23,10 @@ import { useTheme } from "../../components/ThemeProvider";
 
 const MENU = [
   { key: "account", label: "Account", href: "/settings/account", icon: "pi pi-user" },
-  { key: "devices", label: "Devices", href: "/settings/devices", icon: "pi pi-mobile" },
-  { key: "preferences", label: "Preferences", href: "/settings/preferences", icon: "pi pi-cog" },
-  { key: "privacy", label: "Privacy", href: "/settings/privacy", icon: "pi pi-lock" },
-  { key: "routes", label: "Routes", href: "/settings/routes", icon: "pi pi-map" },
+  // { key: "devices", label: "Devices", href: "/settings/devices", icon: "pi pi-mobile" },
+  // { key: "preferences", label: "Preferences", href: "/settings/preferences", icon: "pi pi-cog" },
+  // { key: "privacy", label: "Privacy", href: "/settings/privacy", icon: "pi pi-lock" },
+  // { key: "routes", label: "Routes", href: "/settings/routes", icon: "pi pi-map" },
   { key: "integrations", label: "Integrations", href: "/settings/integrations", icon: "pi pi-file-import" },
 ];
 

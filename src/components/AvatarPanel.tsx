@@ -24,7 +24,7 @@ export default function AvatarPanel() {
             style={{ cursor: "pointer" }}
           />
           <OverlayPanel ref={userPanelRef}>
-            <div className="flex flex-col gap-2">
+            {/* <div className="flex flex-col gap-2">
               <Button
                 label="Profile"
                 className="p-button-text p-button-info"
@@ -33,7 +33,7 @@ export default function AvatarPanel() {
                   window.location.href = `/profile/${user.preferred_username}`; // go to account page
                 }}
               />
-            </div>
+            </div> */}
             <div className="flex flex-col gap-2">
               <Button
                 label="Settings"
