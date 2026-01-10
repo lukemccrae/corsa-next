@@ -38,13 +38,21 @@ export default function CoverMap(props: CoverMapProps) {
     return L.divIcon({
       className: "athlete-marker",
       html: `
-          <div style="position: relative;">
-            <img 
-              src="https://i.imgur.com/FpfBv5b.png" 
-              style="width:40px; height:40px; border-radius:50%; border:3px solid #3b82f6; box-shadow:0 0 8px rgba(59,130,246,0.5); object-fit:  cover;" 
-              alt="burrito league"
-            />
-          </div>
+        <div
+          style="
+            width: 35px;
+            height: 35px;
+            background-color: #c61313ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            position: relative;
+          "
+        >
+          🌯
+        </div>
         `,
       iconSize: [48, 48],
       iconAnchor: [20, 40],
@@ -114,7 +122,9 @@ export default function CoverMap(props: CoverMapProps) {
         <Dropdown
           value={selectedSegment}
           options={segmentOptions}
-          onChange={(e) => {setSelectedSegment(e.value)}}
+          onChange={(e) => {
+            setSelectedSegment(e.value);
+          }}
           placeholder="Select a segment"
           className="w-full mb-5"
           panelClassName="shadow-lg"

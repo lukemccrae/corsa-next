@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, Suspense } from "react";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import { Card } from "primereact/card";
@@ -10,7 +10,8 @@ import { useUser } from "../../../context/UserContext";
 import { useSearchParams } from "next/navigation";
 import { exchangeStravaCode } from "../../../services/integration.service";
 
-const APPSYNC_ENDPOINT = "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
+const APPSYNC_ENDPOINT =
+  "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 
 type StravaIntegration = {
@@ -24,9 +25,9 @@ export default function IntegrationsSettingsPage() {
   const toast = useRef<Toast>(null);
   const { theme } = useTheme();
   const { user } = useUser();
-  const searchParams = useSearchParams();
 
-  const [stravaIntegration, setStravaIntegration] = useState<StravaIntegration | null>(null);
+  const [stravaIntegration, setStravaIntegration] =
+    useState<StravaIntegration | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetchingIntegration, setFetchingIntegration] = useState(true);
   const [disconnectDialog, setDisconnectDialog] = useState(false);
@@ -34,9 +35,37 @@ export default function IntegrationsSettingsPage() {
   // Fetch user's Strava integration on mount
   useEffect(() => {
     if (!user?.preferred_username) return;
-    
+
     fetchStravaIntegration(user.preferred_username);
   }, [user?.preferred_username]);
+
+  // Wrap searchParams in Suspense
+  const SearchParamsWrapper = () => {
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+      const code = searchParams?.get("code");
+      const state = searchParams?.get("state");
+      const error = searchParams?.get("error");
+
+      if (error) {
+        toast.current?.show({
+          severity: "error",
+          summary: "Connection failed",
+          detail: error,
+          life: 5000,
+        });
+        window.history.replaceState({}, "", "/settings/integrations");
+        return;
+      }
+
+      if (code && state === "strava" && user) {
+        handleOAuthCallback(code);
+      }
+    }, [searchParams, user]);
+
+    return null;
+  };
 
   const fetchStravaIntegration = async (username: string) => {
     setFetchingIntegration(true);
@@ -65,7 +94,7 @@ export default function IntegrationsSettingsPage() {
 
       const { data } = await response.json();
       const integration = data?.getUserByUserName?.stravaIntegration;
-      
+
       setStravaIntegration(integration || null);
     } catch (error) {
       console.error("Failed to fetch Strava integration:", error);
@@ -80,28 +109,6 @@ export default function IntegrationsSettingsPage() {
     }
   };
 
-  // Check for OAuth callback
-  useEffect(() => {
-    const code = searchParams?.get("code");
-    const state = searchParams?.get("state");
-    const error = searchParams?.get("error");
-
-    if (error) {
-      toast.current?. show({
-        severity: "error",
-        summary: "Connection failed",
-        detail: error,
-        life: 5000,
-      });
-      window.history. replaceState({}, "", "/settings/integrations");
-      return;
-    }
-
-    if (code && state === "strava" && user) {
-      handleOAuthCallback(code);
-    }
-  }, [searchParams, user]);
-
   const handleOAuthCallback = async (code: string) => {
     setLoading(true);
 
@@ -109,7 +116,7 @@ export default function IntegrationsSettingsPage() {
       // Call backend to exchange code for tokens
       await exchangeStravaCode({
         code,
-        userId: user! .userId,
+        userId: user!.userId,
         username: user!.preferred_username,
       });
 
@@ -153,7 +160,9 @@ export default function IntegrationsSettingsPage() {
 
     const STRAVA_CLIENT_ID = "69281";
     const REDIRECT_URI = `${window.location.origin}/settings/integrations`;
-    const url = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=activity:read,profile:read_all&state=strava`;
+    const url = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${encodeURIComponent(
+      REDIRECT_URI
+    )}&response_type=code&scope=activity:read,profile:read_all&state=strava`;
 
     // Redirect to OAuth flow
     window.location.href = url;
@@ -178,7 +187,7 @@ export default function IntegrationsSettingsPage() {
       console.error("Disconnect error:", error);
       toast.current?.show({
         severity: "error",
-        summary:  "Disconnect failed",
+        summary: "Disconnect failed",
         detail: "Failed to disconnect account. Please try again.",
         life: 5000,
       });
@@ -198,13 +207,16 @@ export default function IntegrationsSettingsPage() {
   return (
     <>
       <Toast ref={toast} />
-      
+      <Suspense>
+        <SearchParamsWrapper />
+      </Suspense>
       <div className="space-y-6">
         <Card className={`${cardBg} border`}>
           <div className="space-y-4">
             <h2 className="text-2xl font-bold">Strava Integration</h2>
             <p className="text-gray-600 dark:text-gray-400">
-              Connect your Strava account to sync activities, routes, and training data.
+              Connect your Strava account to sync activities, routes, and
+              training data.
             </p>
           </div>
 
@@ -236,7 +248,7 @@ export default function IntegrationsSettingsPage() {
                         <div className="flex items-center gap-3 text-sm">
                           {stravaIntegration.athleteProfile && (
                             <img
-                              src={stravaIntegration. athleteProfile}
+                              src={stravaIntegration.athleteProfile}
                               alt={`${stravaIntegration.athleteFirstName} ${stravaIntegration.athleteLastName}`}
                               className="w-8 h-8 rounded-full"
                             />
@@ -250,7 +262,8 @@ export default function IntegrationsSettingsPage() {
                             </div>
                             {stravaIntegration.athleteFirstName && (
                               <p className="text-gray-600 dark:text-gray-400 mt-1">
-                                as {stravaIntegration.athleteFirstName} {stravaIntegration.athleteLastName}
+                                as {stravaIntegration.athleteFirstName}{" "}
+                                {stravaIntegration.athleteLastName}
                               </p>
                             )}
                           </div>
@@ -337,7 +350,7 @@ export default function IntegrationsSettingsPage() {
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               This will stop syncing your activities and data. You can reconnect
-              at any time. 
+              at any time.
             </p>
           </div>
         </div>
