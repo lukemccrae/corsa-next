@@ -227,7 +227,7 @@ export default function IntegrationsSettingsPage() {
           ) : (
             <div className="mt-6">
               <Card className={`${cardBg} border`}>
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   {/* Icon & Info */}
                   <div className="flex items-start gap-4 flex-1">
                     <div className="w-16 h-16 flex items-center justify-center rounded-lg flex-shrink-0">
@@ -273,7 +273,7 @@ export default function IntegrationsSettingsPage() {
                   </div>
 
                   {/* Action Button */}
-                  <div>
+                  <div className="w-full sm:w-auto flex justify-end">
                     {isConnected ? (
                       <Button
                         label="Disconnect"
