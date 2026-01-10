@@ -68,7 +68,7 @@ export const stravaInitialIntegration = async (args: StravaInitialIntegrationArg
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.json();
       console.error('Strava token exchange failed:', errorData);
-      throw new Error(`Strava OAuth failed: ${errorData.message || tokenResponse.statusText}`);
+      // throw new Error(`Strava OAuth failed: ${errorData.message || tokenResponse.statusText}`);
     }
 
     const tokenData:  StravaTokenResponse = await tokenResponse.json();

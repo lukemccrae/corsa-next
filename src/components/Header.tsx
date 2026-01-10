@@ -15,14 +15,14 @@ export default function TemplateDemo() {
   const start = (
     <div className="flex align-items-center gap-2">
       {/* Back to Home Button */}
-      {/* <Button
+      <Button
         icon="pi pi-globe"
         className="p-button-text p-button-lg"
         onClick={() => {
           window.location.href = `/`; // go to account page
         }}
         aria-label="Home"
-      /> */}
+      />
     </div>
   );
 

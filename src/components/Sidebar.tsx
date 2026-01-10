@@ -29,6 +29,34 @@ export default function Sidebar({
     return `${n}`;
   };
 
+  const eventItem = (event: any) => {
+    return (
+      <li
+        key={event.streamId}
+        className="flex items-center justify-between px-2 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+      >
+        <Link
+          href={`/${encodeURIComponent(event.link ?? "")}`}
+          className="flex items-center gap-3 min-w-0 flex-1"
+        >
+          <div className="flex-shrink-0">
+            <img
+              src={event.profilePicture}
+              alt={event.title}
+              className="w-10 h-10 rounded-full object-cover"
+            />
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-medium truncate text-gray-900 dark:text-gray-100">
+              {event.title}
+            </div>
+          </div>
+        </Link>
+      </li>
+    );
+  };
+
   const streamItem = (stream: LiveStream) => {
     const initials = stream.title ? stream.title.charAt(0).toUpperCase() : "?";
     const profilePic = stream.profilePicture;
@@ -170,6 +198,18 @@ export default function Sidebar({
               />
             </svg>
           </button>
+          <nav>
+            {<Link
+                    href={`/burritoleague`}
+                    className="w-10 h-10 rounded-full overflow-hidden relative"
+                  >
+                    <img
+                        src={profilePic}
+                        alt={c.name ?? c.user?.username ?? "Stream"}
+                        className="w-10 h-10 object-cover rounded-full"
+                      />
+                  </Link>}
+          </nav>
           <nav className="mt-4 flex flex-col gap-3 items-center px-1">
             {Array.isArray(groups) && groups.length > 0 ? (
               groups.slice(0, 6).map((c) => {
@@ -188,9 +228,7 @@ export default function Sidebar({
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-800 dark:text-gray-100">
-                        {c.name
-                          ? c.name.charAt(0).toUpperCase()
-                          : "?"}
+                        {c.name ? c.name.charAt(0).toUpperCase() : "?"}
                       </div>
                     )}
                     {c.user?.live && (
@@ -309,6 +347,23 @@ export default function Sidebar({
             )}
           </ul>
         </section> */}
+        <section aria-labelledby="live-streams">
+          <h4
+            id="live-streams"
+            className="text-xs font-semibold text-gray-400 px-1 mb-2"
+          >
+            Events
+          </h4>
+          <ul className="flex flex-col gap-1">
+            <li className="px-2 py-2 text-sm text-gray-500 dark:text-gray-400">
+              {eventItem({
+                title: "Burrito League",
+                profilePicture: "https://i.imgur.com/ykHGzEc.png",
+                link: "burritoleague",
+              })}
+            </li>
+          </ul>
+        </section>
         <section aria-labelledby="live-streams">
           <h4
             id="live-streams"
