@@ -41,7 +41,7 @@ import L from "leaflet";
 export const SegmentMap = (props: { segments: Segment[] }) => (
     <MapContainer
       center={[37.65269205846588, -93.40350964996749]}
-      zoom={4}
+      zoom={3}
       style={{ height: "100%", width: "100%" }}
       dragging={true}
       doubleClickZoom={true}
