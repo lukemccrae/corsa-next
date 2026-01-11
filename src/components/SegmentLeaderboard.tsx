@@ -204,7 +204,7 @@ export default function SegmentEffortLeaderboard({
 
       const id = setTimeout(() => {
         window.location.reload();
-      }, 1000);
+      }, 2000);
     } catch (err: any) {
       console.error("Failed to join leaderboard:", err);
       toast.current?.show({

@@ -152,7 +152,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
             onSubmit={submitLogin}
             className="flex flex-col gap-4"
           >
-            <label className="text-sm font-medium text-gray-700">Email</label>
+            <label className="text-sm font-medium text-gray-300">Email</label>
             <InputText
               type="email"
               name="email"
@@ -163,7 +163,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
               required
             />
 
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-300">
               Password
             </label>
             <Password
@@ -186,7 +186,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
             onSubmit={submitRegister}
             className="flex flex-col gap-4"
           >
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-300">
               First Name
             </label>
             <InputText
@@ -198,7 +198,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
             />
 
             {/* Last Name */}
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-300">
               Last Name
             </label>
             <InputText
@@ -209,7 +209,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
               }
             />
 
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-300">
               Username
             </label>
             <InputText
@@ -221,7 +221,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
               required
             />
 
-            <label className="text-sm font-medium text-gray-700">Email</label>
+            <label className="text-sm font-medium text-gray-300">Email</label>
             <InputText
               type="email"
               name="registerEmail"
@@ -235,7 +235,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
               required
             />
 
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-300">
               Password
             </label>
             <Password
@@ -251,7 +251,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
               required
             />
 
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-300">
               Bio (optional)
             </label>
             <InputText
@@ -262,7 +262,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
               }
             />
 
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-300">
               Profile Picture URL{" "}
               <span className="text-gray-500 font-normal">(optional)</span>
             </label>
