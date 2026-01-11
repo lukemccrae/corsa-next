@@ -44,8 +44,8 @@ export default function SegmentEffortLeaderboard({
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [userIntegration, setUserIntegration] = useState<any>(null);
   const [fetchingIntegration, setFetchingIntegration] = useState(false);
-    const [oauthLoading, setOauthLoading] = useState(false);
-  const [oauthStatus, setOauthStatus] = useState('');
+  const [oauthLoading, setOauthLoading] = useState(false);
+  const [oauthStatus, setOauthStatus] = useState("");
 
   const userInLeaderboard = user?.userId
     ? efforts.some((effort) => effort.userId === user.userId)
@@ -113,23 +113,24 @@ export default function SegmentEffortLeaderboard({
     fetchData();
   }, [segmentId]);
 
-    useEffect(() => {
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
     const state = params.get("state");
     const userId = user?.userId;
     const username = user?.preferred_username;
-    console.log(code, state, userId, username, '<< stuff')
     if (code && state?.startsWith("burrito_league_") && userId && username) {
       setOauthLoading(true);
       exchangeStravaCode({ code, userId, username })
-        .then(() => { 
-          setOauthStatus('success');
+        .then(() => {
+          setOauthStatus("success");
           // trigger join logic
-          setJoining(true)
+          setJoining(true);
           handleJoinLeaderboard();
         })
-        .catch(() => { setOauthStatus('error'); })
+        .catch(() => {
+          setOauthStatus("error");
+        })
         .finally(() => setOauthLoading(false));
 
       // Clean up URL (remove code param)
@@ -151,7 +152,7 @@ export default function SegmentEffortLeaderboard({
     // If user has Strava integration, join directly
     if (userIntegration) {
       await handleJoinLeaderboard();
-      setJoining(true)
+      setJoining(true);
     } else {
       // No integration - show modal to connect
       setShowJoinModal(true);
@@ -228,56 +229,50 @@ export default function SegmentEffortLeaderboard({
   const hoverBg = theme === "dark" ? "hover:bg-gray-700" : "hover:bg-gray-50";
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-4 max-w-4xl">
       <Toast ref={toast} />
 
       <Card className={`${cardBg} border shadow-lg`}>
-        <div
-          className={`${headerBg} -m-6 mb-6 p-6 border-b ${border} rounded-t-lg mx-1`}
-        >
-          <div className="flex justify-between items-start mb-4">
-            <a
-              href="/burritoleague"
-              className="text-blue-500 hover:text-blue-600 flex items-center gap-2"
-            >
-              <i className="pi pi-arrow-left" />
-              Back to Burrito League 🌯
-            </a>
-            {!userInLeaderboard && (
-              <Button
-                label={
-                  userIntegration
-                    ? "Join Leaderboard"
-                    : "Connect Strava to Join"
-                }
-                icon={userIntegration ? "pi pi-plus" : "pi pi-link"}
-                onClick={handleJoinClick}
-                loading={joining || fetchingIntegration}
-                disabled={joining || fetchingIntegration}
-                className="p-button-success"
-              />
-            )}
-          </div>
-          <h1 className="text-3xl font-bold">{segmentName} Leaderboard</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Track your efforts and compete with other runners
-          </p>
-          {userInLeaderboard && (
-            <div className="mt-3 inline-flex items-center gap-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm">
-              <i className="pi pi-check-circle" />
-              You're on this leaderboard!
-            </div>
+        <div className="flex justify-between items-start mb-4">
+          <a
+            href="/burritoleague"
+            className="text-blue-500 hover:text-blue-600 flex items-center gap-2"
+          >
+            <i className="pi pi-arrow-left" />
+            Back 🌯
+          </a>
+          {!userInLeaderboard && (
+            <Button
+              label={
+                userIntegration ? "Join Leaderboard" : "Sync Strava to Join"
+              }
+              icon={userIntegration ? "" : "pi pi-sync"}
+              onClick={handleJoinClick}
+              loading={joining || fetchingIntegration}
+              disabled={joining || fetchingIntegration}
+              className="p-button-success"
+            />
           )}
         </div>
+        <h1 className="text-3xl font-bold">{segmentName} Leaderboard</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-2">
+          Track your efforts and compete with other runners
+        </p>
+        {userInLeaderboard && (
+          <div className="mt-3 inline-flex items-center gap-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm">
+            <i className="pi pi-check-circle" />
+            You're on this leaderboard!
+          </div>
+        )}
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className={`${headerBg} border-b ${border}`}>
-                <th className="text-left p-3 font-semibold">Rank</th>
-                <th className="text-left p-3 font-semibold">User</th>
-                <th className="text-left p-3 font-semibold">Attempts</th>
-                <th className="text-left p-3 font-semibold">Last Effort</th>
+                <th className="text-left p-2 font-semibold">Rank</th>
+                <th className="text-left p-2 font-semibold">User</th>
+                <th className="text-left p-2 font-semibold">Attempts</th>
+                <th className="text-left p-2 font-semibold">Last Effort</th>
               </tr>
             </thead>
             <tbody>
