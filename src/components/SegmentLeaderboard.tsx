@@ -244,7 +244,7 @@ export default function SegmentEffortLeaderboard({
           {!userInLeaderboard && (
             <Button
               label={
-                userIntegration ? "Join Leaderboard" : "Sync Strava to Join"
+                userIntegration ? "Join Leaderboard" : joining ? "Syncing..." : "Sync Strava to Join"
               }
               icon={userIntegration ? "" : "pi pi-sync"}
               onClick={handleJoinClick}

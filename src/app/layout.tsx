@@ -1,6 +1,6 @@
 // app/layout.tsx (root layout) — remove the Sidebar here so sub-layouts can opt-in
 import "./globals.css";
-import "primereact/resources/themes/lara-light-indigo/theme.css"; // <-- add a PrimeReact theme
+import "primereact/resources/themes/lara-dark-indigo/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 import Header from "../components/Header";
