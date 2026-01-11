@@ -32,7 +32,7 @@ export default function SegmentEffortLeaderboard({
   segmentId,
   segmentName,
 }: SegmentEffortLeaderboardProps) {
-  const { theme } = useTheme();
+  const theme = "dark";
   const { user } = useUser();
   const toast = useRef<Toast>(null);
   const selectedRowRef = useRef<HTMLTableRowElement>(null);
@@ -101,6 +101,7 @@ export default function SegmentEffortLeaderboard({
       try {
         const result = await fetchSegmentLeaderboard({ segmentId });
         const leaderboardData = result?.data?.getSegmentLeaderboard || [];
+        console.log("Fetched leaderboard data:", leaderboardData);
         setEfforts(leaderboardData);
       } catch (err) {
         console.error("Failed to fetch segment leaderboard:", err);
@@ -121,6 +122,7 @@ export default function SegmentEffortLeaderboard({
     const username = user?.preferred_username;
     if (code && state?.startsWith("burrito_league_") && userId && username) {
       setOauthLoading(true);
+      setJoining(true);
       exchangeStravaCode({ code, userId, username })
         .then(() => {
           setOauthStatus("success");
@@ -200,13 +202,9 @@ export default function SegmentEffortLeaderboard({
         );
       }
 
-      toast.current?.show({
-        severity: "success",
-        summary: "Success!",
-        detail: "You've joined the leaderboard 🌯",
-        life: 3000,
-      });
-      window.location.reload();
+      const id = setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (err: any) {
       console.error("Failed to join leaderboard:", err);
       toast.current?.show({
@@ -216,7 +214,7 @@ export default function SegmentEffortLeaderboard({
         life: 5000,
       });
     } finally {
-      setJoining(false);
+      // setJoining(false);
     }
   };
 
@@ -227,6 +225,22 @@ export default function SegmentEffortLeaderboard({
   const headerBg = theme === "dark" ? "bg-gray-900" : "bg-gray-50";
   const border = theme === "dark" ? "border-gray-700" : "border-gray-200";
   const hoverBg = theme === "dark" ? "hover:bg-gray-700" : "hover:bg-gray-50";
+
+  const canJoin = !userInLeaderboard && !joining && !fetchingIntegration;
+
+const getJoinButtonProps = () => {
+  if (fetchingIntegration)
+    return { label: "Syncing...", icon: "pi pi-sync", disabled: true };
+
+  if (joining)
+    return { label: "Joining...", icon: "", disabled: true };
+
+  if (!userIntegration)
+    return { label: "Sync Strava to Join", icon: "pi pi-sync", disabled: false };
+
+  return { label: "Join Leaderboard", icon: "", disabled: false };
+};
+
 
   return (
     <div className="container mx-auto px-4 py-4 max-w-4xl">
@@ -243,13 +257,9 @@ export default function SegmentEffortLeaderboard({
           </a>
           {!userInLeaderboard && (
             <Button
-              label={
-                userIntegration ? "Join Leaderboard" : joining ? "Syncing..." : "Sync Strava to Join"
-              }
-              icon={userIntegration ? "" : "pi pi-sync"}
+              {...getJoinButtonProps()}
               onClick={handleJoinClick}
               loading={joining || fetchingIntegration}
-              disabled={joining || fetchingIntegration}
               className="p-button-success"
             />
           )}
