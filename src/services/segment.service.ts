@@ -97,6 +97,8 @@ export const fetchSegmentLeaderboard = async ({
         segmentId
         userId
         username
+        firstName
+        lastName
       }
     }
   `;

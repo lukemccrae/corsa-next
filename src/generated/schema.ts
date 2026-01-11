@@ -168,7 +168,7 @@ export enum MessageType {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  disconnectStyravaIntegration: Scalars['Boolean']['output'];
+  disconnectStravaIntegration: Scalars['Boolean']['output'];
   joinLeaderboard: JoinLeaderboardResponse;
   publishChat: ChatMessage;
   publishWaypoint: Waypoint;
@@ -183,7 +183,7 @@ export type Mutation = {
 };
 
 
-export type MutationDisconnectStyravaIntegrationArgs = {
+export type MutationDisconnectStravaIntegrationArgs = {
   provider: StravaIntegrationInput;
 };
 
@@ -359,7 +359,9 @@ export type Segment = {
 
 export type SegmentEffortInput = {
   attemptCount: Scalars['Int']['input'];
+  firstName: Scalars['String']['input'];
   lastEffortAt?: InputMaybe<Scalars['String']['input']>;
+  lastName: Scalars['String']['input'];
   profilePicture?: InputMaybe<Scalars['String']['input']>;
   segmentId: Scalars['ID']['input'];
   userId: Scalars['ID']['input'];
@@ -381,7 +383,9 @@ export type SegmentInput = {
 export type SegmentLeaderboardEntry = {
   __typename?: 'SegmentLeaderboardEntry';
   attemptCount: Scalars['Int']['output'];
+  firstName?: Maybe<Scalars['String']['output']>;
   lastEffortAt?: Maybe<Scalars['String']['output']>;
+  lastName?: Maybe<Scalars['String']['output']>;
   profilePicture?: Maybe<Scalars['String']['output']>;
   segmentId: Scalars['ID']['output'];
   userId: Scalars['ID']['output'];

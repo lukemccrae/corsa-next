@@ -9,19 +9,12 @@ import { useUser } from "../context/UserContext";
 import { fetchSegmentLeaderboard } from "../services/segment.service";
 import StravaJoinModal from "./StravaJoinModal";
 import { exchangeStravaCode } from "../services/integration.service";
+import { SegmentLeaderboardEntry } from "../generated/schema";
 
 const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 
-type SegmentEffort = {
-  segmentId: string;
-  userId: string;
-  username: string;
-  profilePicture?: string;
-  attemptCount: number;
-  lastEffortAt?: string | null;
-};
 
 type SegmentEffortLeaderboardProps = {
   segmentId: string;
@@ -37,7 +30,7 @@ export default function SegmentEffortLeaderboard({
   const toast = useRef<Toast>(null);
   const selectedRowRef = useRef<HTMLTableRowElement>(null);
 
-  const [efforts, setEfforts] = useState<SegmentEffort[]>([]);
+  const [efforts, setEfforts] = useState<SegmentLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
@@ -340,17 +333,17 @@ const getJoinButtonProps = () => {
                         <td className="p-3">
                           <div className="flex items-center gap-3">
                             <Avatar
-                              image={entry.profilePicture}
+                              image={entry.profilePicture ?? undefined}
                               label={
                                 !entry.profilePicture
-                                  ? entry.username.charAt(0).toUpperCase()
+                                  ? `${(entry.firstName?.charAt(0) || "").toUpperCase()}${(entry.lastName?.charAt(0) || "").toUpperCase()}`
                                   : undefined
                               }
                               shape="circle"
                               size="normal"
                             />
                             <span className="font-medium">
-                              {entry.username}
+                              {entry.firstName} {entry.lastName}
                               {isCurrentUser && (
                                 <span className="text-blue-500 ml-2">
                                   (You)
