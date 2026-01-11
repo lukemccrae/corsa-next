@@ -124,7 +124,7 @@ export default async function SegmentDetailPage({
 
   return (
     <div>
-      <SegmentEffortLeaderboard segmentId={segmentId} segmentName={segmentData.title} integrationData={integrationData} />
+      <SegmentEffortLeaderboard segmentId={segmentId} segmentName={segmentData.title} />
     </div>
   );
 }

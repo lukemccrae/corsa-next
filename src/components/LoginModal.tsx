@@ -40,14 +40,23 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
   });
 
   // Handle login submit
-  const submitLogin = async (e: React. FormEvent) => {
+  const submitLogin = async (e: React.FormEvent) => {
     setErrorMsg("");
     setLoading(true);
     try {
       await loginUser(e);
       onHide();
-    } catch (err) {
-      setErrorMsg("Login failed. Please try again.");
+    } catch (err: any) {
+      const message = err?.message ?? "Login failed. Please try again.";
+      setErrorMsg(message);
+
+      // Show error as a toast as well
+      toast.current?.show({
+        severity: "error",
+        summary: "Login Failed",
+        detail: message,
+        life: 5000,
+      });
     } finally {
       setLoading(false);
     }
@@ -60,23 +69,25 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
     console.log(e, "<< form event");
     try {
       await registerUser(e);
-      
+
       // Show success toast
       toast.current?.show({
         severity: "success",
-        summary:  "Registration Successful",
+        summary: "Registration Successful",
         detail: "Please check your email to verify your account.",
         life: 6000,
       });
-      
+
       // Close modal after a short delay to let user see the toast
       setTimeout(() => {
         onHide();
       }, 1500);
     } catch (err: any) {
-      const errorMessage = err?. message || "Registration failed. Please check your info and try again.";
+      const errorMessage =
+        err?.message ||
+        "Registration failed. Please check your info and try again.";
       setErrorMsg(errorMessage);
-      
+
       // Also show error toast
       toast.current?.show({
         severity: "error",
@@ -135,22 +146,32 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
           </div>
         )}
 
-        {mode === "login" ?  (
-          <form ref={formRef} onSubmit={submitLogin} className="flex flex-col gap-4">
+        {mode === "login" ? (
+          <form
+            ref={formRef}
+            onSubmit={submitLogin}
+            className="flex flex-col gap-4"
+          >
             <label className="text-sm font-medium text-gray-700">Email</label>
             <InputText
               type="email"
               name="email"
               value={loginForm.email}
-              onChange={(e) => setLoginForm({ ...loginForm, email: e. target.value })}
+              onChange={(e) =>
+                setLoginForm({ ...loginForm, email: e.target.value })
+              }
               required
             />
 
-            <label className="text-sm font-medium text-gray-700">Password</label>
+            <label className="text-sm font-medium text-gray-700">
+              Password
+            </label>
             <Password
               name="password"
               value={loginForm.password}
-              onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+              onChange={(e) =>
+                setLoginForm({ ...loginForm, password: e.target.value })
+              }
               feedback={false}
               toggleMask
               required
@@ -160,29 +181,43 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
             <button type="submit" className="hidden" />
           </form>
         ) : (
-          <form ref={registerFormRef} onSubmit={submitRegister} className="flex flex-col gap-4">
+          <form
+            ref={registerFormRef}
+            onSubmit={submitRegister}
+            className="flex flex-col gap-4"
+          >
             <label className="text-sm font-medium text-gray-700">
               First Name
             </label>
             <InputText
               name="firstName"
               value={registerForm.firstName}
-              onChange={(e) => setRegisterForm({ ...registerForm, firstName: e. target.value })}
+              onChange={(e) =>
+                setRegisterForm({ ...registerForm, firstName: e.target.value })
+              }
             />
 
             {/* Last Name */}
-            <label className="text-sm font-medium text-gray-700">Last Name</label>
+            <label className="text-sm font-medium text-gray-700">
+              Last Name
+            </label>
             <InputText
               name="lastName"
               value={registerForm.lastName}
-              onChange={(e) => setRegisterForm({ ...registerForm, lastName: e.target.value })}
+              onChange={(e) =>
+                setRegisterForm({ ...registerForm, lastName: e.target.value })
+              }
             />
 
-            <label className="text-sm font-medium text-gray-700">Username</label>
+            <label className="text-sm font-medium text-gray-700">
+              Username
+            </label>
             <InputText
               name="username"
               value={registerForm.username}
-              onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
+              onChange={(e) =>
+                setRegisterForm({ ...registerForm, username: e.target.value })
+              }
               required
             />
 
@@ -191,15 +226,27 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
               type="email"
               name="registerEmail"
               value={registerForm.registerEmail}
-              onChange={(e) => setRegisterForm({ ...registerForm, registerEmail: e.target.value })}
+              onChange={(e) =>
+                setRegisterForm({
+                  ...registerForm,
+                  registerEmail: e.target.value,
+                })
+              }
               required
             />
 
-            <label className="text-sm font-medium text-gray-700">Password</label>
+            <label className="text-sm font-medium text-gray-700">
+              Password
+            </label>
             <Password
               name="registerPassword"
               value={registerForm.registerPassword}
-              onChange={(e) => setRegisterForm({ ...registerForm, registerPassword: e.target.value })}
+              onChange={(e) =>
+                setRegisterForm({
+                  ...registerForm,
+                  registerPassword: e.target.value,
+                })
+              }
               toggleMask
               required
             />
@@ -209,20 +256,22 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
             </label>
             <InputText
               name="bio"
-              value={registerForm. bio}
-              onChange={(e) => setRegisterForm({ ...registerForm, bio: e.target. value })}
+              value={registerForm.bio}
+              onChange={(e) =>
+                setRegisterForm({ ...registerForm, bio: e.target.value })
+              }
             />
 
             <label className="text-sm font-medium text-gray-700">
               Profile Picture URL{" "}
-              <span className="text-gray-500 font-normal">
-                (optional)
-              </span>
+              <span className="text-gray-500 font-normal">(optional)</span>
             </label>
             <InputText
               name="pictureUrl"
               value={registerForm.pictureUrl}
-              onChange={(e) => setRegisterForm({ ...registerForm, pictureUrl: e.target.value })}
+              onChange={(e) =>
+                setRegisterForm({ ...registerForm, pictureUrl: e.target.value })
+              }
             />
 
             {/* Hidden submit for accessibility; footer Register triggers requestSubmit */}

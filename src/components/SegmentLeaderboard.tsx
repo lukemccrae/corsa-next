@@ -8,6 +8,7 @@ import { useTheme } from "./ThemeProvider";
 import { useUser } from "../context/UserContext";
 import { fetchSegmentLeaderboard } from "../services/segment.service";
 import StravaJoinModal from "./StravaJoinModal";
+import { exchangeStravaCode } from "../services/integration.service";
 
 const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
@@ -43,6 +44,8 @@ export default function SegmentEffortLeaderboard({
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [userIntegration, setUserIntegration] = useState<any>(null);
   const [fetchingIntegration, setFetchingIntegration] = useState(false);
+    const [oauthLoading, setOauthLoading] = useState(false);
+  const [oauthStatus, setOauthStatus] = useState('');
 
   const userInLeaderboard = user?.userId
     ? efforts.some((effort) => effort.userId === user.userId)
@@ -110,6 +113,30 @@ export default function SegmentEffortLeaderboard({
     fetchData();
   }, [segmentId]);
 
+    useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const state = params.get("state");
+    const userId = user?.userId;
+    const username = user?.preferred_username;
+    console.log(code, state, userId, username, '<< stuff')
+    if (code && state?.startsWith("burrito_league_") && userId && username) {
+      setOauthLoading(true);
+      exchangeStravaCode({ code, userId, username })
+        .then(() => { 
+          setOauthStatus('success');
+          // trigger join logic
+          setJoining(true)
+          handleJoinLeaderboard();
+        })
+        .catch(() => { setOauthStatus('error'); })
+        .finally(() => setOauthLoading(false));
+
+      // Clean up URL (remove code param)
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [user]);
+
   const handleJoinClick = async () => {
     if (!user?.userId) {
       toast.current?.show({
@@ -124,6 +151,7 @@ export default function SegmentEffortLeaderboard({
     // If user has Strava integration, join directly
     if (userIntegration) {
       await handleJoinLeaderboard();
+      setJoining(true)
     } else {
       // No integration - show modal to connect
       setShowJoinModal(true);
@@ -132,9 +160,6 @@ export default function SegmentEffortLeaderboard({
 
   const handleJoinLeaderboard = async () => {
     if (!user?.userId) return;
-
-    setJoining(true);
-
     try {
       const mutation = `
         mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
@@ -180,12 +205,7 @@ export default function SegmentEffortLeaderboard({
         detail: "You've joined the leaderboard 🌯",
         life: 3000,
       });
-
-      // Refresh leaderboard data
-      const leaderboardResult = await fetchSegmentLeaderboard({ segmentId });
-      const leaderboardData =
-        leaderboardResult?.data?.getSegmentLeaderboard || [];
-      setEfforts(leaderboardData);
+      window.location.reload();
     } catch (err: any) {
       console.error("Failed to join leaderboard:", err);
       toast.current?.show({
@@ -213,7 +233,7 @@ export default function SegmentEffortLeaderboard({
 
       <Card className={`${cardBg} border shadow-lg`}>
         <div
-          className={`${headerBg} -m-6 mb-6 p-6 border-b ${border} rounded-t-lg`}
+          className={`${headerBg} -m-6 mb-6 p-6 border-b ${border} rounded-t-lg mx-1`}
         >
           <div className="flex justify-between items-start mb-4">
             <a

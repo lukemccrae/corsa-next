@@ -21,16 +21,9 @@ export const exchangeStravaCode = async (args: StravaCallbackArgs) => {
         code,
         userId,
         username,
-        provider: 'strava'
+        provider: 'strava',
       }),
     });
-
-    if (!response.ok) {
-      const errorData = await response. json().catch(() => ({}));
-      throw new Error(
-        errorData. message || `Integration failed with status ${response.status}`
-      );
-    }
 
     const result = await response.json();
     return result;

@@ -123,23 +123,23 @@ export default function IntegrationsSettingsPage() {
       // Refetch to get updated integration
       await fetchStravaIntegration(user!.preferred_username);
 
-      toast.current?.show({
-        severity: "success",
-        summary: "Connected successfully",
-        detail: "Your Strava account has been connected",
-        life: 3000,
-      });
+      // toast.current?.show({
+      //   severity: "success",
+      //   summary: "Connected successfully",
+      //   detail: "Your Strava account has been connected",
+      //   life: 3000,
+      // });
 
       // Clean URL
       window.history.replaceState({}, "", "/settings/integrations");
     } catch (error: any) {
-      console.error("OAuth callback error:", error);
-      toast.current?.show({
-        severity: "error",
-        summary: "Connection failed",
-        detail: error.message || "Failed to connect account. Please try again.",
-        life: 5000,
-      });
+      // console.error("OAuth callback error:", error);
+      // toast.current?.show({
+      //   severity: "error",
+      //   summary: "Connection failed",
+      //   detail: error.message || "Failed to connect account. Please try again.",
+      //   life: 5000,
+      // });
     } finally {
       setLoading(false);
     }

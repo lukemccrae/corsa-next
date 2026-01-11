@@ -168,13 +168,13 @@ export default function StravaJoinModal({
         handleJoinLeaderboard();
       }, 1000);
     } catch (error: any) {
-      console.error("OAuth callback error:", error);
-      toast.current?.show({
-        severity: "error",
-        summary: "Connection Failed",
-        detail: error. message || "Failed to connect Strava",
-        life: 5000,
-      });
+    //   console.error("OAuth callback error:", error);
+    //   toast.current?.show({
+    //     severity: "error",
+    //     summary: "Connection Failed",
+    //     detail: error. message || "Failed to connect Strava",
+    //     life: 5000,
+    //   });
       setLoading(false);
       setStep("connect");
     }
