@@ -1,7 +1,8 @@
 "use server";
 import LiveProfileClient from "@/src/components/LiveProfileClient";
 import SegmentEffortLeaderboard from "@/src/components/SegmentLeaderboard";
-import React from "react";
+import { useUser } from "@/src/context/UserContext";
+import React, { use } from "react";
 
 /**
  * Server page for /profile/[username]
@@ -19,6 +20,37 @@ const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
 const APPSYNC_API_KEY =
   process.env.APPSYNC_API_KEY ?? "da2-5f7oqdwtvnfydbn226e6c2faga";
+
+async function fetchIntegrationData(username: string) {
+  const query = `
+    query GetSegmentBySegmentId {
+          getUserByUserName(username: "${username}") {
+          stravaIntegration {
+            athleteId
+          }
+        }
+    }
+  `;
+
+  const variables = { username };
+
+  const res = await fetch(APPSYNC_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": APPSYNC_API_KEY,
+    },
+    body: JSON.stringify({ query, variables }),
+    next: { revalidate: 30 },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch segment data");
+  }
+
+  const json = await res.json();
+  return json?.data?.getUserByUserName ?? null;
+}
 
 async function fetchSegmentData(segmentId: string) {
   const query = `
@@ -67,8 +99,9 @@ export default async function SegmentDetailPage({
   const segmentId = params.segmentId;
 
   let segmentData = null;
-
+  let integrationData = null;
   try {
+
     segmentData = await fetchSegmentData(segmentId);
 
   } catch (err) {
@@ -91,7 +124,7 @@ export default async function SegmentDetailPage({
 
   return (
     <div>
-      <SegmentEffortLeaderboard segmentId={segmentId} segmentName={segmentData.title}/>
+      <SegmentEffortLeaderboard segmentId={segmentId} segmentName={segmentData.title} integrationData={integrationData} />
     </div>
   );
 }

@@ -291,7 +291,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
           const idToken = result.getIdToken().getJwtToken();
           const refreshToken = result.getRefreshToken().getToken();
           localStorage.setItem("refreshToken", refreshToken);
-
           setUserInStorage(idToken);
           resolve(result);
         },
