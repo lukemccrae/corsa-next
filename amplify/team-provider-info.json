@@ -1,0 +1,15 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-corsanext-dev-c4d3d-authRole",
+      "UnauthRoleArn": "arn:aws:iam::611603514705:role/amplify-corsanext-dev-c4d3d-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::611603514705:role/amplify-corsanext-dev-c4d3d-authRole",
+      "Region": "us-west-1",
+      "DeploymentBucketName": "amplify-corsanext-dev-c4d3d-deployment",
+      "UnauthRoleName": "amplify-corsanext-dev-c4d3d-unauthRole",
+      "StackName": "amplify-corsanext-dev-c4d3d",
+      "StackId": "arn:aws:cloudformation:us-west-1:611603514705:stack/amplify-corsanext-dev-c4d3d/262141e0-ef19-11f0-9e8f-063acb7eff27",
+      "AmplifyAppId": "d10i685f7aaai1"
+    }
+  }
+}

@@ -275,7 +275,6 @@ const getJoinButtonProps = () => {
                 <th className="text-left p-2 font-semibold">Rank</th>
                 <th className="text-left p-2 font-semibold">User</th>
                 <th className="text-left p-2 font-semibold">Attempts</th>
-                <th className="text-left p-2 font-semibold">Last Effort</th>
               </tr>
             </thead>
             <tbody>
@@ -356,9 +355,6 @@ const getJoinButtonProps = () => {
                           <span className="font-semibold">
                             {entry.attemptCount}
                           </span>
-                        </td>
-                        <td className="p-3 text-gray-600 dark:text-gray-400">
-                          {entry.lastEffortAt || "—"}
                         </td>
                       </tr>
                     );
