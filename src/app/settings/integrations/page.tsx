@@ -93,6 +93,7 @@ export default function IntegrationsSettingsPage() {
       });
 
       const { data } = await response.json();
+      console.log(data)
       const integration = data?.getUserByUserName?.stravaIntegration;
 
       setStravaIntegration(integration || null);
@@ -118,6 +119,7 @@ export default function IntegrationsSettingsPage() {
         code,
         userId: user!.userId,
         username: user!.preferred_username,
+        cognito_username: user!["cognito:username"],
       });
 
       // Refetch to get updated integration

@@ -109,10 +109,10 @@ export default function SegmentEffortLeaderboard({
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
     const state = params.get("state");
-    console.log(user, "<< user");
     const userId = user?.userId;
     const username = user?.preferred_username;
-    const cognito_username = user?.["cognito:username"]; // smh cognito user PK
+    const cognito_username = user?.["cognito:username"];
+
     if (
       code &&
       state?.startsWith("burrito_league_") &&
@@ -126,16 +126,35 @@ export default function SegmentEffortLeaderboard({
       exchangeStravaCode({ code, userId, username, cognito_username })
         .then(() => {
           setOauthStatus("success");
-          // trigger join logic
-          setJoining(true);
           handleJoinLeaderboard();
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error("Strava connection error:", error);
+
+          // Check for duplicate athlete ID
+          const isDuplicateAthlete =
+            error.message?.includes("already connected") ||
+            error.message?.includes("duplicate") ||
+            error.message?.includes("athleteId") ||
+            error.code === "ConditionalCheckFailedException";
+
           setOauthStatus("error");
+
+          toast.current?.show({
+            severity: "error",
+            summary: isDuplicateAthlete
+              ? "Strava Account Already In Use"
+              : "Connection Failed",
+            detail: isDuplicateAthlete
+              ? "This Strava account is already connected to another CORSA account.  Please use a different Strava account or contact support."
+              : "Failed to connect your Strava account. Please try again.",
+            life: isDuplicateAthlete ? 10000 : 5000,
+          });
+
+          setJoining(false);
         })
         .finally(() => setOauthLoading(false));
 
-      // Clean up URL (remove code param)
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, [user]);
@@ -162,7 +181,7 @@ export default function SegmentEffortLeaderboard({
   };
 
   const handleJoinLeaderboard = async () => {
-    console.log(user?.["cognito:username"], '<< user')
+    console.log(user?.["cognito:username"], "<< user");
     if (!user?.["cognito:username"]) return;
     try {
       const mutation = `
@@ -253,7 +272,7 @@ export default function SegmentEffortLeaderboard({
         disabled: false,
       };
 
-    return { label: "Join Leaderboard", icon: "", disabled: false };
+    return { label: "Join Leaderboard", icon: "", disabled: canJoin };
   };
 
   return (

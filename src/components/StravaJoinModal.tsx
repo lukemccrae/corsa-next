@@ -16,7 +16,7 @@ type StravaJoinModalProps = {
   onHide: () => void;
   segmentId: string;
   onSuccess?: () => void;
-  userIntegration:  StravaIntegration | null;
+  userIntegration: StravaIntegration | null;
 };
 
 export default function StravaJoinModal({
@@ -64,10 +64,10 @@ export default function StravaJoinModal({
   };
 
   const handleJoinLeaderboard = async () => {
-    console.log("hi")
-    console.log(user?.["cognito:username"], '<< user cognito username')
+    console.log("hi");
+    console.log(user?.["cognito:username"], "<< user cognito username");
     if (!user?.["cognito:username"]) return;
-    
+
     setLoading(true);
     setStep("joining");
 
@@ -85,7 +85,7 @@ export default function StravaJoinModal({
       `;
 
       const response = await fetch(APPSYNC_ENDPOINT, {
-        method:  "POST",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": APPSYNC_API_KEY,
@@ -116,11 +116,11 @@ export default function StravaJoinModal({
       setTimeout(() => {
         onSuccess?.();
         onHide();
-        window.location. reload();
+        window.location.reload();
       }, 2000);
     } catch (err: any) {
       console.error("Failed to join leaderboard:", err);
-      toast.current?. show({
+      toast.current?.show({
         severity: "error",
         summary: "Error",
         detail: err.message || "Failed to join leaderboard",
@@ -137,7 +137,7 @@ export default function StravaJoinModal({
 
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
-    const state = params. get("state");
+    const state = params.get("state");
 
     if (code && state?.startsWith("burrito_league_")) {
       handleOAuthCallback(code);
@@ -146,40 +146,50 @@ export default function StravaJoinModal({
 
   const handleOAuthCallback = async (code: string) => {
     setLoading(true);
-    setStep("joining");
 
     try {
-      console.log(user, '<< user')
-      // await exchangeStravaCode({
-      //   code,
-      //   userId: user!.userId,
-      //   username: user!. preferred_username,
-      // });
+      await exchangeStravaCode({
+        code,
+        userId: user!.userId,
+        username: user!.preferred_username,
+        cognito_username: user!["cognito:username"],
+      });
+
+      // await fetchStravaIntegration(user!.preferred_username);
 
       toast.current?.show({
         severity: "success",
-        summary: "Strava Connected! ",
-        detail: "Now joining the leaderboard...",
-        life: 2000,
+        summary: "Connected successfully",
+        detail: "Your Strava account has been connected",
+        life: 3000,
       });
 
-      // Clean URL
-      window.history.replaceState({}, "", window.location. pathname);
-
-      // Join leaderboard after successful Strava connection
-      setTimeout(() => {
-        handleJoinLeaderboard();
-      }, 1000);
+      window.history.replaceState({}, "", "/settings/integrations");
     } catch (error: any) {
-    //   console.error("OAuth callback error:", error);
-    //   toast.current?.show({
-    //     severity: "error",
-    //     summary: "Connection Failed",
-    //     detail: error. message || "Failed to connect Strava",
-    //     life: 5000,
-    //   });
+      console.error("OAuth callback error:", error);
+
+      // Check for duplicate athlete ID error
+      const isDuplicateAthlete =
+        error.message?.includes("already connected") ||
+        error.message?.includes("duplicate") ||
+        error.message?.includes("athleteId") ||
+        error.code === "ConditionalCheckFailedException";
+
+      toast.current?.show({
+        severity: "error",
+        summary: isDuplicateAthlete
+          ? "Account Already Connected"
+          : "Connection failed",
+        detail: isDuplicateAthlete
+          ? "This Strava account is already connected to another CORSA account.  Each Strava account can only be linked to one CORSA account."
+          : error.message || "Failed to connect account.  Please try again.",
+        life: isDuplicateAthlete ? 8000 : 5000,
+      });
+
+      // Clean URL even on error
+      window.history.replaceState({}, "", "/settings/integrations");
+    } finally {
       setLoading(false);
-      setStep("connect");
     }
   };
 
@@ -231,7 +241,7 @@ export default function StravaJoinModal({
                 <i className="pi pi-spin pi-spinner text-4xl text-blue-500" />
               </div>
               <p className="text-center text-gray-600 dark:text-gray-300">
-                {userIntegration 
+                {userIntegration
                   ? "Joining leaderboard..."
                   : "Connecting to Strava and joining leaderboard..."}
               </p>

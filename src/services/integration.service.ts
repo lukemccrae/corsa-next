@@ -33,3 +33,4 @@ export const exchangeStravaCode = async (args: StravaCallbackArgs) => {
     throw error;
   }
 };
+
