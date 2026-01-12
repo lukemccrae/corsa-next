@@ -36,7 +36,7 @@ function IntegrationsContent() {
   // Fetch user's Strava integration on mount
   useEffect(() => {
     if (!user?.preferred_username) return;
-    console.log(user, '<< user')
+    console.log(user, "<< user");
     fetchStravaIntegration(user.preferred_username);
   }, [user?.preferred_username]);
 
@@ -47,9 +47,9 @@ function IntegrationsContent() {
     const error = searchParams?.get("error");
 
     if (error) {
-      toast.current?. show({
+      toast.current?.show({
         severity: "error",
-        summary:  "Connection failed",
+        summary: "Connection failed",
         detail: error,
         life: 5000,
       });
@@ -63,7 +63,7 @@ function IntegrationsContent() {
   }, [searchParams, user]);
 
   const fetchStravaIntegration = async (username: string) => {
-    console.log(username)
+    console.log(username);
     setFetchingIntegration(true);
     try {
       const query = `
@@ -90,8 +90,8 @@ function IntegrationsContent() {
 
       const { data } = await response.json();
       const integration = data?.getUserByUserName?.stravaIntegration;
-      console.log(integration,'<< integration ')
-      console.log(data, '<< data')
+      console.log(integration, "<< integration ");
+      console.log(data, "<< data");
       setStravaIntegration(integration || null);
     } catch (error) {
       console.error("Failed to fetch Strava integration:", error);
@@ -134,7 +134,8 @@ function IntegrationsContent() {
       toast.current?.show({
         severity: "error",
         summary: "Connection failed",
-        detail: error.message || "Failed to connect account.  Please try again.",
+        detail:
+          error.message || "Failed to connect account.  Please try again.",
         life: 5000,
       });
     } finally {
@@ -166,30 +167,31 @@ function IntegrationsContent() {
   };
 
   const handleDisconnectConfirm = async () => {
+    console.log(user)
     if (!user?.["cognito:username"]) return;
 
     setLoading(true);
 
     try {
       const mutation = `
-        mutation DisconnectStrava($userId: String!, $provider: String!) {
-          disconnectStravaIntegration(input: { userId: $userId, provider: $provider }) {
+        mutation MyMutation {
+          disconnectStravaIntegration(input: {userId: "${user["cognito:username"]}", provider: "STRAVA"}) {
             success
           }
         }
       `;
 
       const response = await fetch(APPSYNC_ENDPOINT, {
-        method:  "POST",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key":  APPSYNC_API_KEY,
+          "x-api-key": APPSYNC_API_KEY,
         },
         body: JSON.stringify({
           query: mutation,
           variables: {
             userId: user["cognito:username"],
-            provider: "STRAVA"
+            provider: "STRAVA",
           },
         }),
       });
@@ -197,9 +199,7 @@ function IntegrationsContent() {
       const result = await response.json();
 
       if (result.errors) {
-        throw new Error(
-          result.errors[0]?.message || "Failed to disconnect"
-        );
+        throw new Error(result.errors[0]?.message || "Failed to disconnect");
       }
 
       setStravaIntegration(null);
@@ -215,7 +215,8 @@ function IntegrationsContent() {
       toast.current?.show({
         severity: "error",
         summary: "Disconnect failed",
-        detail: error.message || "Failed to disconnect account.  Please try again.",
+        detail:
+          error.message || "Failed to disconnect account.  Please try again.",
         life: 5000,
       });
     } finally {
@@ -238,8 +239,8 @@ function IntegrationsContent() {
         <div className="space-y-2">
           <h2 className="text-2xl font-bold">Strava Integration</h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Connect your Strava account to sync activities, routes, and
-            training data.
+            Connect your Strava account to sync activities, routes, and training
+            data.
           </p>
         </div>
 
@@ -269,7 +270,7 @@ function IntegrationsContent() {
 
                     {isConnected && (
                       <div className="flex items-center gap-3">
-                        {stravaIntegration. athleteProfile && (
+                        {stravaIntegration.athleteProfile && (
                           <img
                             src={stravaIntegration.athleteProfile}
                             alt={`${stravaIntegration.athleteFirstName} ${stravaIntegration.athleteLastName}`}
@@ -331,8 +332,8 @@ function IntegrationsContent() {
             <div className="space-y-2">
               <h4 className="font-semibold">Privacy & Data Security</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                We only access data you explicitly grant permission for. You
-                can disconnect your Strava account at any time, and we'll
+                We only access data you explicitly grant permission for. You can
+                disconnect your Strava account at any time, and we'll
                 immediately stop syncing your data.
               </p>
             </div>
@@ -371,11 +372,11 @@ function IntegrationsContent() {
           <i className="pi pi-exclamation-triangle text-orange-500 text-xl flex-shrink-0" />
           <div className="space-y-3">
             <p>
-              Are you sure you want to disconnect <strong>Strava</strong>? 
+              Are you sure you want to disconnect <strong>Strava</strong>?
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               This will stop syncing your activities and data. You can reconnect
-              at any time. 
+              at any time.
             </p>
           </div>
         </div>
@@ -386,7 +387,13 @@ function IntegrationsContent() {
 
 export default function IntegrationsSettingsPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center p-8"><i className="pi pi-spin pi-spinner text-2xl" /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center p-8">
+          <i className="pi pi-spin pi-spinner text-2xl" />
+        </div>
+      }
+    >
       <IntegrationsContent />
     </Suspense>
   );

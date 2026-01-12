@@ -189,8 +189,7 @@ export type Mutation = {
 
 
 export type MutationDisconnectStravaIntegrationArgs = {
-  provider: StravaIntegrationInput;
-  userId: Scalars['ID']['input'];
+  input: StravaIntegrationInput;
 };
 
 

@@ -1413,7 +1413,7 @@
             "description": null,
             "args": [
               {
-                "name": "provider",
+                "name": "input",
                 "description": null,
                 "type": {
                   "kind": "NON_NULL",
@@ -1421,22 +1421,6 @@
                   "ofType": {
                     "kind": "INPUT_OBJECT",
                     "name": "StravaIntegrationInput",
-                    "ofType": null
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "userId",
-                "description": null,
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "SCALAR",
-                    "name": "ID",
                     "ofType": null
                   }
                 },
