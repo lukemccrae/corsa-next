@@ -1,5 +1,6 @@
 import React from "react";
 import BurritoMap from "@/src/components/BurritoMap";
+import { Segment } from "@/src/generated/schema";
 
 const APPSYNC_ENDPOINT = "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
@@ -49,7 +50,9 @@ export default async function BurritoLeaguePage() {
   try {
     const data = await fetchSegmentData();
     console.log(data);
-    segmentData = data.segments;
+    segmentData = data.segments.filter(
+          (segment: Segment) => segment.title !== "ATY TEST"
+        );;
   } catch (err) {
     console.error("fetchSegmentData error", err);
   }

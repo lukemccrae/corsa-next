@@ -94,7 +94,6 @@ export default function SegmentEffortLeaderboard({
       try {
         const result = await fetchSegmentLeaderboard({ segmentId });
         const leaderboardData = result?.data?.getSegmentLeaderboard || [];
-        console.log("Fetched leaderboard data:", leaderboardData);
         setEfforts(leaderboardData);
       } catch (err) {
         console.error("Failed to fetch segment leaderboard:", err);
@@ -146,8 +145,8 @@ export default function SegmentEffortLeaderboard({
 
     // If user has Strava integration, join directly
     if (userIntegration) {
-      await handleJoinLeaderboard();
       setJoining(true);
+      await handleJoinLeaderboard();
     } else {
       // No integration - show modal to connect
       setShowJoinModal(true);
