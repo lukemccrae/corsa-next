@@ -81,6 +81,11 @@ export enum DeviceLogo {
   Garmin = 'GARMIN'
 }
 
+export type DisconnectStravaResult = {
+  __typename?: 'DisconnectStravaResult';
+  success: Scalars['Boolean']['output'];
+};
+
 export type FullDataWaypoint = {
   __typename?: 'FullDataWaypoint';
   cumulativeGain?: Maybe<Scalars['Float']['output']>;
@@ -168,7 +173,7 @@ export enum MessageType {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  disconnectStravaIntegration: Scalars['Boolean']['output'];
+  disconnectStravaIntegration: DisconnectStravaResult;
   joinLeaderboard: JoinLeaderboardResponse;
   publishChat: ChatMessage;
   publishWaypoint: Waypoint;
@@ -185,6 +190,7 @@ export type Mutation = {
 
 export type MutationDisconnectStravaIntegrationArgs = {
   provider: StravaIntegrationInput;
+  userId: Scalars['ID']['input'];
 };
 
 
