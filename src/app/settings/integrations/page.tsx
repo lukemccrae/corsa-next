@@ -172,8 +172,8 @@ function IntegrationsContent() {
 
     try {
       const mutation = `
-        mutation DisconnectStrava($userId: ID!, $provider: String!) {
-          disconnectStravaIntegration(userId:  $userId, provider: $provider) {
+        mutation DisconnectStrava($userId: String!, $provider: String!) {
+          disconnectStravaIntegration(input: { userId: $userId, provider: $provider }) {
             success
           }
         }
@@ -253,7 +253,7 @@ function IntegrationsContent() {
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 {/* Icon & Info */}
                 <div className="flex items-start gap-4 flex-1">
-                  <div className="w-16 h-16 flex items-center justify-center bg-orange-500 rounded-lg flex-shrink-0">
+                  <div className="w-16 h-16 flex items-center justify-center rounded-lg flex-shrink-0">
                     <img
                       src="https://upload.wikimedia.org/wikipedia/commons/c/cb/Strava_Logo.svg"
                       alt="Strava"
