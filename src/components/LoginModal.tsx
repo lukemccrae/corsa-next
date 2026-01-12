@@ -1,11 +1,10 @@
-// src/components/LoginModal.tsx
 "use client";
 import React, { useRef, useState } from "react";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
 import { Button } from "primereact/button";
-import { Toast } from "primereact/toast"; // Add this import
+import { Toast } from "primereact/toast";
 import { useUser } from "../context/UserContext";
 
 type LoginModalProps = {
@@ -13,14 +12,20 @@ type LoginModalProps = {
   onHide: () => void;
 };
 
+type ModalMode = "login" | "register" | "forgotPassword" | "resetPassword";
+
 export default function LoginModal({ visible, onHide }: LoginModalProps) {
-  const { loginUser, registerUser } = useUser();
+  const { loginUser, registerUser, forgotPassword, resetPassword } = useUser();
   const formRef = useRef<HTMLFormElement>(null);
   const registerFormRef = useRef<HTMLFormElement>(null);
-  const toast = useRef<Toast>(null); // Add this ref
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const forgotPasswordFormRef = useRef<HTMLFormElement>(null);
+  const resetPasswordFormRef = useRef<HTMLFormElement>(null);
+  const toast = useRef<Toast>(null);
+  
+  const [mode, setMode] = useState<ModalMode>("login");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [resetEmail, setResetEmail] = useState("");
 
   // Registration form state
   const [registerForm, setRegisterForm] = useState({
@@ -39,18 +44,29 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
     password: "",
   });
 
+  // Forgot password form state
+  const [forgotPasswordForm, setForgotPasswordForm] = useState({
+    email: "",
+  });
+
+  // Reset password form state
+  const [resetPasswordForm, setResetPasswordForm] = useState({
+    email: "",
+    code: "",
+    newPassword: "",
+  });
+
   // Handle login submit
-  const submitLogin = async (e: React.FormEvent) => {
+  const submitLogin = async (e: React. FormEvent) => {
+    e.preventDefault();
     setErrorMsg("");
     setLoading(true);
     try {
       await loginUser(e);
       onHide();
-    } catch (err: any) {
-      const message = err?.message ?? "Login failed. Please try again.";
+    } catch (err:  any) {
+      const message = err?. message ??  "Login failed. Please try again. ";
       setErrorMsg(message);
-
-      // Show error as a toast as well
       toast.current?.show({
         severity: "error",
         summary: "Login Failed",
@@ -63,22 +79,18 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
   };
 
   // Handle registration submit
-  const submitRegister = async (e: React.FormEvent) => {
+  const submitRegister = async (e: React. FormEvent) => {
+    e.preventDefault();
     setErrorMsg("");
     setLoading(true);
-    console.log(e, "<< form event");
     try {
       await registerUser(e);
-
-      // Show success toast
       toast.current?.show({
         severity: "success",
-        summary: "Registration Successful",
+        summary:  "Registration Successful",
         detail: "Please check your email to verify your account.",
         life: 6000,
       });
-
-      // Close modal after a short delay to let user see the toast
       setTimeout(() => {
         onHide();
       }, 1500);
@@ -87,11 +99,39 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
         err?.message ||
         "Registration failed. Please check your info and try again.";
       setErrorMsg(errorMessage);
-
-      // Also show error toast
       toast.current?.show({
         severity: "error",
         summary: "Registration Failed",
+        detail: errorMessage,
+        life:  5000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle forgot password submit
+  const submitForgotPassword = async (e: React. FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setLoading(true);
+    try {
+      await forgotPassword(forgotPasswordForm. email);
+      setResetEmail(forgotPasswordForm.email);
+      toast.current?.show({
+        severity: "success",
+        summary: "Code Sent",
+        detail: "Please check your email for the verification code.",
+        life: 5000,
+      });
+      setMode("resetPassword");
+      setResetPasswordForm({ ... resetPasswordForm, email: forgotPasswordForm.email });
+    } catch (err: any) {
+      const errorMessage = err?. message || "Failed to send reset code. Please try again.";
+      setErrorMsg(errorMessage);
+      toast.current?.show({
+        severity: "error",
+        summary: "Request Failed",
         detail: errorMessage,
         life: 5000,
       });
@@ -100,27 +140,127 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
     }
   };
 
-  // Dialog footer (switch/sign in/register/cancel)
+  // Handle reset password submit
+  const submitResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setLoading(true);
+    try {
+      await resetPassword(
+        resetPasswordForm.email,
+        resetPasswordForm.code,
+        resetPasswordForm.newPassword
+      );
+      toast.current?. show({
+        severity: "success",
+        summary: "Password Reset Successful",
+        detail: "You can now login with your new password.",
+        life: 5000,
+      });
+      setTimeout(() => {
+        setMode("login");
+        setResetPasswordForm({ email: "", code: "", newPassword:  "" });
+        setForgotPasswordForm({ email: "" });
+      }, 1500);
+    } catch (err: any) {
+      const errorMessage = err?.message || "Failed to reset password. Please try again.";
+      setErrorMsg(errorMessage);
+      toast.current?.show({
+        severity: "error",
+        summary: "Reset Failed",
+        detail: errorMessage,
+        life: 5000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get modal title based on mode
+  const getTitle = () => {
+    switch (mode) {
+      case "login":
+        return "Sign In";
+      case "register": 
+        return "Create Account";
+      case "forgotPassword":
+        return "Reset Password";
+      case "resetPassword": 
+        return "Reset Password";
+      default:
+        return "Sign In";
+    }
+  };
+
+  // Dialog footer
   const footer = (
-    <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
-      <Button
-        label={mode === "login" ? "Need an account?" : "Already registered?"}
-        text
-        onClick={() => {
-          setErrorMsg("");
-          setMode(mode === "login" ? "register" : "login");
-        }}
-      />
-      <div className="flex gap-2">
-        <Button label="Cancel" text onClick={onHide} disabled={loading} />
+    <div className="flex flex-col gap-2 w-full">
+      {mode === "login" && (
+        <>
+          <Button
+            label="Don't have an account? Register"
+            link
+            onClick={() => {
+              setErrorMsg("");
+              setMode("register");
+            }}
+            className="w-full"
+          />
+          <Button
+            label="Reset Password"
+            link
+            onClick={() => {
+              setErrorMsg("");
+              setMode("forgotPassword");
+            }}
+            className="w-full"
+          />
+        </>
+      )}
+      {mode === "register" && (
         <Button
-          label={mode === "login" ? "Sign In" : "Register"}
+          label="Already have an account? Sign In"
+          link
+          onClick={() => {
+            setErrorMsg("");
+            setMode("login");
+          }}
+          className="w-full"
+        />
+      )}
+      {(mode === "forgotPassword" || mode === "resetPassword") && (
+        <Button
+          label="Back to Sign In"
+          link
+          onClick={() => {
+            setErrorMsg("");
+            setMode("login");
+          }}
+          className="w-full"
+        />
+      )}
+      <div className="flex gap-2 justify-end mt-2">
+        <Button label="Cancel" outlined onClick={onHide} disabled={loading} />
+        <Button
+          label={
+            mode === "login"
+              ? "Sign In"
+              : mode === "register"
+              ? "Register"
+              : mode === "forgotPassword"
+              ? "Send Code"
+              : "Reset Password"
+          }
           loading={loading}
           onClick={() => {
             if (mode === "login") {
               formRef.current?.requestSubmit();
-            } else {
+            } else if (mode === "register") {
               registerFormRef.current?.requestSubmit();
+            } else if (mode === "forgotPassword") {
+              forgotPasswordFormRef.current?.requestSubmit();
+            } else if (mode === "resetPassword") {
+              resetPasswordFormRef.current?.requestSubmit();
             }
           }}
         />
@@ -130,42 +270,36 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
 
   return (
     <>
-      <Toast ref={toast} /> {/* Add Toast component */}
+      <Toast ref={toast} />
       <Dialog
-        header={mode === "login" ? "Sign In" : "Create Account"}
         visible={visible}
         onHide={onHide}
+        header={getTitle()}
         footer={footer}
         modal
-        dismissableMask
         className="w-full max-w-md mx-4"
       >
         {errorMsg && (
-          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-md text-sm">
+          <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark: border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4">
             {errorMsg}
           </div>
         )}
 
-        {mode === "login" ? (
-          <form
-            ref={formRef}
-            onSubmit={submitLogin}
-            className="flex flex-col gap-4"
-          >
+        {mode === "login" && (
+          <form ref={formRef} onSubmit={submitLogin} className="flex flex-col gap-4">
             <label className="text-sm font-medium text-gray-300">Email</label>
             <InputText
-              type="email"
               name="email"
-              value={loginForm.email}
+              type="email"
+              value={loginForm. email}
               onChange={(e) =>
-                setLoginForm({ ...loginForm, email: e.target.value })
+                setLoginForm({ ...loginForm, email: e.target. value })
               }
               required
+              autoComplete="email"
             />
 
-            <label className="text-sm font-medium text-gray-300">
-              Password
-            </label>
+            <label className="text-sm font-medium text-gray-300">Password</label>
             <Password
               name="password"
               value={loginForm.password}
@@ -175,32 +309,25 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
               feedback={false}
               toggleMask
               required
+              autoComplete="current-password"
             />
 
-            {/* Hidden submit for accessibility; footer Sign In triggers requestSubmit */}
-            <button type="submit" className="hidden" />
+            <button type="submit" hidden />
           </form>
-        ) : (
-          <form
-            ref={registerFormRef}
-            onSubmit={submitRegister}
-            className="flex flex-col gap-4"
-          >
-            <label className="text-sm font-medium text-gray-300">
-              First Name
-            </label>
+        )}
+
+        {mode === "register" && (
+          <form ref={registerFormRef} onSubmit={submitRegister} className="flex flex-col gap-4">
+            <label className="text-sm font-medium text-gray-300">First Name</label>
             <InputText
               name="firstName"
               value={registerForm.firstName}
               onChange={(e) =>
-                setRegisterForm({ ...registerForm, firstName: e.target.value })
+                setRegisterForm({ ...registerForm, firstName: e.target. value })
               }
             />
 
-            {/* Last Name */}
-            <label className="text-sm font-medium text-gray-300">
-              Last Name
-            </label>
+            <label className="text-sm font-medium text-gray-300">Last Name</label>
             <InputText
               name="lastName"
               value={registerForm.lastName}
@@ -209,9 +336,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
               }
             />
 
-            <label className="text-sm font-medium text-gray-300">
-              Username
-            </label>
+            <label className="text-sm font-medium text-gray-300">Username</label>
             <InputText
               name="username"
               value={registerForm.username}
@@ -223,8 +348,8 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
 
             <label className="text-sm font-medium text-gray-300">Email</label>
             <InputText
-              type="email"
               name="registerEmail"
+              type="email"
               value={registerForm.registerEmail}
               onChange={(e) =>
                 setRegisterForm({
@@ -235,9 +360,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
               required
             />
 
-            <label className="text-sm font-medium text-gray-300">
-              Password
-            </label>
+            <label className="text-sm font-medium text-gray-300">Password</label>
             <Password
               name="registerPassword"
               value={registerForm.registerPassword}
@@ -251,31 +374,82 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
               required
             />
 
-            <label className="text-sm font-medium text-gray-300">
-              Bio (optional)
-            </label>
+            <label className="text-sm font-medium text-gray-300">Bio (optional)</label>
             <InputText
               name="bio"
               value={registerForm.bio}
               onChange={(e) =>
-                setRegisterForm({ ...registerForm, bio: e.target.value })
+                setRegisterForm({ ...registerForm, bio: e.target. value })
               }
             />
 
             <label className="text-sm font-medium text-gray-300">
-              Profile Picture URL{" "}
-              <span className="text-gray-500 font-normal">(optional)</span>
+              Profile Picture URL (optional)
             </label>
             <InputText
               name="pictureUrl"
               value={registerForm.pictureUrl}
               onChange={(e) =>
-                setRegisterForm({ ...registerForm, pictureUrl: e.target.value })
+                setRegisterForm({ ...registerForm, pictureUrl: e. target.value })
               }
             />
 
-            {/* Hidden submit for accessibility; footer Register triggers requestSubmit */}
-            <button type="submit" className="hidden" />
+            <button type="submit" hidden />
+          </form>
+        )}
+
+        {mode === "forgotPassword" && (
+          <form ref={forgotPasswordFormRef} onSubmit={submitForgotPassword} className="flex flex-col gap-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              Enter your email address and we'll send you a code to reset your password.
+            </p>
+            <label className="text-sm font-medium text-gray-300">Email</label>
+            <InputText
+              name="email"
+              type="email"
+              value={forgotPasswordForm.email}
+              onChange={(e) =>
+                setForgotPasswordForm({ email: e.target.value })
+              }
+              required
+              autoComplete="email"
+            />
+            <button type="submit" hidden />
+          </form>
+        )}
+
+        {mode === "resetPassword" && (
+          <form ref={resetPasswordFormRef} onSubmit={submitResetPassword} className="flex flex-col gap-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              Enter the verification code sent to {resetPasswordForm.email}
+            </p>
+            
+            <label className="text-sm font-medium text-gray-300">Verification Code</label>
+            <InputText
+              name="code"
+              value={resetPasswordForm. code}
+              onChange={(e) =>
+                setResetPasswordForm({ ...resetPasswordForm, code: e.target.value })
+              }
+              required
+              placeholder="Enter 6-digit code"
+            />
+
+            <label className="text-sm font-medium text-gray-300">New Password</label>
+            <Password
+              name="newPassword"
+              value={resetPasswordForm.newPassword}
+              onChange={(e) =>
+                setResetPasswordForm({
+                  ...resetPasswordForm,
+                  newPassword: e. target.value,
+                })
+              }
+              toggleMask
+              required
+            />
+
+            <button type="submit" hidden />
           </form>
         )}
       </Dialog>

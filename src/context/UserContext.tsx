@@ -26,7 +26,7 @@ type User = {
   exp: number;
   idToken: string;
   preferred_username: string;
-  picture: string;
+  picture:  string;
 };
 
 export type Anon = {
@@ -37,7 +37,7 @@ export type Anon = {
 };
 
 export interface GetLiveStreamsArgs {
-  streamIds: string[];
+  streamIds:  string[];
 }
 
 type UserContextType = {
@@ -50,8 +50,9 @@ type UserContextType = {
   loginUser: (event: any) => Promise<unknown>;
   registerUser: (event: any) => Promise<void>;
   maybeRefreshUser: () => Promise<void>;
-  // signInWithFacebook: (provider: string) => Promise<void>;
-  // signInWithGoogle: (provider: string) => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (email: string, code: string, newPassword: string) => Promise<void>;
+  resetPasswordWithCode: (email: string, code: string, newPassword: string) => Promise<void>;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -81,7 +82,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     const localUserCreds = localStorage.getItem("user");
 
     if (localUserCreds) {
-      const decodedUser: CognitoToken = jwtDecode(localUserCreds);
+      const decodedUser:  CognitoToken = jwtDecode(localUserCreds);
       if (checkValidUser(decodedUser)) {
         setUserInStorage(localUserCreds);
       } else {
@@ -94,13 +95,25 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       setAnon(parsedAnon);
     }
 
-    if (!checkValidAnon()) {
+    if (! checkValidAnon()) {
       retrieveAnon();
     }
   }, []);
 
+  // Auto-refresh token every 5 minutes if user is logged in
+  useEffect(() => {
+    if (! user) return;
+
+    const interval = setInterval(async () => {
+      await maybeRefreshUser();
+    }, 5 * 60 * 1000); // Check every 5 minutes
+
+    return () => clearInterval(interval);
+  }, [user]);
+
   const logoutUser = async () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("refreshToken");
     setUser(undefined);
   };
 
@@ -108,17 +121,26 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     if (!user) return;
     const now = Date.now() / 1000;
 
-    if (user.exp < now + 60) {
+    // Refresh if token expires in less than 5 minutes
+    if (user.exp < now + 300) {
       await refreshUserSession();
     }
   };
 
   const refreshUserSession = async () => {
     const storedToken = localStorage.getItem("refreshToken");
-    const userEmail = user?.email;
+    const storedUser = localStorage.getItem("user");
 
-    if (!storedToken || !userEmail) {
-      console.warn("No refresh token or user email found");
+    if (!storedToken || !storedUser) {
+      console.warn("No refresh token or user found");
+      return;
+    }
+
+    const decodedUser: CognitoToken = jwtDecode(storedUser);
+    const userEmail = decodedUser.email;
+
+    if (! userEmail) {
+      console.warn("No user email found");
       return;
     }
 
@@ -132,52 +154,64 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     });
 
     return new Promise<void>((resolve, reject) => {
-      cognitoUser.refreshSession(refreshToken, (err, session) => {
+      cognitoUser. refreshSession(refreshToken, (err, session) => {
         if (err) {
           console.error("Error refreshing session", err);
-          logoutUser(); // Optional
+          logoutUser();
           reject(err);
         } else {
           const newIdToken = session.getIdToken().getJwtToken();
           const newRefreshToken = session.getRefreshToken().getToken();
 
           setUserInStorage(newIdToken);
-          localStorage.setItem("refreshToken", newRefreshToken); // ✅ refresh token might rotate
+          localStorage.setItem("refreshToken", newRefreshToken);
           resolve();
         }
       });
     });
   };
 
-  // const signInWithGoogle = async (provider: string) => {
-  //   try {
-  //     // In v6, you use signInWithRedirect with a provider
-  //     const result = await signInWithRedirect({
-  //       provider: 'Google',
-  //     });
-  //     console.log(result, 'google result');
-  //   } catch (error) {
-  //     console.error(`Error signing in with ${provider}:`, error);
-  //   }
-  // };
+  const forgotPassword = async (email: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const cognitoUser = new CognitoUser({
+        Username: email,
+        Pool: UserPool,
+      });
 
-  // const signInWithFacebook = async () => {
-  //   try {
-  //     // You can optionally pass custom state to be received later
-  //     const customState = { returnTo: window.location.pathname };
+      cognitoUser.forgotPassword({
+        onSuccess: () => {
+          resolve();
+        },
+        onFailure: (err) => {
+          console. error("Forgot password error:", err);
+          reject(err);
+        },
+      });
+    });
+  };
 
-  //     // Initiate the sign-in redirect to Facebook
-  //     await signInWithRedirect({
-  //       provider: 'Facebook',
-  //       customState: JSON.stringify(customState)
-  //     });
+  const resetPassword = async (
+    email: string,
+    code: string,
+    newPassword: string
+  ): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const cognitoUser = new CognitoUser({
+        Username:  email,
+        Pool: UserPool,
+      });
 
-  //     // Note: The page will redirect, so code after this won't execute immediately
-  //     console.log('Redirecting to Facebook login...');
-  //   } catch (error) {
-  //     console.error('Error starting Facebook sign-in:', error);
-  //   }
-  // };
+      cognitoUser.confirmPassword(code, newPassword, {
+        onSuccess: () => {
+          resolve();
+        },
+        onFailure: (err) => {
+          console.error("Reset password error:", err);
+          reject(err);
+        },
+      });
+    });
+  };
 
   const checkValidUser = (decodedUser: CognitoToken) => {
     if (!decodedUser) return false;
@@ -187,8 +221,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
   // Check if anonymous credentials are still valid
   const checkValidAnon = (): boolean => {
-    if (!anon) return false;
-    if (!anon.accessKeyId || !anon.secretAccessKey || !anon.sessionToken)
+    if (! anon) return false;
+    if (! anon.accessKeyId || !anon.secretAccessKey || !anon.sessionToken)
       return false;
     return new Date(anon.expiration).getTime() > Date.now();
   };
@@ -199,6 +233,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       await setAnonCreds();
     }
   };
+
   const registerUser = async (event: any) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -220,7 +255,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     }
 
     try {
-      const response = await fetch(`${domain.utilityApi}/register`, {
+      const response = await fetch(`${domain. utilityApi}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -240,33 +275,33 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message ||
+          errorData. message ||
             `Registration failed with status ${response.status}`
         );
       }
 
       const result = await response.json();
-      console.log(result, '<< res')
-    } catch (e: any) {
+      console.log(result, "<< res");
+    } catch (e:  any) {
       console.error("Registration error:", e);
       throw e;
     }
   };
 
   const setUserInStorage = (idToken: string) => {
-    const decodedToken = jwtDecode(idToken) as CognitoToken;
+    const decodedToken = jwtDecode<CognitoToken>(idToken);
     const { email, exp, sub, preferred_username, picture } = decodedToken;
     const userId = sub;
 
     setUser({ email, exp, userId, idToken, preferred_username, picture });
     localStorage.setItem("user", idToken);
   };
-  // In the loginUser function, improve error handling:
+
   const loginUser = async (event: any) => {
-    const data = new FormData(event.currentTarget);
+    const data = new FormData(event. currentTarget);
 
     const email = data.get("email")?.toString();
-    const password = data.get("password")?.toString();
+    const password = data. get("password")?.toString();
 
     if (!email || !password) {
       throw new Error("Email and password are required");
@@ -304,7 +339,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
   // Get anonymous credentials, retrieving them if necessary
   const getAnon = async (): Promise<Anon> => {
-    if (!checkValidAnon()) {
+    if (! checkValidAnon()) {
       const anon = await setAnonCreds();
       return anon as Anon;
     }
@@ -342,10 +377,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         anonCreds.accessKeyId &&
         anonCreds.secretAccessKey
       ) {
-        const creds: Anon = {
+        const creds:  Anon = {
           expiration: anonCreds.expiration,
           sessionToken: anonCreds.sessionToken,
-          secretAccessKey: anonCreds.secretAccessKey,
+          secretAccessKey: anonCreds. secretAccessKey,
           accessKeyId: anonCreds.accessKeyId,
         };
 
@@ -362,20 +397,31 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     }
   };
 
+  // Add resetPasswordWithCode implementation
+  const resetPasswordWithCode = async (
+    email: string,
+    code: string,
+    newPassword: string
+  ): Promise<void> => {
+    // This implementation is the same as resetPassword
+    return resetPassword(email, code, newPassword);
+  };
+
   return (
     <UserContext.Provider
       value={{
-        // signInWithFacebook,
-        // signInWithGoogle,
-        maybeRefreshUser,
         user,
         anon,
-        registerUser,
-        loginUser,
         checkValidAnon,
         setAnonCreds,
         getAnon,
         logoutUser,
+        loginUser,
+        registerUser,
+        maybeRefreshUser,
+        forgotPassword,
+        resetPassword,
+        resetPasswordWithCode
       }}
     >
       {children}
