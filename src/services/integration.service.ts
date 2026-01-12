@@ -5,11 +5,12 @@ export interface StravaCallbackArgs {
   code: string;
   userId: string;
   username: string;
+  cognito_username: string;
 }
 
 export const exchangeStravaCode = async (args: StravaCallbackArgs) => {
-  const { code, userId, username } = args;
-
+  const { code, username, cognito_username } = args;
+  const userId = cognito_username; //cognito username is the PK of the user 
   try {
     const response = await fetch(`${domain.utilityApi}/integration`, {
       method: 'POST',

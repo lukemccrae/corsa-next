@@ -4,6 +4,7 @@ import { Avatar } from "primereact/avatar";
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
+import { ProgressSpinner } from "primereact/progressspinner";
 import { useTheme } from "./ThemeProvider";
 import { useUser } from "../context/UserContext";
 import { fetchSegmentLeaderboard } from "../services/segment.service";
@@ -14,8 +15,6 @@ import { SegmentLeaderboardEntry } from "../generated/schema";
 const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
-
-
 type SegmentEffortLeaderboardProps = {
   segmentId: string;
   segmentName?: string;
@@ -58,7 +57,7 @@ export default function SegmentEffortLeaderboard({
                 athleteFirstName
                 athleteId
                 athleteLastName
-                athleteProfile
+                athleteProfileMedium
               }
             }
           }
@@ -110,12 +109,21 @@ export default function SegmentEffortLeaderboard({
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
     const state = params.get("state");
+    console.log(user, "<< user");
     const userId = user?.userId;
     const username = user?.preferred_username;
-    if (code && state?.startsWith("burrito_league_") && userId && username) {
+    const cognito_username = user?.["cognito:username"]; // smh cognito user PK
+    if (
+      code &&
+      state?.startsWith("burrito_league_") &&
+      userId &&
+      username &&
+      cognito_username
+    ) {
       setOauthLoading(true);
       setJoining(true);
-      exchangeStravaCode({ code, userId, username })
+
+      exchangeStravaCode({ code, userId, username, cognito_username })
         .then(() => {
           setOauthStatus("success");
           // trigger join logic
@@ -154,7 +162,8 @@ export default function SegmentEffortLeaderboard({
   };
 
   const handleJoinLeaderboard = async () => {
-    if (!user?.userId) return;
+    console.log(user?.["cognito:username"], '<< user')
+    if (!user?.["cognito:username"]) return;
     try {
       const mutation = `
         mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
@@ -176,7 +185,7 @@ export default function SegmentEffortLeaderboard({
           query: mutation,
           variables: {
             segmentId,
-            userId: user.userId,
+            userId: user["cognito:username"],
           },
         }),
       });
@@ -194,7 +203,14 @@ export default function SegmentEffortLeaderboard({
         );
       }
 
-      const id = setTimeout(() => {
+      toast.current?.show({
+        severity: "success",
+        summary: "Success! ",
+        detail: "You've joined the leaderboard.  Refreshing.. .",
+        life: 2000,
+      });
+
+      setTimeout(() => {
         window.location.reload();
       }, 2000);
     } catch (err: any) {
@@ -205,8 +221,7 @@ export default function SegmentEffortLeaderboard({
         detail: err.message || "Failed to join leaderboard",
         life: 5000,
       });
-    } finally {
-      // setJoining(false);
+      setJoining(false);
     }
   };
 
@@ -220,29 +235,65 @@ export default function SegmentEffortLeaderboard({
 
   const canJoin = !userInLeaderboard && !joining && !fetchingIntegration;
 
-const getJoinButtonProps = () => {
-  if (fetchingIntegration)
-    return { label: "Syncing...", icon: "pi pi-sync", disabled: true };
+  const getJoinButtonProps = () => {
+    if (fetchingIntegration)
+      return { label: "Syncing...", icon: "pi pi-sync", disabled: true };
 
-  if (joining)
-    return { label: "Joining...", icon: "", disabled: true };
+    if (joining)
+      return {
+        label: "Joining...",
+        icon: "pi pi-spin pi-spinner",
+        disabled: true,
+      };
 
-  if (!userIntegration)
-    return { label: "Sync Strava to Join", icon: "pi pi-sync", disabled: false };
+    if (!userIntegration)
+      return {
+        label: "Sync Strava to Join",
+        icon: "pi pi-sync",
+        disabled: false,
+      };
 
-  return { label: "Join Leaderboard", icon: "", disabled: false };
-};
-
+    return { label: "Join Leaderboard", icon: "", disabled: false };
+  };
 
   return (
-    <div className="container mx-auto px-4 py-4 max-w-4xl">
+    <div className="relative min-h-screen p-4 md:p-8">
       <Toast ref={toast} />
 
-      <Card className={`${cardBg} border shadow-lg`}>
-        <div className="flex justify-between items-start mb-4">
+      {/* Loading Overlay */}
+      {(joining || oauthLoading) && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 shadow-2xl flex flex-col items-center gap-6 max-w-sm mx-4">
+            <ProgressSpinner
+              style={{ width: "80px", height: "80px" }}
+              strokeWidth="4"
+              animationDuration="1s"
+            />
+            <div className="text-center">
+              <h3 className="text-xl font-semibold text-white mb-2">
+                {oauthLoading
+                  ? "Connecting to Strava..."
+                  : "Joining Leaderboard... "}
+              </h3>
+              <p className="text-gray-400 text-sm">
+                {oauthLoading
+                  ? "Please wait while we sync your Strava account"
+                  : "Adding you to the competition 🌯"}
+              </p>
+            </div>
+            <div className="flex gap-2 items-center text-gray-400 text-xs">
+              <i className="pi pi-info-circle" />
+              <span>This may take a few seconds</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={`${cardBg} rounded-lg shadow-lg p-6 md: p-8 border`}>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <a
             href="/burritoleague"
-            className="text-blue-500 hover:text-blue-600 flex items-center gap-2"
+            className="flex items-center gap-2 text-blue-500 hover:text-blue-400 transition-colors"
           >
             <i className="pi pi-arrow-left" />
             Back 🌯
@@ -251,17 +302,19 @@ const getJoinButtonProps = () => {
             <Button
               {...getJoinButtonProps()}
               onClick={handleJoinClick}
-              loading={joining || fetchingIntegration}
-              className="p-button-success"
+              className="w-full md:w-auto"
+              severity={userIntegration ? "success" : "info"}
             />
           )}
         </div>
-        <h1 className="text-3xl font-bold">{segmentName} Leaderboard</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-2">
+        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+          {segmentName} Leaderboard
+        </h1>
+        <p className="text-gray-400 mb-6">
           Track your efforts and compete with other runners
         </p>
         {userInLeaderboard && (
-          <div className="mt-3 inline-flex items-center gap-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm">
+          <div className="flex items-center gap-2 text-green-500 mb-6 bg-green-500/10 border border-green-500/20 rounded-lg p-3">
             <i className="pi pi-check-circle" />
             You're on this leaderboard!
           </div>
@@ -269,31 +322,46 @@ const getJoinButtonProps = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead>
-              <tr className={`${headerBg} border-b ${border}`}>
-                <th className="text-left p-2 font-semibold">Rank</th>
-                <th className="text-left p-2 font-semibold">User</th>
-                <th className="text-left p-2 font-semibold">Attempts</th>
+            <thead className={`${headerBg} border-b ${border}`}>
+              <tr>
+                <th className="px-4 py-3 text-left text-sm font-semibold">
+                  Rank
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold">
+                  User
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold">
+                  Attempts
+                </th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-12">
-                    <i className="pi pi-spin pi-spinner text-2xl text-blue-500" />
-                    <p className="mt-2 text-gray-500">Loading... </p>
+                  <td colSpan={3} className="px-4 py-12 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <ProgressSpinner
+                        style={{ width: "50px", height: "50px" }}
+                      />
+                      <p className="text-gray-400">Loading...</p>
+                    </div>
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-12">
-                    <i className="pi pi-exclamation-triangle text-2xl text-red-500" />
-                    <p className="mt-2 text-red-500">{error}</p>
+                  <td colSpan={3} className="px-4 py-8 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <i className="pi pi-exclamation-triangle text-red-500 text-3xl" />
+                      <p className="text-red-400">{error}</p>
+                    </div>
                   </td>
                 </tr>
               ) : efforts.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-12 text-gray-500">
+                  <td
+                    colSpan={3}
+                    className="px-4 py-8 text-center text-gray-400"
+                  >
                     No entries yet. Be the first to join!
                   </td>
                 </tr>
@@ -307,10 +375,10 @@ const getJoinButtonProps = () => {
                         key={entry.userId}
                         ref={isCurrentUser ? selectedRowRef : null}
                         className={`border-b ${border} ${hoverBg} transition-colors ${
-                          isCurrentUser ? "bg-blue-50 dark:bg-blue-900/20" : ""
+                          isCurrentUser ? "bg-blue-500/10" : ""
                         }`}
                       >
-                        <td className="p-3">
+                        <td className="px-4 py-4">
                           <div className="flex items-center gap-2">
                             {index === 0 && (
                               <span className="text-2xl">🥇</span>
@@ -322,36 +390,33 @@ const getJoinButtonProps = () => {
                               <span className="text-2xl">🥉</span>
                             )}
                             {index > 2 && (
-                              <span className="text-gray-500 font-semibold">
+                              <span className="text-gray-400 font-semibold">
                                 {index + 1}
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className="p-3">
+                        <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <Avatar
                               image={entry.profilePicture ?? undefined}
-                              label={
-                                !entry.profilePicture
-                                  ? `${(entry.firstName?.charAt(0) || "").toUpperCase()}${(entry.lastName?.charAt(0) || "").toUpperCase()}`
-                                  : undefined
-                              }
                               shape="circle"
                               size="normal"
                             />
-                            <span className="font-medium">
-                              {entry.firstName} {entry.lastName}
-                              {isCurrentUser && (
-                                <span className="text-blue-500 ml-2">
-                                  (You)
-                                </span>
-                              )}
-                            </span>
+                            <div>
+                              <div className="font-medium">
+                                {entry.firstName} {entry.lastName}
+                                {isCurrentUser && (
+                                  <span className="ml-2 text-xs text-blue-400 font-normal">
+                                    (You)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </td>
-                        <td className="p-3">
-                          <span className="font-semibold">
+                        <td className="px-4 py-4">
+                          <span className="font-semibold text-lg">
                             {entry.attemptCount}
                           </span>
                         </td>
@@ -362,7 +427,7 @@ const getJoinButtonProps = () => {
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
 
       <StravaJoinModal
         visible={showJoinModal}

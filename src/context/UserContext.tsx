@@ -26,7 +26,8 @@ type User = {
   exp: number;
   idToken: string;
   preferred_username: string;
-  picture:  string;
+  "cognito:username": string; // THIS IS THE COGNITO PK
+  picture: string;
 };
 
 export type Anon = {
@@ -37,7 +38,7 @@ export type Anon = {
 };
 
 export interface GetLiveStreamsArgs {
-  streamIds:  string[];
+  streamIds: string[];
 }
 
 type UserContextType = {
@@ -51,8 +52,16 @@ type UserContextType = {
   registerUser: (event: any) => Promise<void>;
   maybeRefreshUser: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
-  resetPassword: (email: string, code: string, newPassword: string) => Promise<void>;
-  resetPasswordWithCode: (email: string, code: string, newPassword: string) => Promise<void>;
+  resetPassword: (
+    email: string,
+    code: string,
+    newPassword: string
+  ) => Promise<void>;
+  resetPasswordWithCode: (
+    email: string,
+    code: string,
+    newPassword: string
+  ) => Promise<void>;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -82,7 +91,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     const localUserCreds = localStorage.getItem("user");
 
     if (localUserCreds) {
-      const decodedUser:  CognitoToken = jwtDecode(localUserCreds);
+      const decodedUser: CognitoToken = jwtDecode(localUserCreds);
       if (checkValidUser(decodedUser)) {
         setUserInStorage(localUserCreds);
       } else {
@@ -95,14 +104,14 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       setAnon(parsedAnon);
     }
 
-    if (! checkValidAnon()) {
+    if (!checkValidAnon()) {
       retrieveAnon();
     }
   }, []);
 
   // Auto-refresh token every 5 minutes if user is logged in
   useEffect(() => {
-    if (! user) return;
+    if (!user) return;
 
     const interval = setInterval(async () => {
       await maybeRefreshUser();
@@ -139,7 +148,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     const decodedUser: CognitoToken = jwtDecode(storedUser);
     const userEmail = decodedUser.email;
 
-    if (! userEmail) {
+    if (!userEmail) {
       console.warn("No user email found");
       return;
     }
@@ -154,7 +163,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     });
 
     return new Promise<void>((resolve, reject) => {
-      cognitoUser. refreshSession(refreshToken, (err, session) => {
+      cognitoUser.refreshSession(refreshToken, (err, session) => {
         if (err) {
           console.error("Error refreshing session", err);
           logoutUser();
@@ -183,8 +192,23 @@ export const UserProvider = ({ children }: UserProviderProps) => {
           resolve();
         },
         onFailure: (err) => {
-          console. error("Forgot password error:", err);
-          reject(err);
+          console.error("Forgot password error:", err);
+
+          // Check if user doesn't exist
+          if (typeof err === "object" && err !== null && "code" in err) {
+            const code = (err as { code: string }).code;
+            if (code === "UserNotFoundException") {
+              reject(new Error("No account found with this email address. "));
+            } else if (code === "InvalidParameterException") {
+              reject(new Error("Invalid email address."));
+            } else if (code === "LimitExceededException") {
+              reject(new Error("Too many attempts. Please try again later."));
+            } else {
+              reject(err);
+            }
+          } else {
+            reject(err);
+          }
         },
       });
     });
@@ -197,7 +221,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   ): Promise<void> => {
     return new Promise((resolve, reject) => {
       const cognitoUser = new CognitoUser({
-        Username:  email,
+        Username: email,
         Pool: UserPool,
       });
 
@@ -221,8 +245,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
   // Check if anonymous credentials are still valid
   const checkValidAnon = (): boolean => {
-    if (! anon) return false;
-    if (! anon.accessKeyId || !anon.secretAccessKey || !anon.sessionToken)
+    if (!anon) return false;
+    if (!anon.accessKeyId || !anon.secretAccessKey || !anon.sessionToken)
       return false;
     return new Date(anon.expiration).getTime() > Date.now();
   };
@@ -255,7 +279,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     }
 
     try {
-      const response = await fetch(`${domain. utilityApi}/register`, {
+      const response = await fetch(`${domain.utilityApi}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -275,14 +299,14 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData. message ||
+          errorData.message ||
             `Registration failed with status ${response.status}`
         );
       }
 
       const result = await response.json();
       console.log(result, "<< res");
-    } catch (e:  any) {
+    } catch (e: any) {
       console.error("Registration error:", e);
       throw e;
     }
@@ -290,18 +314,33 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
   const setUserInStorage = (idToken: string) => {
     const decodedToken = jwtDecode<CognitoToken>(idToken);
-    const { email, exp, sub, preferred_username, picture } = decodedToken;
+    const {
+      email,
+      exp,
+      sub,
+      preferred_username,
+      picture,
+      "cognito:username": username,
+    } = decodedToken;
     const userId = sub;
 
-    setUser({ email, exp, userId, idToken, preferred_username, picture });
+    setUser({
+      email,
+      exp,
+      userId,
+      idToken,
+      preferred_username,
+      picture,
+      "cognito:username": username,
+    });
     localStorage.setItem("user", idToken);
   };
 
   const loginUser = async (event: any) => {
-    const data = new FormData(event. currentTarget);
+    const data = new FormData(event.currentTarget);
 
     const email = data.get("email")?.toString();
-    const password = data. get("password")?.toString();
+    const password = data.get("password")?.toString();
 
     if (!email || !password) {
       throw new Error("Email and password are required");
@@ -339,7 +378,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
   // Get anonymous credentials, retrieving them if necessary
   const getAnon = async (): Promise<Anon> => {
-    if (! checkValidAnon()) {
+    if (!checkValidAnon()) {
       const anon = await setAnonCreds();
       return anon as Anon;
     }
@@ -377,10 +416,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         anonCreds.accessKeyId &&
         anonCreds.secretAccessKey
       ) {
-        const creds:  Anon = {
+        const creds: Anon = {
           expiration: anonCreds.expiration,
           sessionToken: anonCreds.sessionToken,
-          secretAccessKey: anonCreds. secretAccessKey,
+          secretAccessKey: anonCreds.secretAccessKey,
           accessKeyId: anonCreds.accessKeyId,
         };
 
@@ -421,7 +460,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         maybeRefreshUser,
         forgotPassword,
         resetPassword,
-        resetPasswordWithCode
+        resetPasswordWithCode,
       }}
     >
       {children}

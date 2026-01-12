@@ -64,7 +64,9 @@ export default function StravaJoinModal({
   };
 
   const handleJoinLeaderboard = async () => {
-    if (!user?.userId) return;
+    console.log("hi")
+    console.log(user?.["cognito:username"], '<< user cognito username')
+    if (!user?.["cognito:username"]) return;
     
     setLoading(true);
     setStep("joining");
@@ -73,7 +75,7 @@ export default function StravaJoinModal({
       const mutation = `
         mutation MyMutation {
           joinLeaderboard(
-            input:  {segmentId: "${segmentId}", userId: "${user.userId}"}
+            input:  {segmentId: "${segmentId}", userId: "${user["cognito:username"]}"}
           ) {
             message
             segmentId
@@ -147,11 +149,12 @@ export default function StravaJoinModal({
     setStep("joining");
 
     try {
-      await exchangeStravaCode({
-        code,
-        userId: user!.userId,
-        username: user!. preferred_username,
-      });
+      console.log(user, '<< user')
+      // await exchangeStravaCode({
+      //   code,
+      //   userId: user!.userId,
+      //   username: user!. preferred_username,
+      // });
 
       toast.current?.show({
         severity: "success",

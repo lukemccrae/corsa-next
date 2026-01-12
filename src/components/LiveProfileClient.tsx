@@ -103,7 +103,7 @@ export default function LiveProfileClient({ user, stream }: Props) {
         )}
 
 
-      {isOwnProfile && <PostInputBar />}
+      {isOwnProfile && false && <PostInputBar />}
       {sortedFeed.map((item: PostEntry) => (
         <FeedItem
           key={item.createdAt}

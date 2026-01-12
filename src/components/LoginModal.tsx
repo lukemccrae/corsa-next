@@ -5,6 +5,8 @@ import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
+import { Message } from "primereact/message";
+import { Divider } from "primereact/divider";
 import { useUser } from "../context/UserContext";
 
 type LoginModalProps = {
@@ -16,10 +18,6 @@ type ModalMode = "login" | "register" | "forgotPassword" | "resetPassword";
 
 export default function LoginModal({ visible, onHide }: LoginModalProps) {
   const { loginUser, registerUser, forgotPassword, resetPassword } = useUser();
-  const formRef = useRef<HTMLFormElement>(null);
-  const registerFormRef = useRef<HTMLFormElement>(null);
-  const forgotPasswordFormRef = useRef<HTMLFormElement>(null);
-  const resetPasswordFormRef = useRef<HTMLFormElement>(null);
   const toast = useRef<Toast>(null);
   
   const [mode, setMode] = useState<ModalMode>("login");
@@ -46,7 +44,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
 
   // Forgot password form state
   const [forgotPasswordForm, setForgotPasswordForm] = useState({
-    email: "",
+    email:  "",
   });
 
   // Reset password form state
@@ -56,6 +54,15 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
     newPassword: "",
   });
 
+  // Reset modal state when visibility changes
+  React.useEffect(() => {
+    if (! visible) {
+      setMode("login");
+      setErrorMsg("");
+      setLoading(false);
+    }
+  }, [visible]);
+
   // Handle login submit
   const submitLogin = async (e: React. FormEvent) => {
     e.preventDefault();
@@ -63,13 +70,19 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
     setLoading(true);
     try {
       await loginUser(e);
-      onHide();
+      toast.current?.show({
+        severity: "success",
+        summary:  "Welcome back!",
+        detail: "You've been logged in successfully.",
+        life: 3000,
+      });
+      setTimeout(() => onHide(), 1000);
     } catch (err:  any) {
-      const message = err?. message ??  "Login failed. Please try again. ";
+      const message = err?. message ??  "Login failed. Please try again.";
       setErrorMsg(message);
       toast.current?.show({
         severity: "error",
-        summary: "Login Failed",
+        summary:  "Login Failed",
         detail: message,
         life: 5000,
       });
@@ -79,7 +92,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
   };
 
   // Handle registration submit
-  const submitRegister = async (e: React. FormEvent) => {
+  const submitRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
     setLoading(true);
@@ -87,58 +100,71 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
       await registerUser(e);
       toast.current?.show({
         severity: "success",
-        summary:  "Registration Successful",
-        detail: "Please check your email to verify your account.",
-        life: 6000,
+        summary: "Registration Successful! ",
+        detail: "Please check your email and click the verification link to activate your account.",
+        life: 8000,
       });
-      setTimeout(() => {
-        onHide();
-      }, 1500);
+      // Show success message in modal
+      setMode("login");
+      setErrorMsg("");
+      // Clear registration form
+      setRegisterForm({
+        firstName: "",
+        lastName: "",
+        username: "",
+        registerEmail: "",
+        registerPassword: "",
+        bio: "",
+        pictureUrl: "",
+      });
     } catch (err: any) {
       const errorMessage =
         err?.message ||
-        "Registration failed. Please check your info and try again.";
+        "Registration failed. Please check your information and try again.";
       setErrorMsg(errorMessage);
       toast.current?.show({
         severity: "error",
         summary: "Registration Failed",
         detail: errorMessage,
-        life:  5000,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle forgot password submit
-  const submitForgotPassword = async (e: React. FormEvent) => {
-    e.preventDefault();
-    setErrorMsg("");
-    setLoading(true);
-    try {
-      await forgotPassword(forgotPasswordForm. email);
-      setResetEmail(forgotPasswordForm.email);
-      toast.current?.show({
-        severity: "success",
-        summary: "Code Sent",
-        detail: "Please check your email for the verification code.",
-        life: 5000,
-      });
-      setMode("resetPassword");
-      setResetPasswordForm({ ... resetPasswordForm, email: forgotPasswordForm.email });
-    } catch (err: any) {
-      const errorMessage = err?. message || "Failed to send reset code. Please try again.";
-      setErrorMsg(errorMessage);
-      toast.current?.show({
-        severity: "error",
-        summary: "Request Failed",
-        detail: errorMessage,
         life: 5000,
       });
     } finally {
       setLoading(false);
     }
   };
+const submitForgotPassword = async (e:  React.FormEvent) => {
+  e.preventDefault();
+  setErrorMsg("");
+  setLoading(true);
+  try {
+    await forgotPassword(forgotPasswordForm.email);
+    setResetEmail(forgotPasswordForm.email);
+    toast.current?. show({
+      severity: "success",
+      summary: "Code Sent",
+      detail: "Please check your email for the verification code.",
+      life: 5000,
+    });
+    setMode("resetPassword");
+    setResetPasswordForm({ ... resetPasswordForm, email: forgotPasswordForm.email });
+  } catch (err:  any) {
+    const errorMessage = err?. message || "Failed to send reset code.  Please try again.";
+    setErrorMsg(errorMessage);
+    toast.current?.show({
+      severity: "error",
+      summary: "Request Failed",
+      detail: errorMessage,
+      life: 5000,
+    });
+    
+    // Don't allow progression to reset password if user doesn't exist
+    if (err?. message?.includes('No account found')) {
+      setMode("login"); // Send them back to login
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Handle reset password submit
   const submitResetPassword = async (e: React.FormEvent) => {
@@ -151,9 +177,9 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
         resetPasswordForm.code,
         resetPasswordForm.newPassword
       );
-      toast.current?. show({
+      toast.current?.show({
         severity: "success",
-        summary: "Password Reset Successful",
+        summary:  "Password Reset Successful",
         detail: "You can now login with your new password.",
         life: 5000,
       });
@@ -181,92 +207,16 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
     switch (mode) {
       case "login":
         return "Sign In";
-      case "register": 
+      case "register":
         return "Create Account";
       case "forgotPassword":
         return "Reset Password";
-      case "resetPassword": 
-        return "Reset Password";
+      case "resetPassword":
+        return "Enter Reset Code";
       default:
         return "Sign In";
     }
   };
-
-  // Dialog footer
-  const footer = (
-    <div className="flex flex-col gap-2 w-full">
-      {mode === "login" && (
-        <>
-          <Button
-            label="Don't have an account? Register"
-            link
-            onClick={() => {
-              setErrorMsg("");
-              setMode("register");
-            }}
-            className="w-full"
-          />
-          <Button
-            label="Reset Password"
-            link
-            onClick={() => {
-              setErrorMsg("");
-              setMode("forgotPassword");
-            }}
-            className="w-full"
-          />
-        </>
-      )}
-      {mode === "register" && (
-        <Button
-          label="Already have an account? Sign In"
-          link
-          onClick={() => {
-            setErrorMsg("");
-            setMode("login");
-          }}
-          className="w-full"
-        />
-      )}
-      {(mode === "forgotPassword" || mode === "resetPassword") && (
-        <Button
-          label="Back to Sign In"
-          link
-          onClick={() => {
-            setErrorMsg("");
-            setMode("login");
-          }}
-          className="w-full"
-        />
-      )}
-      <div className="flex gap-2 justify-end mt-2">
-        <Button label="Cancel" outlined onClick={onHide} disabled={loading} />
-        <Button
-          label={
-            mode === "login"
-              ? "Sign In"
-              : mode === "register"
-              ? "Register"
-              : mode === "forgotPassword"
-              ? "Send Code"
-              : "Reset Password"
-          }
-          loading={loading}
-          onClick={() => {
-            if (mode === "login") {
-              formRef.current?.requestSubmit();
-            } else if (mode === "register") {
-              registerFormRef.current?.requestSubmit();
-            } else if (mode === "forgotPassword") {
-              forgotPasswordFormRef.current?.requestSubmit();
-            } else if (mode === "resetPassword") {
-              resetPasswordFormRef.current?.requestSubmit();
-            }
-          }}
-        />
-      </div>
-    </div>
-  );
 
   return (
     <>
@@ -274,182 +224,386 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
       <Dialog
         visible={visible}
         onHide={onHide}
-        header={getTitle()}
-        footer={footer}
-        modal
-        className="w-full max-w-md mx-4"
-      >
-        {errorMsg && (
-          <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark: border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4">
-            {errorMsg}
+        header={
+          <div className="flex items-center gap-2">
+            <i className="pi pi-user text-xl" />
+            <h2 className="text-2xl font-bold m-0">{getTitle()}</h2>
           </div>
+        }
+        modal
+        dismissableMask
+        className="w-full max-w-md"
+        contentClassName="pb-0"
+      >
+        {/* Error message */}
+        {errorMsg && (
+          <Message
+            severity="error"
+            text={errorMsg}
+            className="w-full mb-4"
+          />
         )}
 
+        {/* LOGIN MODE */}
         {mode === "login" && (
-          <form ref={formRef} onSubmit={submitLogin} className="flex flex-col gap-4">
-            <label className="text-sm font-medium text-gray-300">Email</label>
-            <InputText
-              name="email"
-              type="email"
-              value={loginForm. email}
-              onChange={(e) =>
-                setLoginForm({ ...loginForm, email: e.target. value })
-              }
-              required
-              autoComplete="email"
+          <form onSubmit={submitLogin} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="email" className="font-semibold text-sm">
+                Email
+              </label>
+              <InputText
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                value={loginForm.email}
+                onChange={(e) =>
+                  setLoginForm({ ...loginForm, email: e. target.value })
+                }
+                required
+                autoComplete="email"
+                className="w-full"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="password" className="font-semibold text-sm">
+                Password
+              </label>
+              <Password
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                value={loginForm.password}
+                onChange={(e) =>
+                  setLoginForm({ ...loginForm, password: e.target.value })
+                }
+                feedback={false}
+                toggleMask
+                required
+                autoComplete="current-password"
+                className="w-full"
+                inputClassName="w-full"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              label="Sign In"
+              icon="pi pi-sign-in"
+              loading={loading}
+              className="w-full"
             />
 
-            <label className="text-sm font-medium text-gray-300">Password</label>
-            <Password
-              name="password"
-              value={loginForm.password}
-              onChange={(e) =>
-                setLoginForm({ ...loginForm, password: e.target.value })
-              }
-              feedback={false}
-              toggleMask
-              required
-              autoComplete="current-password"
-            />
+            <Divider />
 
-            <button type="submit" hidden />
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                label="Create Account"
+                icon="pi pi-user-plus"
+                severity="secondary"
+                outlined
+                onClick={() => {
+                  setErrorMsg("");
+                  setMode("register");
+                }}
+                className="w-full"
+              />
+              <Button
+                type="button"
+                label="Forgot Password?"
+                severity="help"
+                text
+                onClick={() => {
+                  setErrorMsg("");
+                  setMode("forgotPassword");
+                }}
+                className="w-full"
+              />
+            </div>
           </form>
         )}
 
+        {/* REGISTER MODE */}
         {mode === "register" && (
-          <form ref={registerFormRef} onSubmit={submitRegister} className="flex flex-col gap-4">
-            <label className="text-sm font-medium text-gray-300">First Name</label>
-            <InputText
-              name="firstName"
-              value={registerForm.firstName}
-              onChange={(e) =>
-                setRegisterForm({ ...registerForm, firstName: e.target. value })
-              }
+          <form onSubmit={submitRegister} className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="firstName" className="font-semibold text-sm">
+                  First Name
+                </label>
+                <InputText
+                  id="firstName"
+                  name="firstName"
+                  placeholder="John"
+                  value={registerForm.firstName}
+                  required
+                  onChange={(e) =>
+                    setRegisterForm({ ...registerForm, firstName: e.target.value })
+                  }
+                  className="w-full"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label htmlFor="lastName" className="font-semibold text-sm">
+                  Last Name
+                </label>
+                <InputText
+                  id="lastName"
+                  name="lastName"
+                  placeholder="Doe"
+                  required
+                  value={registerForm.lastName}
+                  onChange={(e) =>
+                    setRegisterForm({ ...registerForm, lastName: e.target. value })
+                  }
+                  className="w-full"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="username" className="font-semibold text-sm">
+                Username <span className="text-red-500">*</span>
+              </label>
+              <InputText
+                id="username"
+                name="username"
+                placeholder="johndoe"
+                value={registerForm.username}
+                onChange={(e) =>
+                  setRegisterForm({ ...registerForm, username: e.target.value })
+                }
+                required
+                className="w-full"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="registerEmail" className="font-semibold text-sm">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <InputText
+                id="registerEmail"
+                name="registerEmail"
+                type="email"
+                placeholder="you@example.com"
+                value={registerForm.registerEmail}
+                onChange={(e) =>
+                  setRegisterForm({
+                    ...registerForm,
+                    registerEmail: e.target.value,
+                  })
+                }
+                required
+                className="w-full"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="registerPassword" className="font-semibold text-sm">
+                Password <span className="text-red-500">*</span>
+              </label>
+              <Password
+                id="registerPassword"
+                name="registerPassword"
+                placeholder="Choose a strong password"
+                value={registerForm.registerPassword}
+                onChange={(e) =>
+                  setRegisterForm({
+                    ...registerForm,
+                    registerPassword:  e.target.value,
+                  })
+                }
+                toggleMask
+                required
+                className="w-full"
+                inputClassName="w-full"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="bio" className="font-semibold text-sm">
+                Bio <span className="text-gray-500 text-xs">(optional)</span>
+              </label>
+              <InputText
+                id="bio"
+                name="bio"
+                placeholder="Tell us about yourself"
+                value={registerForm.bio}
+                onChange={(e) =>
+                  setRegisterForm({ ...registerForm, bio: e.target.value })
+                }
+                className="w-full"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="pictureUrl" className="font-semibold text-sm">
+                Profile Picture URL{" "}
+                <span className="text-gray-500 text-xs">(optional)</span>
+              </label>
+              <InputText
+                id="pictureUrl"
+                name="pictureUrl"
+                type="url"
+                placeholder="https://example.com/photo.jpg"
+                value={registerForm.pictureUrl}
+                onChange={(e) =>
+                  setRegisterForm({ ...registerForm, pictureUrl: e.target.value })
+                }
+                className="w-full"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              label="Create Account"
+              icon="pi pi-user-plus"
+              loading={loading}
+              className="w-full"
             />
 
-            <label className="text-sm font-medium text-gray-300">Last Name</label>
-            <InputText
-              name="lastName"
-              value={registerForm.lastName}
-              onChange={(e) =>
-                setRegisterForm({ ...registerForm, lastName: e.target.value })
-              }
-            />
+            <Divider />
 
-            <label className="text-sm font-medium text-gray-300">Username</label>
-            <InputText
-              name="username"
-              value={registerForm.username}
-              onChange={(e) =>
-                setRegisterForm({ ...registerForm, username: e.target.value })
-              }
-              required
+            <Button
+              type="button"
+              label="Back to Sign In"
+              icon="pi pi-arrow-left"
+              severity="secondary"
+              text
+              onClick={() => {
+                setErrorMsg("");
+                setMode("login");
+              }}
+              className="w-full"
             />
-
-            <label className="text-sm font-medium text-gray-300">Email</label>
-            <InputText
-              name="registerEmail"
-              type="email"
-              value={registerForm.registerEmail}
-              onChange={(e) =>
-                setRegisterForm({
-                  ...registerForm,
-                  registerEmail: e.target.value,
-                })
-              }
-              required
-            />
-
-            <label className="text-sm font-medium text-gray-300">Password</label>
-            <Password
-              name="registerPassword"
-              value={registerForm.registerPassword}
-              onChange={(e) =>
-                setRegisterForm({
-                  ...registerForm,
-                  registerPassword: e.target.value,
-                })
-              }
-              toggleMask
-              required
-            />
-
-            <label className="text-sm font-medium text-gray-300">Bio (optional)</label>
-            <InputText
-              name="bio"
-              value={registerForm.bio}
-              onChange={(e) =>
-                setRegisterForm({ ...registerForm, bio: e.target. value })
-              }
-            />
-
-            <label className="text-sm font-medium text-gray-300">
-              Profile Picture URL (optional)
-            </label>
-            <InputText
-              name="pictureUrl"
-              value={registerForm.pictureUrl}
-              onChange={(e) =>
-                setRegisterForm({ ...registerForm, pictureUrl: e. target.value })
-              }
-            />
-
-            <button type="submit" hidden />
           </form>
         )}
 
+        {/* FORGOT PASSWORD MODE */}
         {mode === "forgotPassword" && (
-          <form ref={forgotPasswordFormRef} onSubmit={submitForgotPassword} className="flex flex-col gap-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+          <form onSubmit={submitForgotPassword} className="flex flex-col gap-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400 m-0">
               Enter your email address and we'll send you a code to reset your password.
             </p>
-            <label className="text-sm font-medium text-gray-300">Email</label>
-            <InputText
-              name="email"
-              type="email"
-              value={forgotPasswordForm.email}
-              onChange={(e) =>
-                setForgotPasswordForm({ email: e.target.value })
-              }
-              required
-              autoComplete="email"
+            
+            <div className="flex flex-col gap-2">
+              <label htmlFor="forgotEmail" className="font-semibold text-sm">
+                Email
+              </label>
+              <InputText
+                id="forgotEmail"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                value={forgotPasswordForm.email}
+                onChange={(e) =>
+                  setForgotPasswordForm({ email: e.target.value })
+                }
+                required
+                autoComplete="email"
+                className="w-full"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              label="Send Reset Code"
+              icon="pi pi-send"
+              loading={loading}
+              className="w-full"
             />
-            <button type="submit" hidden />
+
+            <Divider />
+
+            <Button
+              type="button"
+              label="Back to Sign In"
+              icon="pi pi-arrow-left"
+              severity="secondary"
+              text
+              onClick={() => {
+                setErrorMsg("");
+                setMode("login");
+              }}
+              className="w-full"
+            />
           </form>
         )}
 
+        {/* RESET PASSWORD MODE */}
         {mode === "resetPassword" && (
-          <form ref={resetPasswordFormRef} onSubmit={submitResetPassword} className="flex flex-col gap-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-              Enter the verification code sent to {resetPasswordForm.email}
+          <form onSubmit={submitResetPassword} className="flex flex-col gap-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400 m-0">
+              Enter the verification code sent to{" "}
+              <strong>{resetPasswordForm.email}</strong>
             </p>
-            
-            <label className="text-sm font-medium text-gray-300">Verification Code</label>
-            <InputText
-              name="code"
-              value={resetPasswordForm. code}
-              onChange={(e) =>
-                setResetPasswordForm({ ...resetPasswordForm, code: e.target.value })
-              }
-              required
-              placeholder="Enter 6-digit code"
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="resetCode" className="font-semibold text-sm">
+                Verification Code
+              </label>
+              <InputText
+                id="resetCode"
+                name="code"
+                placeholder="Enter 6-digit code"
+                value={resetPasswordForm.code}
+                onChange={(e) =>
+                  setResetPasswordForm({ ... resetPasswordForm, code: e. target.value })
+                }
+                required
+                maxLength={6}
+                className="w-full"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="newPassword" className="font-semibold text-sm">
+                New Password
+              </label>
+              <Password
+                id="newPassword"
+                name="newPassword"
+                placeholder="Choose a new password"
+                value={resetPasswordForm.newPassword}
+                onChange={(e) =>
+                  setResetPasswordForm({
+                    ...resetPasswordForm,
+                    newPassword: e. target.value,
+                  })
+                }
+                toggleMask
+                required
+                className="w-full"
+                inputClassName="w-full"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              label="Reset Password"
+              icon="pi pi-check"
+              loading={loading}
+              className="w-full"
             />
 
-            <label className="text-sm font-medium text-gray-300">New Password</label>
-            <Password
-              name="newPassword"
-              value={resetPasswordForm.newPassword}
-              onChange={(e) =>
-                setResetPasswordForm({
-                  ...resetPasswordForm,
-                  newPassword: e. target.value,
-                })
-              }
-              toggleMask
-              required
-            />
+            <Divider />
 
-            <button type="submit" hidden />
+            <Button
+              type="button"
+              label="Back to Sign In"
+              icon="pi pi-arrow-left"
+              severity="secondary"
+              text
+              onClick={() => {
+                setErrorMsg("");
+                setMode("login");
+              }}
+              className="w-full"
+            />
           </form>
         )}
       </Dialog>

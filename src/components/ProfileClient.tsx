@@ -60,7 +60,7 @@ export default function ProfileClient({ user, username, }: Props) {
             aria-hidden
           >
             <img
-              src={"https://i.imgur.com/h5fqzGG.png"}
+              src={"https://i.imgur.com/pVsCWkO.png"}
               alt={`${username} cover`}
               className="w-full h-full object-cover"
             />
@@ -131,7 +131,7 @@ export default function ProfileClient({ user, username, }: Props) {
         {/* Main content: feed */}
         <div className="max-w-xl mx-auto py-8">
 
-          {isOwnProfile && (
+          {isOwnProfile && false && (
             <div className="mb-4">
               <PostInputBar />
             </div>
