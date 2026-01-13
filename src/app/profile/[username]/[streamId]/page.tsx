@@ -1,23 +1,23 @@
 "use server";
 import LiveProfileClient from "@/src/components/LiveProfileClient";
 import React from "react";
+import { fromCognitoIdentityPool } from "@aws-sdk/credential-providers";
+import { anonFetch } from "@/src/services/anon.service";
 
 /**
- * Server page for /profile/[username]
+ * Server page for /profile/[username]/[streamId]
  *
- * - Fetches user (and associated liveStreams / posts) server-side using an AppSync API key.
- * - Renders a small client wrapper (ProfileClient) to host the interactive bits (buttons, feed).
- *
- * Environment:
- * - Prefer APPSYNC_ENDPOINT and APPSYNC_API_KEY from process.env.
- * - If not provided, falls back to the endpoint/key used elsewhere in the repo.
+ * - Fetches user (and associated liveStreams / posts) server-side using anonymous credentials.
+ * - Renders a small client wrapper (LiveProfileClient) to host the interactive bits.
  */
 
-const APPSYNC_ENDPOINT =
-  process.env.APPSYNC_ENDPOINT ??
-  "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
-const APPSYNC_API_KEY =
-  process.env.APPSYNC_API_KEY ?? "da2-5f7oqdwtvnfydbn226e6c2faga";
+async function getAnonCreds() {
+  const credentialsProvider = fromCognitoIdentityPool({
+    identityPoolId: "us-west-1:495addf9-156d-41fd-bf55-3c576a9e1c5e",
+    clientConfig: { region: "us-west-1" },
+  });
+  return await credentialsProvider();
+}
 
 async function fetchProfile(username: string, streamId: string) {
   const query = `
@@ -59,25 +59,15 @@ async function fetchProfile(username: string, streamId: string) {
     }
   `;
 
-  const res = await fetch(APPSYNC_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": APPSYNC_API_KEY,
-    },
-    body: JSON.stringify({ query, variables: { username } }),
-    // server side caching / revalidation for this page
-    next: { revalidate: 60 },
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    console.error("Failed fetching profile:", res.status, text);
+  try {
+    const anon = await getAnonCreds();
+    const json = await anonFetch(query, anon);
+    console.log(json);
+    return json?.data?.getUserByUserName ?? null;
+  } catch (error) {
+    console.error("Failed fetching profile:", error);
     return null;
   }
-
-  const json = await res.json().catch(() => null);
-  console.log(json);
-  return json?.data?.getUserByUserName ?? null;
 }
 
 export default async function ProfilePage({

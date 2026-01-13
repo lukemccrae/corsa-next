@@ -5,6 +5,13 @@ import { SignatureV4 } from "@aws-sdk/signature-v4";
 import { domain } from '../context/domain.context';
 import { Anon } from '../context/UserContext';
 
+// Browser-compatible helper to convert Uint8Array to hex string
+function uint8ArrayToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 interface GetPublishedUserInfoProps {
   username: String;
   anon: Anon;
@@ -33,7 +40,7 @@ export const anonFetch = async (query: string, anon: Anon, variables?: any) => {
   const hasher = new Sha256();
   hasher.update(body);
   const hashBytes = await hasher.digest();
-  const bodyHashHex = Buffer.from(hashBytes).toString("hex");
+  const bodyHashHex = uint8ArrayToHex(hashBytes);
 
   const request = new HttpRequest({
     method: "POST",

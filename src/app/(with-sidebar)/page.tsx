@@ -7,9 +7,6 @@ const FullScreenMap = dynamic(() => import("../../components/BasicMap"), {
   ssr: false,
 });
 
-const APPSYNC_ENDPOINT = "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
-const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
-
 export default function Home() {
   const [livestreams, setLivestreams] = useState<LiveStream[]>([]);
   const [groups, setGroups] = useState<TrackerGroup[]>([]);

@@ -9,10 +9,7 @@ import { useTheme } from "../../../components/ThemeProvider";
 import { useUser } from "../../../context/UserContext";
 import { useSearchParams } from "next/navigation";
 import { exchangeStravaCode } from "@/src/services/integration.service";
-
-const APPSYNC_ENDPOINT =
-  "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
-const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
+import { anonFetch } from "@/src/services/anon.service";
 
 type StravaIntegration = {
   athleteFirstName: string;
@@ -24,7 +21,7 @@ type StravaIntegration = {
 function IntegrationsContent() {
   const toast = useRef<Toast>(null);
   const { theme } = useTheme();
-  const { user } = useUser();
+  const { user, getAnon } = useUser();
   const searchParams = useSearchParams();
 
   const [stravaIntegration, setStravaIntegration] =
@@ -79,17 +76,9 @@ function IntegrationsContent() {
         }
       `;
 
-      const response = await fetch(APPSYNC_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": APPSYNC_API_KEY,
-        },
-        body: JSON.stringify({ query }),
-      });
-
-      const { data } = await response.json();
-      const integration = data?.getUserByUserName?.stravaIntegration;
+      const anonCreds = await getAnon();
+      const data = await anonFetch(query, anonCreds);
+      const integration = data?.data?.getUserByUserName?.stravaIntegration;
       console.log(integration, "<< integration ");
       console.log(data, "<< data");
       setStravaIntegration(integration || null);
@@ -181,22 +170,11 @@ function IntegrationsContent() {
         }
       `;
 
-      const response = await fetch(APPSYNC_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": APPSYNC_API_KEY,
-        },
-        body: JSON.stringify({
-          query: mutation,
-          variables: {
-            userId: user["cognito:username"],
-            provider: "STRAVA",
-          },
-        }),
+      const anonCreds = await getAnon();
+      const result = await anonFetch(mutation, anonCreds, {
+        userId: user["cognito:username"],
+        provider: "STRAVA",
       });
-
-      const result = await response.json();
 
       if (result.errors) {
         throw new Error(result.errors[0]?.message || "Failed to disconnect");

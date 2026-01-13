@@ -11,10 +11,8 @@ import { fetchSegmentLeaderboard } from "../services/segment.service";
 import StravaJoinModal from "./StravaJoinModal";
 import { exchangeStravaCode } from "../services/integration.service";
 import { SegmentLeaderboardEntry } from "../generated/schema";
+import { anonFetch } from "../services/anon.service";
 
-const APPSYNC_ENDPOINT =
-  "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
-const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 type SegmentEffortLeaderboardProps = {
   segmentId: string;
   segmentName?: string;
@@ -25,7 +23,7 @@ export default function SegmentEffortLeaderboard({
   segmentName,
 }: SegmentEffortLeaderboardProps) {
   const theme = "dark";
-  const { user } = useUser();
+  const { user, getAnon } = useUser();
   const toast = useRef<Toast>(null);
   const selectedRowRef = useRef<HTMLTableRowElement>(null);
 
@@ -63,17 +61,9 @@ export default function SegmentEffortLeaderboard({
           }
         `;
 
-        const response = await fetch(APPSYNC_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": APPSYNC_API_KEY,
-          },
-          body: JSON.stringify({ query }),
-        });
-
-        const { data } = await response.json();
-        const integration = data?.getUserByUserName?.stravaIntegration;
+        const anonCreds = await getAnon();
+        const data = await anonFetch(query, anonCreds);
+        const integration = data?.data?.getUserByUserName?.stravaIntegration;
         setUserIntegration(integration || null);
       } catch (err) {
         console.error("Failed to fetch Strava integration:", err);
@@ -83,7 +73,7 @@ export default function SegmentEffortLeaderboard({
     };
 
     fetchIntegration();
-  }, [user?.preferred_username]);
+  }, [user?.preferred_username, getAnon]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -91,7 +81,8 @@ export default function SegmentEffortLeaderboard({
       setError(null);
 
       try {
-        const result = await fetchSegmentLeaderboard({ segmentId });
+        const anonCreds = await getAnon();
+        const result = await fetchSegmentLeaderboard({ segmentId, anon: anonCreds });
         const leaderboardData = result?.data?.getSegmentLeaderboard || [];
         setEfforts(leaderboardData);
       } catch (err) {
@@ -103,7 +94,7 @@ export default function SegmentEffortLeaderboard({
     };
 
     fetchData();
-  }, [segmentId]);
+  }, [segmentId, getAnon]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -194,27 +185,11 @@ export default function SegmentEffortLeaderboard({
         }
       `;
 
-      const response = await fetch(APPSYNC_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": APPSYNC_API_KEY,
-        },
-        body: JSON.stringify({
-          query: mutation,
-          variables: {
-            segmentId,
-            userId: user["cognito:username"],
-          },
-        }),
+      const anonCreds = await getAnon();
+      const result = await anonFetch(mutation, anonCreds, {
+        segmentId,
+        userId: user["cognito:username"],
       });
-
-      if (!response.ok) {
-        console.log(response, "<< res");
-        throw new Error("Failed to join leaderboard");
-      }
-
-      const result = await response.json();
 
       if (result.errors) {
         throw new Error(

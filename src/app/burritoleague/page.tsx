@@ -2,6 +2,8 @@ import React from "react";
 import BurritoMap from "@/src/components/BurritoMap";
 import { Segment } from "@/src/generated/schema";
 import type { Metadata } from 'next';
+import { fromCognitoIdentityPool } from "@aws-sdk/credential-providers";
+import { anonFetch } from "@/src/services/anon.service";
 
 export const metadata: Metadata = {
   title: '🌯 Burrito League - CORSA',
@@ -27,8 +29,13 @@ export const metadata: Metadata = {
   },
 };
 
-const APPSYNC_ENDPOINT = "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
-const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
+async function getAnonCreds() {
+  const credentialsProvider = fromCognitoIdentityPool({
+    identityPoolId: "us-west-1:495addf9-156d-41fd-bf55-3c576a9e1c5e",
+    clientConfig: { region: "us-west-1" },
+  });
+  return await credentialsProvider();
+}
 
 async function fetchSegmentData() {
   const query = `
@@ -49,24 +56,16 @@ async function fetchSegmentData() {
     }
   `;
 
-  const res = await fetch(APPSYNC_ENDPOINT, {
-    method: "POST",
-    headers:  {
-      "Content-Type":  "application/json",
-      "x-api-key": APPSYNC_API_KEY,
-    },
-    body: JSON. stringify({ query }),
-    next: { revalidate: 30 },
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch segment data");
+  try {
+    const anon = await getAnonCreds();
+    const json = await anonFetch(query, anon);
+    return {
+      segments: json?.data?.getSegmentsByEntity ?? []
+    };
+  } catch (error) {
+    console.error("Failed to fetch segment data:", error);
+    throw error;
   }
-
-  const json = await res.json();
-  return {
-    segments: json?.data?. getSegmentsByEntity ?? []
-  };
 }
 
 export default async function BurritoLeaguePage() {

@@ -6,10 +6,7 @@ import { Toast } from "primereact/toast";
 import { exchangeStravaCode } from "../services/integration.service";
 import { useUser } from "../context/UserContext";
 import { StravaIntegration } from "../generated/schema";
-
-const APPSYNC_ENDPOINT =
-  "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
-const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
+import { anonFetch } from "../services/anon.service";
 
 type StravaJoinModalProps = {
   visible: boolean;
@@ -26,7 +23,7 @@ export default function StravaJoinModal({
   onSuccess,
   userIntegration,
 }: StravaJoinModalProps) {
-  const { user } = useUser();
+  const { user, getAnon } = useUser();
   const toast = useRef<Toast>(null);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"connect" | "joining">("connect");
@@ -84,20 +81,8 @@ export default function StravaJoinModal({
         }
       `;
 
-      const response = await fetch(APPSYNC_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": APPSYNC_API_KEY,
-        },
-        body: JSON.stringify({ query: mutation }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to join leaderboard");
-      }
-
-      const result = await response.json();
+      const anonCreds = await getAnon();
+      const result = await anonFetch(mutation, anonCreds);
 
       if (result.errors) {
         throw new Error(
