@@ -40,7 +40,7 @@ export default function AvatarPanel() {
                 className="p-button-text p-button-info"
                 onClick={() => {
                   userPanelRef.current?.hide(); // close panel
-                  window.location.href = `/settings/account`; // go to account page
+                  window.location.href = `/settings/integrations`; // go to account page
                 }}
               />
             </div>

@@ -40,7 +40,7 @@ export default function SegmentEffortLeaderboard({
   const [oauthStatus, setOauthStatus] = useState("");
 
   const userInLeaderboard = user?.userId
-    ? efforts.some((effort) => effort.userId === user.userId)
+    ? efforts.some((effort) => effort.userId === user["cognito:username"])
     : false;
 
   // Fetch user's Strava integration
@@ -225,7 +225,7 @@ export default function SegmentEffortLeaderboard({
       toast.current?.show({
         severity: "success",
         summary: "Success! ",
-        detail: "You've joined the leaderboard.  Refreshing.. .",
+        detail: "You've joined the leaderboard.  Refreshing...",
         life: 2000,
       });
 
@@ -272,7 +272,7 @@ export default function SegmentEffortLeaderboard({
         disabled: false,
       };
 
-    return { label: "Join Leaderboard", icon: "", disabled: canJoin };
+    return { label: "Join Leaderboard", icon: "", disabled: !canJoin };
   };
 
   return (
