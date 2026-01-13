@@ -11,15 +11,14 @@ import ThemeToggleButton from "./ThemeToggleButton"; // Import the ThemeToggleBu
 import { CreateButton } from "./CreateButton";
 
 export default function TemplateDemo() {
-
   const start = (
     <div className="flex align-items-center gap-2">
-      {/* Back to Home Button */}
       <Button
-        icon="pi pi-globe"
-        className="p-button-text p-button-lg"
+        label="🌯"
+        className="p-button-text"
+        style={{ fontSize: "2.25rem" }} // 🌯 bigger burrito
         onClick={() => {
-          window.location.href = `/`; // go to account page
+          window.location.href = `/`;
         }}
         aria-label="Home"
       />
