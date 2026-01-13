@@ -53,7 +53,7 @@ async function fetchProfile(username: string, streamId: string) {
 
   try {
     const anon = await getAnonCreds();
-    const json = await anonFetch(query, anon);
+    const json = await anonFetch(query, anon, undefined, { next: { revalidate: 60 } });
     console.log(json);
     return json?.data?.getUserByUserName ?? null;
   } catch (error) {

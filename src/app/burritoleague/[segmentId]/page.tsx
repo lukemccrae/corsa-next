@@ -34,7 +34,7 @@ async function fetchSegmentData(segmentId: string) {
 
   try {
     const anon = await getAnonCreds();
-    const json = await anonFetch(query, anon);
+    const json = await anonFetch(query, anon, undefined, { next: { revalidate: 30 } });
     return json?.data?.getSegmentBySegmentId ?? null;
   } catch (error) {
     console.error("fetchSegmentData error:", error);

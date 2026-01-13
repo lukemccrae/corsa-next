@@ -38,7 +38,7 @@ async function fetchStreamsByEntity(entity:  string | undefined) {
 
   try {
     const anon = await getAnonCreds();
-    const json = await anonFetch(query, anon);
+    const json = await anonFetch(query, anon, undefined, { next: { revalidate: 30 } });
     console.log(json, '<< json');
     
     return {

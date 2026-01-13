@@ -40,7 +40,12 @@ export async function getAnonCreds() {
 // Your AppSync API endpoint
 const APPSYNC_ENDPOINT = domain.appsync;
 
-export const anonFetch = async (query: string, anon: Anon, variables?: any) => {
+export const anonFetch = async (
+  query: string, 
+  anon: Anon, 
+  variables?: any,
+  options?: { next?: { revalidate?: number | false; tags?: string[] } }
+) => {
   const url = new URL(APPSYNC_ENDPOINT);
 
   const body = JSON.stringify({ query, variables });
@@ -90,6 +95,7 @@ export const anonFetch = async (query: string, anon: Anon, variables?: any) => {
     method: signed.method,
     headers: signed.headers,
     body: signed.body,  // EXACT signed body
+    ...(options?.next && { next: options.next }),
   });
 
   return response.json();

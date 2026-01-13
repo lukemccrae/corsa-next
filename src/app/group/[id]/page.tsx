@@ -43,7 +43,7 @@ async function fetchGroupData(groupId: string) {
 
   try {
     const anon = await getAnonCreds();
-    const json = await anonFetch(query, anon);
+    const json = await anonFetch(query, anon, undefined, { next: { revalidate: 30 } });
     console.log(JSON.stringify(json, null, 2), "group data response");
     return json?.data?.getTrackerGroupData ?? null;
   } catch (error) {

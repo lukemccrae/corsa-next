@@ -41,7 +41,7 @@ async function fetchUserProfile(username: string) {
 
   try {
     const anon = await getAnonCreds();
-    const json = await anonFetch(query, anon);
+    const json = await anonFetch(query, anon, undefined, { next: { revalidate: 30 } });
     console.log(json);
     return json?.data?.getUserByUserName ?? null;
   } catch (error) {

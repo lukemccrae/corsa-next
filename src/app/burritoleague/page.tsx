@@ -50,7 +50,7 @@ async function fetchSegmentData() {
 
   try {
     const anon = await getAnonCreds();
-    const json = await anonFetch(query, anon);
+    const json = await anonFetch(query, anon, undefined, { next: { revalidate: 30 } });
     return {
       segments: json?.data?.getSegmentsByEntity ?? []
     };
