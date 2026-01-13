@@ -31,10 +31,10 @@ type User = {
 };
 
 export type Anon = {
-  accessKeyId: string;
-  expiration: Date;
-  sessionToken: string;
-  secretAccessKey: string;
+  accessKeyId?: string;
+  expiration?: Date;
+  sessionToken?: string;
+  secretAccessKey?: string;
 };
 
 export interface GetLiveStreamsArgs {
@@ -248,7 +248,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     if (!anon) return false;
     if (!anon.accessKeyId || !anon.secretAccessKey || !anon.sessionToken)
       return false;
-    return new Date(anon.expiration).getTime() > Date.now();
+    return anon.expiration !== undefined && new Date(anon.expiration).getTime() > Date.now();
   };
 
   // Retrieve new anonymous credentials

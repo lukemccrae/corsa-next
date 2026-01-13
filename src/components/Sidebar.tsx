@@ -209,7 +209,7 @@ export default function Sidebar({
                       />
                   </Link>}
           </nav>
-          {/* <nav className="mt-4 flex flex-col gap-3 items-center px-1">
+          <nav className="mt-4 flex flex-col gap-3 items-center px-1">
             {Array.isArray(groups) && groups.length > 0 ? (
               groups.slice(0, 6).map((c) => {
                 const profilePic = c.user?.profilePicture;
@@ -243,8 +243,8 @@ export default function Sidebar({
                 No streams
               </div>
             )}
-          </nav> */}
-          {/* <nav className="mt-4 flex flex-col gap-3 items-center px-1">
+          </nav>
+          <nav className="mt-4 flex flex-col gap-3 items-center px-1">
             {Array.isArray(livestreams) && livestreams.length > 0 ? (
               livestreams.slice(0, 6).map((c) => {
                 const profilePic = c.profilePicture;
@@ -286,7 +286,7 @@ export default function Sidebar({
                 No streams
               </div>
             )}
-          </nav> */}
+          </nav>
         </div>
       </aside>
     );

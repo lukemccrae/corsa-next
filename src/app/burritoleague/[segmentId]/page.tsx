@@ -4,7 +4,7 @@ import SegmentEffortLeaderboard from "@/src/components/SegmentLeaderboard";
 import { useUser } from "@/src/context/UserContext";
 import React, { use } from "react";
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-providers";
-import { anonFetch } from "@/src/services/anon.service";
+import { anonFetch, getAnonCreds } from "@/src/services/anon.service";
 
 /**
  * Server page for /burritoleague/[segmentId]
@@ -12,14 +12,6 @@ import { anonFetch } from "@/src/services/anon.service";
  * - Fetches segment data server-side using anonymous credentials.
  * - Renders the segment leaderboard component.
  */
-
-async function getAnonCreds() {
-  const credentialsProvider = fromCognitoIdentityPool({
-    identityPoolId: "us-west-1:495addf9-156d-41fd-bf55-3c576a9e1c5e",
-    clientConfig: { region: "us-west-1" },
-  });
-  return await credentialsProvider();
-}
 
 async function fetchSegmentData(segmentId: string) {
   const query = `

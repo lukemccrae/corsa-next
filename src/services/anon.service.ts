@@ -4,6 +4,7 @@ import { SignatureV4 } from "@aws-sdk/signature-v4";
 
 import { domain } from '../context/domain.context';
 import { Anon } from '../context/UserContext';
+import { fromCognitoIdentityPool } from "@aws-sdk/credential-providers";
 
 // Browser-compatible helper to convert Uint8Array to hex string
 function uint8ArrayToHex(bytes: Uint8Array): string {
@@ -26,6 +27,14 @@ interface GetPointsForLivestream {
 interface GetChatByStreamIdProps {
   streamId: string;
   anon: Anon;
+}
+
+export async function getAnonCreds() {
+  const credentialsProvider = fromCognitoIdentityPool({
+    identityPoolId: "us-west-1:495addf9-156d-41fd-bf55-3c576a9e1c5e",
+    clientConfig: { region: "us-west-1" },
+  });
+  return await credentialsProvider();
 }
 
 // Your AppSync API endpoint
@@ -56,8 +65,20 @@ export const anonFetch = async (query: string, anon: Anon, variables?: any) => {
     body,
   });
 
+  if (
+    !anon.accessKeyId ||
+    !anon.secretAccessKey ||
+    !anon.sessionToken
+  ) {
+    throw new Error("Anon credentials are missing required properties.");
+  }
+
   const signer = new SignatureV4({
-    credentials: anon,   // MUST contain accessKeyId, secretAccessKey, sessionToken
+    credentials: {
+      accessKeyId: anon.accessKeyId,
+      secretAccessKey: anon.secretAccessKey,
+      sessionToken: anon.sessionToken,
+    },
     region: "us-west-1",
     service: "appsync",
     sha256: Sha256,

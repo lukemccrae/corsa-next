@@ -2,7 +2,7 @@
 import LiveProfileClient from "@/src/components/LiveProfileClient";
 import React from "react";
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-providers";
-import { anonFetch } from "@/src/services/anon.service";
+import { anonFetch, getAnonCreds } from "@/src/services/anon.service";
 
 /**
  * Server page for /profile/[username]/[streamId]
@@ -10,14 +10,6 @@ import { anonFetch } from "@/src/services/anon.service";
  * - Fetches user (and associated liveStreams / posts) server-side using anonymous credentials.
  * - Renders a small client wrapper (LiveProfileClient) to host the interactive bits.
  */
-
-async function getAnonCreds() {
-  const credentialsProvider = fromCognitoIdentityPool({
-    identityPoolId: "us-west-1:495addf9-156d-41fd-bf55-3c576a9e1c5e",
-    clientConfig: { region: "us-west-1" },
-  });
-  return await credentialsProvider();
-}
 
 async function fetchProfile(username: string, streamId: string) {
   const query = `

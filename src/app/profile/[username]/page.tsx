@@ -2,15 +2,7 @@ import React from "react";
 import ProfileClient from "@/src/components/ProfileClient";
 import { User } from "@/src/generated/schema";
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-providers";
-import { anonFetch } from "@/src/services/anon.service";
-
-async function getAnonCreds() {
-  const credentialsProvider = fromCognitoIdentityPool({
-    identityPoolId: "us-west-1:495addf9-156d-41fd-bf55-3c576a9e1c5e",
-    clientConfig: { region: "us-west-1" },
-  });
-  return await credentialsProvider();
-}
+import { anonFetch, getAnonCreds } from "@/src/services/anon.service";
 
 async function fetchUserProfile(username: string) {
   const query = `
