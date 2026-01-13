@@ -1,6 +1,31 @@
 import React from "react";
 import BurritoMap from "@/src/components/BurritoMap";
 import { Segment } from "@/src/generated/schema";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '🌯 Burrito League - CORSA',
+  description: 'Join the Burrito League and compete on segments across the globe',
+  openGraph: {
+    title: '🌯 Burrito League - CORSA',
+    description: 'Join the Burrito League and compete on segments across the globe',
+    images: [
+      {
+        url: 'https://i.imgur.com/gZiA2pq.png', // Your burrito league image
+        width: 1200,
+        height: 630,
+        alt: 'Burrito League',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '🌯 Burrito League - CORSA',
+    description: 'Join the Burrito League and compete on segments across the globe',
+    images: ['https://i.imgur.com/gZiA2pq.png'],
+  },
+};
 
 const APPSYNC_ENDPOINT = "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
