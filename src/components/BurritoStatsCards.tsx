@@ -94,7 +94,7 @@ export default function BurritoStatsCards({
     return Array.from(statsMap.values())
       .map((stats) => ({
         ...stats,
-        averageTime: stats.totalTime / stats.completions,
+        averageTime: stats.completions > 0 ? stats.totalTime / stats.completions : 0,
       }))
       .sort((a, b) => b.completions - a.completions);
   }, [activities]);
@@ -142,6 +142,7 @@ export default function BurritoStatsCards({
     });
 
     const total = activities.length;
+    if (total === 0) return [];
 
     return Array.from(typeMap.entries())
       .map(([type, count]) => ({
@@ -170,9 +171,8 @@ export default function BurritoStatsCards({
   // Calculate overall stats
   const overallAverageTime = useMemo(() => {
     if (userStats.length === 0) return 0;
-    return (
-      userStats.reduce((sum, u) => sum + u.averageTime, 0) / userStats.length
-    );
+    const sum = userStats.reduce((acc, u) => acc + u.averageTime, 0);
+    return sum / userStats.length;
   }, [userStats]);
 
   const fastestTimeOverall = useMemo(() => {

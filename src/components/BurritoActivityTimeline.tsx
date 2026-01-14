@@ -57,9 +57,10 @@ export default function BurritoActivityTimeline({
 
   // Calculate average per day
   const avgPerDay = useMemo(() => {
-    return dailyActivities.length > 0
-      ? Math.round(activities.length / dailyActivities.length)
-      : 0;
+    if (dailyActivities.length === 0 || activities.length === 0) {
+      return 0;
+    }
+    return Math.round(activities.length / dailyActivities.length);
   }, [activities.length, dailyActivities.length]);
 
   // Get color based on activity count
