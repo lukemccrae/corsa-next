@@ -4,8 +4,7 @@ import { Chart } from "primereact/chart";
 import { Card } from "primereact/card";
 import { useTheme } from "./ThemeProvider";
 import { SegmentActivity } from "../generated/schema";
-
-const METERS_TO_MILES = 1609.34;
+import { METERS_TO_MILES } from "../helpers/constants";
 
 type Props = {
   activities: SegmentActivity[];
