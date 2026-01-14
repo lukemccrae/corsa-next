@@ -2,10 +2,8 @@
 import React from "react";
 import { TrackerGroup } from "@/src/generated/schema";
 import GroupPageClient from "@/src/components/GroupPageClient";
-
-const APPSYNC_ENDPOINT =
-  "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
-const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
+import { fromCognitoIdentityPool } from "@aws-sdk/credential-providers";
+import { anonFetch, getAnonCreds } from "@/src/services/anon.service";
 
 async function fetchGroupData(groupId: string) {
   console.log(groupId, "fetching group data for groupId");
@@ -43,23 +41,15 @@ async function fetchGroupData(groupId: string) {
     }
   `;
 
-  const res = await fetch(APPSYNC_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": APPSYNC_API_KEY,
-    },
-    body: JSON.stringify({ query }),
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch group data");
+  try {
+    const anon = await getAnonCreds();
+    const json = await anonFetch(query, anon, undefined, { next: { revalidate: 30 } });
+    console.log(JSON.stringify(json, null, 2), "group data response");
+    return json?.data?.getTrackerGroupData ?? null;
+  } catch (error) {
+    console.error("Failed to fetch group data:", error);
+    throw error;
   }
-
-  const json = await res.json();
-  console.log(JSON.stringify(json, null, 2), "group data response");
-  const user = json?.data?.getTrackerGroupData ?? null;
-  return user;
 }
 
 export default async function GroupPage({

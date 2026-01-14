@@ -1,9 +1,8 @@
 import React from "react";
 import ProfileClient from "@/src/components/ProfileClient";
 import { User } from "@/src/generated/schema";
-
-const APPSYNC_ENDPOINT = "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
-const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
+import { fromCognitoIdentityPool } from "@aws-sdk/credential-providers";
+import { anonFetch, getAnonCreds } from "@/src/services/anon.service";
 
 async function fetchUserProfile(username: string) {
   const query = `
@@ -40,26 +39,15 @@ async function fetchUserProfile(username: string) {
     }
   `;
 
-  const variables = { username };
-
-  const res = await fetch(APPSYNC_ENDPOINT, {
-    method: "POST",
-    headers:  {
-      "Content-Type":  "application/json",
-      "x-api-key": APPSYNC_API_KEY,
-    },
-    body: JSON. stringify({ query, variables }),
-    next: { revalidate: 30 }, // Revalidate every 30 seconds
-  });
-
-  if (!res.ok) {
-    console.error("Failed to fetch user profile:", await res.text());
+  try {
+    const anon = await getAnonCreds();
+    const json = await anonFetch(query, anon, undefined, { next: { revalidate: 30 } });
+    console.log(json);
+    return json?.data?.getUserByUserName ?? null;
+  } catch (error) {
+    console.error("Failed to fetch user profile:", error);
     return null;
   }
-
-  const json = await res.json();
-  console.log(json)
-  return json?. data?.getUserByUserName ??  null;
 }
 
 export default async function ProfilePage({

@@ -1,18 +1,27 @@
 import { domain } from "../context/domain.context";
+import { anonFetch } from "./anon.service";
+import { Anon } from "../context/UserContext";
 
 const APPSYNC_ENDPOINT = domain.appsync;
-const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 
 interface FetchSegmentDetailsArgs {
   segmentId: string;
+  anon: Anon;
 }
 
 interface FetchSegmentLeaderboardArgs {
   segmentId: string;
+  anon: Anon;
+}
+
+interface FetchIntegrationDataArgs {
+  username: string;
+  anon: Anon;
 }
 
 export const fetchSegmentDetails = async ({
   segmentId,
+  anon,
 }: FetchSegmentDetailsArgs) => {
   const query = `
     query GetSegmentBySegmentId($segmentId:  ID!) {
@@ -36,25 +45,14 @@ export const fetchSegmentDetails = async ({
   `;
 
   const variables = { segmentId };
-
-  const response = await fetch(APPSYNC_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": APPSYNC_API_KEY,
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch segment details: ${response.statusText}`);
-  }
-
-  const result = await response.json();
+  const result = await anonFetch(query, anon, variables);
   return result;
 };
 
-export const fetchIntegrationData = async (username: string) => {
+export const fetchIntegrationData = async ({
+  username,
+  anon,
+}: FetchIntegrationDataArgs) => {
   // fetch integration data for use by the segment page
   const query = `
     query GetUserByUserName($username: String!) {
@@ -67,26 +65,13 @@ export const fetchIntegrationData = async (username: string) => {
   `;
 
   const variables = { username };
-
-  const response = await fetch(APPSYNC_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": APPSYNC_API_KEY,
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch integration data: ${response.statusText}`);
-  }
-
-  const result = await response.json();
+  const result = await anonFetch(query, anon, variables);
   return result?.data?.getUserByUserName?.stravaIntegration || null;
 };
 
 export const fetchSegmentLeaderboard = async ({
   segmentId,
+  anon,
 }: FetchSegmentLeaderboardArgs) => {
   const query = `
     query MyQuery {
@@ -103,24 +88,7 @@ export const fetchSegmentLeaderboard = async ({
     }
   `;
 
-  const variables = { segmentId };
-
-  const response = await fetch(APPSYNC_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": APPSYNC_API_KEY,
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch segment leaderboard: ${response.statusText}`
-    );
-  }
-
-  const result = await response.json();
+  const result = await anonFetch(query, anon);
   console.log(result)
   return result;
 };

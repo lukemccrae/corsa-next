@@ -100,7 +100,7 @@ export default function Sidebar({
         </Link>
 
         <div className="flex flex-col items-end ml-3">
-          {stream.live ? (
+          {stream.live === true ? (
             <div className="flex items-center gap-2">
               <LiveDot />
             </div>
@@ -155,7 +155,7 @@ export default function Sidebar({
         </Link>
 
         <div className="flex flex-col items-end ml-3">
-          {group.user?.live ? (
+          {group.user?.live === true ? (
             <div className="flex items-center gap-2">
               <LiveDot />
             </div>
@@ -209,7 +209,7 @@ export default function Sidebar({
                       />
                   </Link>}
           </nav>
-          {/* <nav className="mt-4 flex flex-col gap-3 items-center px-1">
+          <nav className="mt-4 flex flex-col gap-3 items-center px-1">
             {Array.isArray(groups) && groups.length > 0 ? (
               groups.slice(0, 6).map((c) => {
                 const profilePic = c.user?.profilePicture;
@@ -230,7 +230,7 @@ export default function Sidebar({
                         {c.name ? c.name.charAt(0).toUpperCase() : "?"}
                       </div>
                     )}
-                    {c.user?.live && (
+                    {c.user?.live === true && (
                       <div className="absolute bottom-0 right-0">
                         <LiveDot size={6} />
                       </div>
@@ -243,8 +243,8 @@ export default function Sidebar({
                 No streams
               </div>
             )}
-          </nav> */}
-          {/* <nav className="mt-4 flex flex-col gap-3 items-center px-1">
+          </nav>
+          <nav className="mt-4 flex flex-col gap-3 items-center px-1">
             {Array.isArray(livestreams) && livestreams.length > 0 ? (
               livestreams.slice(0, 6).map((c) => {
                 const profilePic = c.profilePicture;
@@ -273,7 +273,7 @@ export default function Sidebar({
                         {initials}
                       </div>
                     )}
-                    {c.live && (
+                    {c.live === true && (
                       <div className="absolute bottom-0 right-0">
                         <LiveDot size={6} />
                       </div>
@@ -286,7 +286,7 @@ export default function Sidebar({
                 No streams
               </div>
             )}
-          </nav> */}
+          </nav>
         </div>
       </aside>
     );

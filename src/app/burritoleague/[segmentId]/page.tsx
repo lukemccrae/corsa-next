@@ -3,54 +3,15 @@ import LiveProfileClient from "@/src/components/LiveProfileClient";
 import SegmentEffortLeaderboard from "@/src/components/SegmentLeaderboard";
 import { useUser } from "@/src/context/UserContext";
 import React, { use } from "react";
+import { fromCognitoIdentityPool } from "@aws-sdk/credential-providers";
+import { anonFetch, getAnonCreds } from "@/src/services/anon.service";
 
 /**
- * Server page for /profile/[username]
+ * Server page for /burritoleague/[segmentId]
  *
- * - Fetches user (and associated liveStreams / posts) server-side using an AppSync API key.
- * - Renders a small client wrapper (ProfileClient) to host the interactive bits (buttons, feed).
- *
- * Environment:
- * - Prefer APPSYNC_ENDPOINT and APPSYNC_API_KEY from process.env.
- * - If not provided, falls back to the endpoint/key used elsewhere in the repo.
+ * - Fetches segment data server-side using anonymous credentials.
+ * - Renders the segment leaderboard component.
  */
-
-const APPSYNC_ENDPOINT =
-  process.env.APPSYNC_ENDPOINT ??
-  "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
-const APPSYNC_API_KEY =
-  process.env.APPSYNC_API_KEY ?? "da2-5f7oqdwtvnfydbn226e6c2faga";
-
-async function fetchIntegrationData(username: string) {
-  const query = `
-    query GetSegmentBySegmentId {
-          getUserByUserName(username: "${username}") {
-          stravaIntegration {
-            athleteId
-          }
-        }
-    }
-  `;
-
-  const variables = { username };
-
-  const res = await fetch(APPSYNC_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": APPSYNC_API_KEY,
-    },
-    body: JSON.stringify({ query, variables }),
-    next: { revalidate: 30 },
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch segment data");
-  }
-
-  const json = await res.json();
-  return json?.data?.getUserByUserName ?? null;
-}
 
 async function fetchSegmentData(segmentId: string) {
   const query = `
@@ -71,24 +32,14 @@ async function fetchSegmentData(segmentId: string) {
     }
   `;
 
-  const variables = { segmentId };
-
-  const res = await fetch(APPSYNC_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": APPSYNC_API_KEY,
-    },
-    body: JSON.stringify({ query, variables }),
-    next: { revalidate: 30 },
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch segment data");
+  try {
+    const anon = await getAnonCreds();
+    const json = await anonFetch(query, anon, undefined, { next: { revalidate: 30 } });
+    return json?.data?.getSegmentBySegmentId ?? null;
+  } catch (error) {
+    console.error("fetchSegmentData error:", error);
+    throw error;
   }
-
-  const json = await res.json();
-  return json?.data?.getSegmentBySegmentId ?? null;
 }
 
 export default async function SegmentDetailPage({

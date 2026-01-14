@@ -4,6 +4,14 @@ import { SignatureV4 } from "@aws-sdk/signature-v4";
 
 import { domain } from '../context/domain.context';
 import { Anon } from '../context/UserContext';
+import { fromCognitoIdentityPool } from "@aws-sdk/credential-providers";
+
+// Browser-compatible helper to convert Uint8Array to hex string
+function uint8ArrayToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 interface GetPublishedUserInfoProps {
   username: String;
@@ -21,10 +29,23 @@ interface GetChatByStreamIdProps {
   anon: Anon;
 }
 
+export async function getAnonCreds() {
+  const credentialsProvider = fromCognitoIdentityPool({
+    identityPoolId: "us-west-1:495addf9-156d-41fd-bf55-3c576a9e1c5e",
+    clientConfig: { region: "us-west-1" },
+  });
+  return await credentialsProvider();
+}
+
 // Your AppSync API endpoint
 const APPSYNC_ENDPOINT = domain.appsync;
 
-export const anonFetch = async (query: string, anon: Anon, variables?: any) => {
+export const anonFetch = async (
+  query: string, 
+  anon: Anon, 
+  variables?: any,
+  options?: { next?: { revalidate?: number | false; tags?: string[] } }
+) => {
   const url = new URL(APPSYNC_ENDPOINT);
 
   const body = JSON.stringify({ query, variables });
@@ -33,7 +54,7 @@ export const anonFetch = async (query: string, anon: Anon, variables?: any) => {
   const hasher = new Sha256();
   hasher.update(body);
   const hashBytes = await hasher.digest();
-  const bodyHashHex = Buffer.from(hashBytes).toString("hex");
+  const bodyHashHex = uint8ArrayToHex(hashBytes);
 
   const request = new HttpRequest({
     method: "POST",
@@ -49,8 +70,20 @@ export const anonFetch = async (query: string, anon: Anon, variables?: any) => {
     body,
   });
 
+  if (
+    !anon.accessKeyId ||
+    !anon.secretAccessKey ||
+    !anon.sessionToken
+  ) {
+    throw new Error("Anon credentials are missing required properties.");
+  }
+
   const signer = new SignatureV4({
-    credentials: anon,   // MUST contain accessKeyId, secretAccessKey, sessionToken
+    credentials: {
+      accessKeyId: anon.accessKeyId,
+      secretAccessKey: anon.secretAccessKey,
+      sessionToken: anon.sessionToken,
+    },
     region: "us-west-1",
     service: "appsync",
     sha256: Sha256,
@@ -62,6 +95,7 @@ export const anonFetch = async (query: string, anon: Anon, variables?: any) => {
     method: signed.method,
     headers: signed.headers,
     body: signed.body,  // EXACT signed body
+    ...(options?.next && { next: options.next }),
   });
 
   return response.json();
