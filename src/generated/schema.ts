@@ -13,6 +13,7 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   AWSDateTime: { input: any; output: any; }
+  Long: { input: any; output: any; }
 };
 
 export type Badge = {
@@ -291,12 +292,21 @@ export enum PostType {
 export type Query = {
   __typename?: 'Query';
   getAllTrackerGroups?: Maybe<Array<Maybe<TrackerGroup>>>;
+  getSegmentActivities?: Maybe<Array<Maybe<SegmentActivity>>>;
   getSegmentBySegmentId?: Maybe<Segment>;
   getSegmentLeaderboard?: Maybe<Array<Maybe<SegmentLeaderboardEntry>>>;
   getSegmentsByEntity?: Maybe<Array<Maybe<Segment>>>;
   getStreamsByEntity?: Maybe<Array<Maybe<LiveStream>>>;
   getTrackerGroupData?: Maybe<TrackerGroup>;
   getUserByUserName?: Maybe<User>;
+};
+
+
+export type QueryGetSegmentActivitiesArgs = {
+  activityType?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  segmentId: Scalars['ID']['input'];
+  userId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -351,15 +361,45 @@ export type RouteInput = {
 
 export type Segment = {
   __typename?: 'Segment';
+  activities?: Maybe<Array<Maybe<SegmentActivity>>>;
+  burritoPrize?: Maybe<Scalars['String']['output']>;
   city?: Maybe<Scalars['String']['output']>;
   country?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   entity: Scalars['String']['output'];
+  host?: Maybe<Scalars['String']['output']>;
   link?: Maybe<Scalars['String']['output']>;
   location?: Maybe<LatLng>;
+  otherPrize?: Maybe<Scalars['String']['output']>;
   segmentId: Scalars['ID']['output'];
+  startDateUTC: Scalars['AWSDateTime']['output'];
   state?: Maybe<Scalars['String']['output']>;
+  timezone?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
+};
+
+
+export type SegmentActivitiesArgs = {
+  activityType?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  userId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+export type SegmentActivity = {
+  __typename?: 'SegmentActivity';
+  activityId: Scalars['Long']['output'];
+  activityName: Scalars['String']['output'];
+  activityType: Scalars['String']['output'];
+  createdAt: Scalars['AWSDateTime']['output'];
+  distance: Scalars['Float']['output'];
+  elapsedTime: Scalars['Int']['output'];
+  movingTime: Scalars['Int']['output'];
+  segmentCompletions: Scalars['Int']['output'];
+  segmentId: Scalars['ID']['output'];
+  sportType: Scalars['String']['output'];
+  startDate: Scalars['AWSDateTime']['output'];
+  startDateLocal: Scalars['AWSDateTime']['output'];
+  userId: Scalars['ID']['output'];
 };
 
 export type SegmentEffortInput = {
@@ -374,14 +414,19 @@ export type SegmentEffortInput = {
 };
 
 export type SegmentInput = {
+  burritoPrize: Scalars['String']['input'];
   city?: InputMaybe<Scalars['String']['input']>;
   country?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   entity: Scalars['String']['input'];
+  host: Scalars['String']['input'];
   link?: InputMaybe<Scalars['String']['input']>;
   location: LatLngInput;
+  otherPrize: Scalars['String']['input'];
   segmentId: Scalars['ID']['input'];
+  startDate: Scalars['AWSDateTime']['input'];
   state?: InputMaybe<Scalars['String']['input']>;
+  timezone: Scalars['String']['input'];
   title: Scalars['String']['input'];
 };
 
