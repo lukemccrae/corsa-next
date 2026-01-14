@@ -1,6 +1,8 @@
 import React from "react";
 import BurritoMap from "@/src/components/BurritoMap";
-import { Segment } from "@/src/generated/schema";
+import BurritoActivityTimeline from "@/src/components/BurritoActivityTimeline";
+import BurritoStatsTable from "@/src/components/BurritoStatsTable";
+import { Segment, SegmentActivity } from "@/src/generated/schema";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -34,17 +36,38 @@ async function fetchSegmentData() {
   const query = `
     query MyQuery {
       getSegmentsByEntity(entity: "2026_BURRITO_LEAGUE") {
+        activities {
+          activityId
+          activityName
+          activityType
+          createdAt
+          elapsedTime
+          userId
+          startDateLocal
+          segmentId
+          segmentCompletions
+          movingTime
+          sportType
+          startDate
+          distance
+        }
         segmentId
+        burritoPrize
         city
         country
-        link
-        state
-        title
         description
+        entity
+        host
+        link
         location {
           lat
           lng
         }
+        otherPrize
+        startDateUTC
+        state
+        timezone
+        title
       }
     }
   `;
@@ -71,17 +94,39 @@ async function fetchSegmentData() {
 
 export default async function BurritoLeaguePage() {
   let segmentData = null;
+  let allActivities: SegmentActivity[] = [];
 
   try {
     const data = await fetchSegmentData();
     console.log(data);
     segmentData = data.segments.filter(
           (segment: Segment) => segment.title !== "ATY TEST"
-        );;
+        );
+    
+    // Aggregate all activities across segments
+    allActivities = segmentData.flatMap((segment: Segment) => 
+      segment.activities || []
+    ).filter((activity: SegmentActivity | null): activity is SegmentActivity => activity !== null);
   } catch (err) {
     console.error("fetchSegmentData error", err);
   }
-  // return <div>Coming soon...</div>;
-  return <BurritoMap segments={segmentData || []} />;
+
+  return (
+    <div className="container mx-auto px-4 pb-8">
+      <BurritoMap segments={segmentData || []} />
+      
+      <div className="max-w-6xl mx-auto mt-8 space-y-6">
+        <BurritoActivityTimeline 
+          activities={allActivities} 
+          title="🌯 Burrito League Activity Timeline"
+        />
+        
+        <BurritoStatsTable 
+          activities={allActivities}
+          title="🌯 Participant Statistics"
+        />
+      </div>
+    </div>
+  );
 
 }

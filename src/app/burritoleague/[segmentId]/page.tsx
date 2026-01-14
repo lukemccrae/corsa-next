@@ -1,7 +1,10 @@
 "use server";
 import LiveProfileClient from "@/src/components/LiveProfileClient";
 import SegmentEffortLeaderboard from "@/src/components/SegmentLeaderboard";
+import BurritoActivityTimeline from "@/src/components/BurritoActivityTimeline";
+import BurritoStatsTable from "@/src/components/BurritoStatsTable";
 import { useUser } from "@/src/context/UserContext";
+import { SegmentActivity } from "@/src/generated/schema";
 import React, { use } from "react";
 
 /**
@@ -56,17 +59,37 @@ async function fetchSegmentData(segmentId: string) {
   const query = `
     query GetSegmentBySegmentId {
         getSegmentBySegmentId(segmentId: "${segmentId}") {
-            segmentId
-            title
-            description
+            activities {
+              activityName
+              distance
+              elapsedTime
+              activityId
+              activityType
+              createdAt
+              movingTime
+              segmentCompletions
+              segmentId
+              sportType
+              startDate
+              startDateLocal
+              userId
+            }
+            burritoPrize
             city
             country
-            state
+            description
+            host
             link
             location {
                 lat
                 lng
             }
+            otherPrize
+            segmentId
+            startDateUTC
+            state
+            timezone
+            title
         }
     }
   `;
@@ -124,8 +147,20 @@ export default async function SegmentDetailPage({
   }
 
   return (
-    <div>
+    <div className="container mx-auto px-4 pb-8">
       <SegmentEffortLeaderboard segmentId={segmentId} segmentName={segmentData.title} />
+      
+      <div className="max-w-6xl mx-auto mt-8 space-y-6">
+        <BurritoActivityTimeline 
+          activities={(segmentData.activities || []).filter((a: SegmentActivity | null): a is SegmentActivity => a !== null)}
+          title={`${segmentData.title} - Activity Timeline`}
+        />
+        
+        <BurritoStatsTable 
+          activities={(segmentData.activities || []).filter((a: SegmentActivity | null): a is SegmentActivity => a !== null)}
+          title={`${segmentData.title} - Participant Statistics`}
+        />
+      </div>
     </div>
   );
 }
