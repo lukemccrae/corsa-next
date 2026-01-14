@@ -3,25 +3,12 @@ import React, { useMemo } from "react";
 import { Chart } from "primereact/chart";
 import { Card } from "primereact/card";
 import { useTheme } from "./ThemeProvider";
+import { SegmentActivity } from "../generated/schema";
 
-/**
- * Activity type matching SegmentActivity from GraphQL schema
- */
-type Activity = {
-  activityId: string | number;
-  activityName?: string;
-  activityType?: string;
-  startDate: string;
-  startDateLocal?: string;
-  distance?: number;
-  elapsedTime?: number;
-  movingTime?: number;
-  userId?: string;
-  segmentCompletions?: number;
-};
+const METERS_TO_MILES = 1609.34;
 
 type Props = {
-  activities: Activity[];
+  activities: SegmentActivity[];
   title?: string;
 };
 
@@ -71,7 +58,7 @@ export default function BurritoActivityTimeline({ activities, title }: Props) {
       if (activity.userId) {
         dateData.users.add(activity.userId);
       }
-      dateData.totalDistance += (activity.distance || 0) / 1609.34; // Convert meters to miles
+      dateData.totalDistance += (activity.distance || 0) / METERS_TO_MILES;
     });
 
     // Sort dates and prepare data

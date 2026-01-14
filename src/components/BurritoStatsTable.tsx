@@ -4,26 +4,12 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Card } from "primereact/card";
 import { useTheme } from "./ThemeProvider";
+import { SegmentActivity } from "../generated/schema";
 
-/**
- * Activity type matching SegmentActivity from GraphQL schema
- */
-type Activity = {
-  activityId: string | number;
-  activityName?: string;
-  activityType?: string;
-  sportType?: string;
-  startDate: string;
-  startDateLocal?: string;
-  distance?: number;
-  elapsedTime?: number;
-  movingTime?: number;
-  userId?: string;
-  segmentCompletions?: number;
-};
+const METERS_TO_MILES = 1609.34;
 
 type Props = {
-  activities: Activity[];
+  activities: SegmentActivity[];
   title?: string;
 };
 
@@ -62,7 +48,8 @@ export default function BurritoStatsTable({ activities, title }: Props) {
       if (!statsByUser.has(userId)) {
         statsByUser.set(userId, {
           userId,
-          userName: userId, // In a real app, we'd fetch actual user names
+          // TODO: Fetch actual user names from getUserByUserName query or user service
+          userName: userId,
           totalCompletions: 0,
           totalDistance: 0,
           totalElapsedTime: 0,
@@ -74,7 +61,7 @@ export default function BurritoStatsTable({ activities, title }: Props) {
 
       const stats = statsByUser.get(userId)!;
       stats.totalCompletions += activity.segmentCompletions || 1;
-      stats.totalDistance += (activity.distance || 0) / 1609.34; // Convert meters to miles
+      stats.totalDistance += (activity.distance || 0) / METERS_TO_MILES;
       stats.totalElapsedTime += activity.elapsedTime || 0;
       stats.totalMovingTime += activity.movingTime || 0;
 
