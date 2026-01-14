@@ -103,6 +103,7 @@ export default async function SegmentDetailPage({
   try {
 
     segmentData = await fetchSegmentData(segmentId);
+    console.log(segmentData, '<< data')
 
   } catch (err) {
     console.error("fetchSegmentData error", err);
