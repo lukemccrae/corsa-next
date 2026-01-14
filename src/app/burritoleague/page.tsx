@@ -3,6 +3,7 @@ import BurritoMap from "@/src/components/BurritoMap";
 import BurritoActivityTimeline from "@/src/components/BurritoActivityTimeline";
 import BurritoStatsTable from "@/src/components/BurritoStatsTable";
 import { Segment, SegmentActivity } from "@/src/generated/schema";
+import { TEST_SEGMENT_TITLE } from "@/src/helpers/constants";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -100,7 +101,7 @@ export default async function BurritoLeaguePage() {
     const data = await fetchSegmentData();
     console.log(data);
     segmentData = data.segments.filter(
-          (segment: Segment) => segment.title !== "ATY TEST"
+          (segment: Segment) => segment.title !== TEST_SEGMENT_TITLE
         );
     
     // Aggregate all activities across segments
