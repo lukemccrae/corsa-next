@@ -100,7 +100,7 @@ export default function Sidebar({
         </Link>
 
         <div className="flex flex-col items-end ml-3">
-          {stream.live ? (
+          {stream.live === true ? (
             <div className="flex items-center gap-2">
               <LiveDot />
             </div>
@@ -155,7 +155,7 @@ export default function Sidebar({
         </Link>
 
         <div className="flex flex-col items-end ml-3">
-          {group.user?.live ? (
+          {group.user?.live === true ? (
             <div className="flex items-center gap-2">
               <LiveDot />
             </div>
@@ -230,7 +230,7 @@ export default function Sidebar({
                         {c.name ? c.name.charAt(0).toUpperCase() : "?"}
                       </div>
                     )}
-                    {c.user?.live && (
+                    {c.user?.live === true && (
                       <div className="absolute bottom-0 right-0">
                         <LiveDot size={6} />
                       </div>
@@ -273,7 +273,7 @@ export default function Sidebar({
                         {initials}
                       </div>
                     )}
-                    {c.live && (
+                    {c.live === true && (
                       <div className="absolute bottom-0 right-0">
                         <LiveDot size={6} />
                       </div>
