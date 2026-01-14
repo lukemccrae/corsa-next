@@ -67,7 +67,11 @@ export default function BurritoStatsCards({
         existing.completions += 1;
         existing.totalTime += elapsedTime;
         if (elapsedTime > 0) {
-          existing.fastestTime = Math.min(existing.fastestTime, elapsedTime);
+          if (existing.fastestTime === 0) {
+            existing.fastestTime = elapsedTime;
+          } else {
+            existing.fastestTime = Math.min(existing.fastestTime, elapsedTime);
+          }
         }
         if (activity.activityType) {
           existing.activityTypes.add(activity.activityType);
@@ -78,7 +82,7 @@ export default function BurritoStatsCards({
           completions: 1,
           totalTime: elapsedTime,
           averageTime: elapsedTime,
-          fastestTime: elapsedTime > 0 ? elapsedTime : Number.MAX_SAFE_INTEGER,
+          fastestTime: elapsedTime,
           activityTypes: new Set(
             activity.activityType ? [activity.activityType] : []
           ),
@@ -163,6 +167,21 @@ export default function BurritoStatsCards({
     }
   };
 
+  // Calculate overall stats
+  const overallAverageTime = useMemo(() => {
+    if (userStats.length === 0) return 0;
+    return (
+      userStats.reduce((sum, u) => sum + u.averageTime, 0) / userStats.length
+    );
+  }, [userStats]);
+
+  const fastestTimeOverall = useMemo(() => {
+    const validTimes = userStats
+      .map((u) => u.fastestTime)
+      .filter((t) => t > 0);
+    return validTimes.length > 0 ? Math.min(...validTimes) : 0;
+  }, [userStats]);
+
   const cardBg =
     theme === "dark"
       ? "bg-gray-800 border-gray-700 text-gray-100"
@@ -242,11 +261,15 @@ export default function BurritoStatsCards({
               field="fastestTime"
               header="Fastest"
               sortable
-              body={(rowData) => (
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
-                  {formatTime(rowData.fastestTime)}
-                </span>
-              )}
+              body={(rowData) =>
+                rowData.fastestTime > 0 ? (
+                  <span className="font-semibold text-blue-600 dark:text-blue-400">
+                    {formatTime(rowData.fastestTime)}
+                  </span>
+                ) : (
+                  <span className="text-gray-400">N/A</span>
+                )
+              }
             />
           </DataTable>
         </div>
@@ -334,10 +357,7 @@ export default function BurritoStatsCards({
           <div className="text-center">
             <i className="pi pi-clock text-4xl text-green-500 mb-2" />
             <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-              {formatTime(
-                userStats.reduce((sum, u) => sum + u.averageTime, 0) /
-                  (userStats.length || 1)
-              )}
+              {overallAverageTime > 0 ? formatTime(overallAverageTime) : "N/A"}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
               Overall Avg Time
@@ -349,14 +369,7 @@ export default function BurritoStatsCards({
           <div className="text-center">
             <i className="pi pi-bolt text-4xl text-yellow-500 mb-2" />
             <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
-              {(() => {
-                const validTimes = userStats
-                  .map((u) => u.fastestTime)
-                  .filter((t) => t < Number.MAX_SAFE_INTEGER);
-                return validTimes.length > 0
-                  ? formatTime(Math.min(...validTimes))
-                  : "N/A";
-              })()}
+              {fastestTimeOverall > 0 ? formatTime(fastestTimeOverall) : "N/A"}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
               Fastest Time Overall
