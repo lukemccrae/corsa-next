@@ -198,7 +198,9 @@ export default function BurritoActivityTimeline({
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-              {Math.round(activities.length / dailyActivities.length)}
+              {dailyActivities.length > 0
+                ? Math.round(activities.length / dailyActivities.length)
+                : 0}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
               Avg per Day

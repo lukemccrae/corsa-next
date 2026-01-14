@@ -349,11 +349,14 @@ export default function BurritoStatsCards({
           <div className="text-center">
             <i className="pi pi-bolt text-4xl text-yellow-500 mb-2" />
             <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
-              {userStats.length > 0
-                ? formatTime(
-                    Math.min(...userStats.map((u) => u.fastestTime))
-                  )
-                : "N/A"}
+              {(() => {
+                const validTimes = userStats
+                  .map((u) => u.fastestTime)
+                  .filter((t) => t < Number.MAX_SAFE_INTEGER);
+                return validTimes.length > 0
+                  ? formatTime(Math.min(...validTimes))
+                  : "N/A";
+              })()}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
               Fastest Time Overall
