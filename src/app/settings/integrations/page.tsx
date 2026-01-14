@@ -36,7 +36,6 @@ function IntegrationsContent() {
   // Fetch user's Strava integration on mount
   useEffect(() => {
     if (!user?.preferred_username) return;
-    console.log(user, "<< user");
     fetchStravaIntegration(user.preferred_username);
   }, [user?.preferred_username]);
 
@@ -62,8 +61,7 @@ function IntegrationsContent() {
     }
   }, [searchParams, user]);
 
-  const fetchStravaIntegration = async (username: string) => {
-    console.log(username);
+  const fetchStravaIntegration = async (username: string) => {  
     setFetchingIntegration(true);
     try {
       const query = `
@@ -90,8 +88,6 @@ function IntegrationsContent() {
 
       const { data } = await response.json();
       const integration = data?.getUserByUserName?.stravaIntegration;
-      console.log(integration, "<< integration ");
-      console.log(data, "<< data");
       setStravaIntegration(integration || null);
     } catch (error) {
       console.error("Failed to fetch Strava integration:", error);
@@ -167,7 +163,6 @@ function IntegrationsContent() {
   };
 
   const handleDisconnectConfirm = async () => {
-    console.log(user)
     if (!user?.["cognito:username"]) return;
 
     setLoading(true);
@@ -375,8 +370,9 @@ function IntegrationsContent() {
               Are you sure you want to disconnect <strong>Strava</strong>?
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              This will stop syncing your activities and data. You can reconnect
-              at any time.
+              This will stop syncing your activities and data. It will also
+              delete any synced data from our servers, including leaderboard
+              data. You can reconnect at any time.
             </p>
           </div>
         </div>
