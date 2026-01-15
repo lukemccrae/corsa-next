@@ -181,7 +181,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   };
 
   const forgotPassword = async (email: string): Promise<void> => {
-    const normalizedEmail = email.toLowerCase();
+    const normalizedEmail = email?.toLowerCase() || '';
     
     return new Promise((resolve, reject) => {
       const cognitoUser = new CognitoUser({
@@ -221,7 +221,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     code: string,
     newPassword: string
   ): Promise<void> => {
-    const normalizedEmail = email.toLowerCase();
+    const normalizedEmail = email?.toLowerCase() || '';
     
     return new Promise((resolve, reject) => {
       const cognitoUser = new CognitoUser({
