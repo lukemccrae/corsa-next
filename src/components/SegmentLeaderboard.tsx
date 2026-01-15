@@ -302,7 +302,7 @@ export default function SegmentEffortLeaderboard({
             </div>
             <div className="flex gap-2 items-center text-gray-400 text-xs">
               <i className="pi pi-info-circle" />
-              <span>This may take a few seconds</span>
+              <span>This may take awhile, please be patient.</span>
             </div>
           </div>
         </div>
