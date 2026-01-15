@@ -11,6 +11,7 @@ import { fetchSegmentLeaderboard } from "../services/segment.service";
 import StravaJoinModal from "./StravaJoinModal";
 import { exchangeStravaCode } from "../services/integration.service";
 import { SegmentLeaderboardEntry } from "../generated/schema";
+import ShareButton from "./ShareButton";
 
 const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
@@ -326,9 +327,12 @@ export default function SegmentEffortLeaderboard({
             />
           )}
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">
-          {segmentName} Leaderboard
-        </h1>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold">
+            {segmentName} Leaderboard
+          </h1>
+          <ShareButton title={segmentName} toast={toast} />
+        </div>
         <p className="text-gray-400 mb-6">
           Track your efforts and compete with other runners
         </p>
