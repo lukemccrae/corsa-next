@@ -29,7 +29,7 @@ export default function StravaJoinModal({
   const { user } = useUser();
   const toast = useRef<Toast>(null);
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<"connect" | "joining">("connect");
+  const [step, setStep] = useState<"connect" | "joining" | "syncing">("connect");
 
   // Auto-join if user already has Strava integration
   useEffect(() => {
@@ -105,19 +105,9 @@ export default function StravaJoinModal({
         );
       }
 
-      toast.current?.show({
-        severity: "success",
-        summary: "Success!",
-        detail: "You've joined the leaderboard 🌯",
-        life: 2000,
-      });
-
-      // Wait for toast to show, then close and refresh
-      setTimeout(() => {
-        onSuccess?.();
-        onHide();
-        window.location.reload();
-      }, 2000);
+      // Transition to syncing step instead of auto-reload
+      setLoading(false);
+      setStep("syncing");
     } catch (err: any) {
       console.error("Failed to join leaderboard:", err);
       toast.current?.show({
@@ -204,19 +194,28 @@ export default function StravaJoinModal({
         className="max-w-md w-full"
         footer={
           <div className="flex gap-2 justify-end">
-            <Button
-              label="Cancel"
-              severity="secondary"
-              onClick={onHide}
-              disabled={loading}
-            />
-            {step === "connect" && (
+            {step === "syncing" ? (
               <Button
-                label="Connect Strava"
-                icon="pi pi-link"
-                onClick={handleStravaConnect}
-                loading={loading}
+                label="Close"
+                onClick={onHide}
               />
+            ) : (
+              <>
+                <Button
+                  label="Cancel"
+                  severity="secondary"
+                  onClick={onHide}
+                  disabled={loading}
+                />
+                {step === "connect" && (
+                  <Button
+                    label="Connect Strava"
+                    icon="pi pi-link"
+                    onClick={handleStravaConnect}
+                    loading={loading}
+                  />
+                )}
+              </>
             )}
           </div>
         }
@@ -229,13 +228,13 @@ export default function StravaJoinModal({
                 Strava account.
               </p>
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <p className="text-sm text-blue-800 dark: text-blue-200">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
                   We use Strava to track your segment attempts automatically.
                   Your activities will sync and count towards the leaderboard.
                 </p>
               </div>
             </>
-          ) : (
+          ) : step === "joining" ? (
             <>
               <div className="flex items-center justify-center py-8">
                 <i className="pi pi-spin pi-spinner text-4xl text-blue-500" />
@@ -245,6 +244,22 @@ export default function StravaJoinModal({
                   ? "Joining leaderboard..."
                   : "Connecting to Strava and joining leaderboard..."}
               </p>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-center py-8">
+                <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                  <i className="pi pi-check text-4xl text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+              <h3 className="text-center text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Successfully Joined! 🌯
+              </h3>
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  Your segments are syncing in the background. This could take some time. Wait a moment and refresh the page to see your efforts appear on the leaderboard.
+                </p>
+              </div>
             </>
           )}
         </div>
