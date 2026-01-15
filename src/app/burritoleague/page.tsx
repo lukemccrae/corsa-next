@@ -34,17 +34,38 @@ async function fetchSegmentData() {
   const query = `
     query MyQuery {
       getSegmentsByEntity(entity: "2026_BURRITO_LEAGUE") {
+        activities {
+          activityId
+          activityName
+          activityType
+          createdAt
+          elapsedTime
+          userId
+          startDateLocal
+          segmentId
+          segmentCompletions
+          movingTime
+          sportType
+          startDate
+          distance
+        }
         segmentId
+        burritoPrize
         city
         country
-        link
-        state
-        title
         description
+        entity
+        host
+        link
         location {
           lat
           lng
         }
+        otherPrize
+        startDateUTC
+        state
+        timezone
+        title
       }
     }
   `;
