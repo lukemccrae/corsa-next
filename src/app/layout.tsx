@@ -26,7 +26,7 @@ export default function RootLayout({
           <main className="flex-1 min-h-0 overflow-auto">
             {children}
           </main>
-          {/* <Footer /> */}
+          <Footer />
         </Providers>
       </body>
     </html>

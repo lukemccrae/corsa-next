@@ -94,17 +94,14 @@ async function fetchSegmentData(segmentId: string) {
 export default async function SegmentDetailPage({
   params,
 }: {
-  params: { segmentId: string; };
+  params: { segmentId: string };
 }) {
   const segmentId = params.segmentId;
 
   let segmentData = null;
   let integrationData = null;
   try {
-
     segmentData = await fetchSegmentData(segmentId);
-    console.log(segmentData, '<< data')
-
   } catch (err) {
     console.error("fetchSegmentData error", err);
   }
@@ -124,8 +121,13 @@ export default async function SegmentDetailPage({
   }
 
   return (
-    <div>
-      <SegmentEffortLeaderboard segmentId={segmentId} segmentName={segmentData.title} />
-    </div>
+    <>
+      <div>
+        <SegmentEffortLeaderboard
+          segmentId={segmentId}
+          segmentName={segmentData.title}
+        />
+      </div>
+    </>
   );
 }
