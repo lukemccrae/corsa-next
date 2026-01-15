@@ -424,7 +424,7 @@ const submitForgotPassword = async (e:  React.FormEvent) => {
               />
             </div>
 
-            <div className="flex flex-col gap-2">
+            {/* <div className="flex flex-col gap-2">
               <label htmlFor="bio" className="font-semibold text-sm">
                 Bio <span className="text-gray-500 text-xs">(optional)</span>
               </label>
@@ -438,9 +438,9 @@ const submitForgotPassword = async (e:  React.FormEvent) => {
                 }
                 className="w-full"
               />
-            </div>
+            </div> */}
 
-            <div className="flex flex-col gap-2">
+            {/* <div className="flex flex-col gap-2">
               <label htmlFor="pictureUrl" className="font-semibold text-sm">
                 Profile Picture URL{" "}
                 <span className="text-gray-500 text-xs">(optional)</span>
@@ -456,7 +456,7 @@ const submitForgotPassword = async (e:  React.FormEvent) => {
                 }
                 className="w-full"
               />
-            </div>
+            </div> */}
 
             <Button
               type="submit"
