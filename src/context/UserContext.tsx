@@ -266,10 +266,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
 
-    const email = data.get("registerEmail")?.toString().toLowerCase();
+    const email = data.get("registerEmail")?.toString()?.toLowerCase();
     const password = data.get("registerPassword")?.toString();
     const bio = data.get("bio")?.toString();
-    const username = data.get("username")?.toString().toLowerCase();
+    const username = data.get("username")?.toString()?.toLowerCase();
     const pictureUrl = data.get("pictureUrl")?.toString();
     const firstName = data.get("firstName")?.toString();
     const lastName = data.get("lastName")?.toString();
@@ -343,7 +343,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const loginUser = async (event: any) => {
     const data = new FormData(event.currentTarget);
 
-    const email = data.get("email")?.toString().toLowerCase();
+    const email = data.get("email")?.toString()?.toLowerCase();
     const password = data.get("password")?.toString();
 
     if (!email || !password) {
