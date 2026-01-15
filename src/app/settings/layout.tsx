@@ -28,6 +28,7 @@ const MENU = [
   // { key: "privacy", label: "Privacy", href: "/settings/privacy", icon: "pi pi-lock" },
   // { key: "routes", label: "Routes", href: "/settings/routes", icon: "pi pi-map" },
   { key: "integrations", label: "Integrations", href: "/settings/integrations", icon: "pi pi-file-import" },
+  { key: "support", label: "Support", href: "/settings/support", icon: "pi pi-question-circle" },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
