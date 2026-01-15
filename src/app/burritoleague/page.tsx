@@ -2,6 +2,7 @@ import React from "react";
 import BurritoMap from "@/src/components/BurritoMap";
 import { Segment } from "@/src/generated/schema";
 import type { Metadata } from "next";
+import BurritoLeagueStats from "@/src/components/BurritoLeagueStats";
 
 export const metadata: Metadata = {
   title: "🌯 Burrito League - CORSA",
@@ -90,6 +91,9 @@ export default async function BurritoLeaguePage() {
   return (
     <>
       <BurritoMap segments={segmentData || []} />;
+      <BurritoLeagueStats
+        segmentName="Burrito League"
+      />
     </>
   );
 }

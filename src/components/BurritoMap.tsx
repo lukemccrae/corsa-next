@@ -35,8 +35,7 @@ export default function BurritoMap(props: CoverMapProps) {
 
   return (
     <>
-      <div className="relative w-full max-w-3xl mx-auto h-[70vh] rounded-lg overflow-hidden mt-10">
-        <h1 className="text-3xl font-bold mb-3">🌯 Burrito League</h1>
+      <div className="relative w-full max-w-3xl mx-auto h-[50vh] rounded-lg overflow-hidden mt-10">
         <SegmentMap segments={props.segments}></SegmentMap>
       </div>
     </>
