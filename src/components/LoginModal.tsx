@@ -78,7 +78,8 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
       });
       setTimeout(() => onHide(), 1000);
     } catch (err:  any) {
-      const message = err?. message ??  "Login failed. Please try again.";
+      const message = "We couldn’t sign you in. If you recently created an account, please check your email and confirm it before signing in."
+      // const message = err?.message ??  "Login failed. Please try again.";
       setErrorMsg(message);
       toast.current?.show({
         severity: "error",
