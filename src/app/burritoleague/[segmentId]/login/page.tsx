@@ -50,43 +50,42 @@ export async function generateMetadata({
   params,
 }: {
   params: { segmentId:  string };
-}): Promise<void> {
+}): Promise<Metadata> {
   const segmentData = await fetchSegmentData(params.segmentId);
-  console.log(segmentData, '<< segmentData')
 
-//   if (!segmentData) {
-//     return {
-//       title: "Login - Burrito League",
-//     };
-//   }
+  if (!segmentData) {
+    return {
+      title: "Login - Burrito League",
+    };
+  }
 
-//   const location = [segmentData.city, segmentData.state, segmentData.country]
-//     .filter(Boolean)
-//     .join(", ");
+  const location = [segmentData.city, segmentData.state, segmentData.country]
+    .filter(Boolean)
+    .join(", ");
 
-//   return {
-//     title: `Join ${segmentData.title} - Burrito League 🌯`,
-//     description: `Sign in to compete on ${segmentData.title}${location ? ` in ${location}` : ""} - Part of the Burrito League`,
-//     openGraph: {
-//       title: `Join ${segmentData.title} - Burrito League 🌯`,
-//       description: `Sign in to compete on this segment${location ? ` in ${location}` : ""}`,
-//       images: [
-//         {
-//           url: "https://i.imgur.com/gZiA2pq.png",
-//           width: 1200,
-//           height: 630,
-//           alt: "Burrito League",
-//         },
-//       ],
-//       type: "website",
-//     },
-//     twitter: {
-//       card: "summary_large_image",
-//       title: `Join ${segmentData.title} - Burrito League 🌯`,
-//       description: `Sign in to compete on this segment${location ? ` in ${location}` : ""}`,
-//       images: ["https://i.imgur.com/gZiA2pq. png"],
-//     },
-//   };
+  return {
+    title: `Join ${segmentData.title} - Burrito League 🌯`,
+    description: `Sign in to compete on ${segmentData.title}${location ? ` in ${location}` : ""} - Part of the Burrito League`,
+    openGraph: {
+      title: `Join ${segmentData.title} - Burrito League 🌯`,
+      description: `Sign in to compete on this segment${location ? ` in ${location}` : ""}`,
+      images: [
+        {
+          url: "https://i.imgur.com/gZiA2pq.png",
+          width: 1200,
+          height: 630,
+          alt: "Burrito League",
+        },
+      ],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Join ${segmentData.title} - Burrito League 🌯`,
+      description: `Sign in to compete on this segment${location ? ` in ${location}` : ""}`,
+      images: ["https://i.imgur.com/gZiA2pq. png"],
+    },
+  };
 }
 
 export default async function SegmentLoginPage({
