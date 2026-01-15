@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 
 type SegmentLoginClientProps = {
   segmentId: string;
-  segmentName?:  string;
+  segmentName?: string;
+  segmentDescription: string;
+  segmentLocation: string;
 };
 
 export default function SegmentLoginClient({
