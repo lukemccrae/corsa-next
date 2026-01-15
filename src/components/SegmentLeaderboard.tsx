@@ -181,47 +181,52 @@ export default function SegmentEffortLeaderboard({
     }
   };
 
+  const callJoinLeaderboardMutation = async (userId: string) => {
+    const mutation = `
+      mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
+        joinLeaderboard(input: { segmentId: $segmentId, userId: $userId }) {
+          message
+          segmentId
+          success
+        }
+      }
+    `;
+
+    const response = await fetch(APPSYNC_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": APPSYNC_API_KEY,
+      },
+      body: JSON.stringify({
+        query: mutation,
+        variables: {
+          segmentId,
+          userId,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to join leaderboard");
+    }
+
+    const result = await response.json();
+
+    if (result.errors) {
+      throw new Error(
+        result.errors[0]?.message || "Failed to join leaderboard"
+      );
+    }
+
+    return result;
+  };
+
   const handleJoinLeaderboard = async () => {
     console.log(user?.["cognito:username"], "<< user");
     if (!user?.["cognito:username"]) return;
     try {
-      const mutation = `
-        mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
-          joinLeaderboard(input: { segmentId: $segmentId, userId: $userId }) {
-            message
-            segmentId
-            success
-          }
-        }
-      `;
-
-      const response = await fetch(APPSYNC_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": APPSYNC_API_KEY,
-        },
-        body: JSON.stringify({
-          query: mutation,
-          variables: {
-            segmentId,
-            userId: user["cognito:username"],
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        console.log(response, "<< res");
-        throw new Error("Failed to join leaderboard");
-      }
-
-      const result = await response.json();
-
-      if (result.errors) {
-        throw new Error(
-          result.errors[0]?.message || "Failed to join leaderboard"
-        );
-      }
+      await callJoinLeaderboardMutation(user["cognito:username"]);
 
       toast.current?.show({
         severity: "success",
@@ -249,42 +254,7 @@ export default function SegmentEffortLeaderboard({
     setRefreshingUsers((prev) => new Set(prev).add(userId));
 
     try {
-      const mutation = `
-        mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
-          joinLeaderboard(input: { segmentId: $segmentId, userId: $userId }) {
-            message
-            segmentId
-            success
-          }
-        }
-      `;
-
-      const response = await fetch(APPSYNC_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": APPSYNC_API_KEY,
-        },
-        body: JSON.stringify({
-          query: mutation,
-          variables: {
-            segmentId,
-            userId,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to refresh entry");
-      }
-
-      const result = await response.json();
-
-      if (result.errors) {
-        throw new Error(
-          result.errors[0]?.message || "Failed to refresh entry"
-        );
-      }
+      await callJoinLeaderboardMutation(userId);
 
       toast.current?.show({
         severity: "success",
