@@ -318,16 +318,14 @@ export default function SegmentEffortLeaderboard({
             <i className="pi pi-arrow-left" />
             Back 🌯
           </a>
-          <div className="flex items-center gap-2">
-            {!userInLeaderboard && (
-              <Button
-                {...getJoinButtonProps()}
-                onClick={handleJoinClick}
-                className="w-full md:w-auto"
-                severity={userIntegration ? "success" : "info"}
-              />
-            )}
-          </div>
+          {!userInLeaderboard && (
+            <Button
+              {...getJoinButtonProps()}
+              onClick={handleJoinClick}
+              className="w-full md:w-auto"
+              severity={userIntegration ? "success" : "info"}
+            />
+          )}
         </div>
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-3xl md:text-4xl font-bold">
