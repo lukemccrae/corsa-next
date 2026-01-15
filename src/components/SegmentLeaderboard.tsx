@@ -333,7 +333,7 @@ export default function SegmentEffortLeaderboard({
           <h1 className="text-3xl md:text-4xl font-bold">
             {segmentName} Leaderboard
           </h1>
-          <ShareButton title={segmentName} />
+          <ShareButton title={segmentName} toast={toast} />
         </div>
         <p className="text-gray-400 mb-6">
           Track your efforts and compete with other runners

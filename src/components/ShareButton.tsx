@@ -2,16 +2,16 @@
 import React, { useRef } from 'react';
 import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
-import { useTheme } from './ThemeProvider';
 
 type ShareButtonProps = {
   url?: string;
   title?: string;
+  toast?: React.RefObject<Toast>;
 };
 
-export default function ShareButton({ url, title }: ShareButtonProps) {
-  const { theme } = useTheme();
-  const toast = useRef<Toast>(null);
+export default function ShareButton({ url, title, toast: parentToast }: ShareButtonProps) {
+  const localToast = useRef<Toast>(null);
+  const toast = parentToast || localToast;
 
   const handleShare = async () => {
     // Use provided URL or default to current page URL
@@ -50,7 +50,7 @@ export default function ShareButton({ url, title }: ShareButtonProps) {
 
   return (
     <>
-      <Toast ref={toast} />
+      {!parentToast && <Toast ref={localToast} />}
       <Button
         icon="pi pi-share-alt"
         onClick={handleShare}
