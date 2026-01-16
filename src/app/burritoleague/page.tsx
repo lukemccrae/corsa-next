@@ -91,9 +91,9 @@ export default async function BurritoLeaguePage() {
   return (
     <>
       <BurritoMap segments={segmentData || []} />;
-      <BurritoLeagueStats
+      {/* <BurritoLeagueStats
         segmentName="Burrito League"
-      />
+      /> */}
     </>
   );
 }
