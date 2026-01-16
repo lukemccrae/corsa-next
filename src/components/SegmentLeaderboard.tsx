@@ -38,6 +38,7 @@ export default function SegmentEffortLeaderboard({
   const [fetchingIntegration, setFetchingIntegration] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [oauthStatus, setOauthStatus] = useState("");
+  const [refreshingUsers, setRefreshingUsers] = useState<Set<string>>(new Set());
 
   const userInLeaderboard = user?.userId
     ? efforts.some((effort) => effort.userId === user["cognito:username"])
@@ -180,47 +181,52 @@ export default function SegmentEffortLeaderboard({
     }
   };
 
+  const callJoinLeaderboardMutation = async (userId: string) => {
+    const mutation = `
+      mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
+        joinLeaderboard(input: { segmentId: $segmentId, userId: $userId }) {
+          message
+          segmentId
+          success
+        }
+      }
+    `;
+
+    const response = await fetch(APPSYNC_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": APPSYNC_API_KEY,
+      },
+      body: JSON.stringify({
+        query: mutation,
+        variables: {
+          segmentId,
+          userId,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to join leaderboard");
+    }
+
+    const result = await response.json();
+
+    if (result.errors) {
+      throw new Error(
+        result.errors[0]?.message || "Failed to join leaderboard"
+      );
+    }
+
+    return result;
+  };
+
   const handleJoinLeaderboard = async () => {
     console.log(user?.["cognito:username"], "<< user");
     if (!user?.["cognito:username"]) return;
     try {
-      const mutation = `
-        mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
-          joinLeaderboard(input: { segmentId: $segmentId, userId: $userId }) {
-            message
-            segmentId
-            success
-          }
-        }
-      `;
-
-      const response = await fetch(APPSYNC_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": APPSYNC_API_KEY,
-        },
-        body: JSON.stringify({
-          query: mutation,
-          variables: {
-            segmentId,
-            userId: user["cognito:username"],
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        console.log(response, "<< res");
-        throw new Error("Failed to join leaderboard");
-      }
-
-      const result = await response.json();
-
-      if (result.errors) {
-        throw new Error(
-          result.errors[0]?.message || "Failed to join leaderboard"
-        );
-      }
+      await callJoinLeaderboardMutation(user["cognito:username"]);
 
       toast.current?.show({
         severity: "success",
@@ -241,6 +247,40 @@ export default function SegmentEffortLeaderboard({
         life: 5000,
       });
       setJoining(false);
+    }
+  };
+
+  const handleRefreshEntry = async (userId: string) => {
+    setRefreshingUsers((prev) => new Set(prev).add(userId));
+
+    try {
+      await callJoinLeaderboardMutation(userId);
+
+      toast.current?.show({
+        severity: "success",
+        summary: "Success",
+        detail: "Entry refreshed successfully",
+        life: 3000,
+      });
+
+      // Refresh the leaderboard data
+      const leaderboardResult = await fetchSegmentLeaderboard({ segmentId });
+      const leaderboardData = leaderboardResult?.data?.getSegmentLeaderboard || [];
+      setEfforts(leaderboardData);
+    } catch (err: any) {
+      console.error("Failed to refresh entry:", err);
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: err.message || "Failed to refresh entry",
+        life: 5000,
+      });
+    } finally {
+      setRefreshingUsers((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
     }
   };
 
@@ -352,12 +392,17 @@ export default function SegmentEffortLeaderboard({
                 <th className="px-4 py-3 text-left text-sm font-semibold">
                   Attempts
                 </th>
+                {user?.preferred_username === "lukemccrae" && (
+                  <th className="px-4 py-3 text-left text-sm font-semibold">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={3} className="px-4 py-12 text-center">
+                  <td colSpan={user?.preferred_username === "lukemccrae" ? 4 : 3} className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center gap-4">
                       <ProgressSpinner
                         style={{ width: "50px", height: "50px" }}
@@ -368,7 +413,7 @@ export default function SegmentEffortLeaderboard({
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={3} className="px-4 py-8 text-center">
+                  <td colSpan={user?.preferred_username === "lukemccrae" ? 4 : 3} className="px-4 py-8 text-center">
                     <div className="flex flex-col items-center gap-2">
                       <i className="pi pi-exclamation-triangle text-red-500 text-3xl" />
                       <p className="text-red-400">{error}</p>
@@ -378,7 +423,7 @@ export default function SegmentEffortLeaderboard({
               ) : efforts.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={3}
+                    colSpan={user?.preferred_username === "lukemccrae" ? 4 : 3}
                     className="px-4 py-8 text-center text-gray-400"
                   >
                     No entries yet. Be the first to join!
@@ -439,6 +484,20 @@ export default function SegmentEffortLeaderboard({
                             {entry.attemptCount}
                           </span>
                         </td>
+                        {user?.preferred_username === "lukemccrae" && (
+                          <td className="px-4 py-4">
+                            <Button
+                              icon="pi pi-refresh"
+                              rounded
+                              text
+                              severity="info"
+                              loading={refreshingUsers.has(entry.userId)}
+                              onClick={() => handleRefreshEntry(entry.userId)}
+                              tooltip="Refresh entry"
+                              tooltipOptions={{ position: "top" }}
+                            />
+                          </td>
+                        )}
                       </tr>
                     );
                   })
