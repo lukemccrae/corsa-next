@@ -7,11 +7,11 @@ import BurritoLeagueStats from "@/src/components/BurritoLeagueStats";
 export const metadata: Metadata = {
   title: "🌯 Burrito League - CORSA",
   description:
-    "Join the Burrito League and compete on segments across the globe",
+    "Connect with others in the Burrito League",
   openGraph: {
     title: "🌯 Burrito League - CORSA",
     description:
-      "Join the Burrito League and compete on segments across the globe",
+      "Connect with others in the Burrito League",
     images: [
       {
         url: "https://i.imgur.com/gZiA2pq.png", // Your burrito league image
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "🌯 Burrito League - CORSA",
     description:
-      "Join the Burrito League and compete on segments across the globe",
+      "Connect with others in Burrito League",
     images: ["https://i.imgur.com/gZiA2pq.png"],
   },
 };
