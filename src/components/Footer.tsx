@@ -16,8 +16,8 @@ export const Footer = () => {
     <footer
       className={`bg-gray-900 text-gray-100 border-t border-gray-800 py-6 px-4 mt-auto`}
     >
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="text-sm">© CORSA</div>
+      <div className="max-w-7xl mx-auto flex flex-row items-center justify-between gap-4">
+        <div className="text-sm">© CORSA 2026</div>
         <Button
           icon="pi pi-discord"
           label="Need help?"

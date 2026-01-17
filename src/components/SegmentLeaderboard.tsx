@@ -348,25 +348,27 @@ export default function SegmentEffortLeaderboard({
         )}
 
         <div className="flex items-center gap-3 mb-4">
-          {!loading && <SelectButton
-            value={sexFilter}
-            onChange={(e) => setSexFilter(e.value)}
-            options={filterOptions}
-            className="text-sm"
-          />}
+          {!loading && (
+            <SelectButton
+              value={sexFilter}
+              onChange={(e) => setSexFilter(e.value)}
+              options={filterOptions}
+              className="text-sm"
+            />
+          )}
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className={`${headerBg} border-b ${border}`}>
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold">
+                <th className="px-2 py-3 text-left text-sm font-semibold">
                   Rank
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">
+                <th className="px-2 py-3 text-left text-sm font-semibold">
                   User
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">
+                <th className="py-3 text-left text-sm font-semibold">
                   Attempts
                 </th>
               </tr>
@@ -403,8 +405,8 @@ export default function SegmentEffortLeaderboard({
                 </tr>
               ) : (
                 efforts
-                  .sort((a, b) => b.attemptCount - a. attemptCount)
-                  . filter((entry) => {
+                  .sort((a, b) => b.attemptCount - a.attemptCount)
+                  .filter((entry) => {
                     if (sexFilter !== "OVERALL" && entry.sex !== sexFilter) {
                       return false;
                     }
@@ -420,25 +422,25 @@ export default function SegmentEffortLeaderboard({
                           isCurrentUser ? "bg-blue-500/10" : ""
                         }`}
                       >
-                        <td className="w-20 px-4 py-4">
-                          <div className="flex items-center gap-2">
+                        <td className="w-5 px-2 py-2 align-middle">
+                          <div className="flex items-center justify-center gap-2 h-full">
                             {index === 0 && (
-                              <span className="text-2xl">🥇</span>
+                              <span className="text-2xl leading-none">🥇</span>
                             )}
                             {index === 1 && (
-                              <span className="text-2xl">🥈</span>
+                              <span className="text-2xl leading-none">🥈</span>
                             )}
                             {index === 2 && (
-                              <span className="text-2xl">🥉</span>
+                              <span className="text-2xl leading-none">🥉</span>
                             )}
                             {index > 2 && (
-                              <span className="text-gray-400 font-semibold">
+                              <span className="text-gray-400 font-semibold leading-none">
                                 {index + 1}
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="py-4">
                           <div className="flex items-center gap-3">
                             <Avatar
                               image={entry.profilePicture ?? undefined}
@@ -457,7 +459,7 @@ export default function SegmentEffortLeaderboard({
                             </div>
                           </div>
                         </td>
-                        <td className="w-28 px-4 py-4">
+                        <td className="w-18 py-4">
                           <span className="font-semibold text-lg">
                             {entry.attemptCount}
                           </span>
