@@ -95,5 +95,5 @@ export default async function BurritoLeaguePage() {
         segmentName="Burrito League"
       /> */}
     </>
-  );
+  )
 }

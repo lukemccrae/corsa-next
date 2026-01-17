@@ -275,7 +275,7 @@ export default function SegmentEffortLeaderboard({
 
     if (!userIntegration)
       return {
-        label: "Sync Strava to Join",
+        label: "Join Leaderboard",
         icon: "pi pi-sync",
         disabled: false,
       };

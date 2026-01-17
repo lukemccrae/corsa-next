@@ -211,12 +211,20 @@ export default function StravaJoinModal({
               disabled={loading}
             />
             {step === "connect" && (
-              <Button
-                label="Connect Strava"
-                icon="pi pi-link"
-                onClick={handleStravaConnect}
-                loading={loading}
-              />
+              <img
+                      src="/btn_strava_connect_with_white.svg"
+                      alt="Connect with Strava"
+                      onClick={handleStravaConnect}
+                      className="
+                        h-12
+                        cursor-pointer
+                        select-none
+                        hover:opacity-90
+                        active:scale-[0.98]
+                        transition
+                        disabled:opacity-50
+                      "
+                    />
             )}
           </div>
         }
