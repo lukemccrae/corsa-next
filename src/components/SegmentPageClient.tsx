@@ -133,6 +133,16 @@ export default function CoverMap(props: CoverMapProps) {
           segmentId={selectedSegment}
           className="max-w-4xl mx-auto"
         />
+        {/* Powered by Strava logo */}
+        <div className="flex justify-end mt-4 pr-2">
+          <img
+            src="/api_logo_pwrdBy_strava_horiz_white.svg"
+            alt="Powered by Strava"
+            className="h-8 md:h-10"
+            draggable={false}
+            style={{ maxWidth: 220 }}
+          />
+        </div>
       </div>
     </>
   );
