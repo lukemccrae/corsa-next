@@ -348,12 +348,12 @@ export default function SegmentEffortLeaderboard({
         )}
 
         <div className="flex items-center gap-3 mb-4">
-          <SelectButton
+          {!loading && <SelectButton
             value={sexFilter}
             onChange={(e) => setSexFilter(e.value)}
             options={filterOptions}
             className="text-sm"
-          />
+          />}
         </div>
 
         <div className="overflow-x-auto">
