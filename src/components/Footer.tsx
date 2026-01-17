@@ -31,12 +31,13 @@ export const Footer = () => {
           >
             Privacy
           </a>
+          <a
+            href="/support"
+            className="hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+          >
+            Support
+          </a>
         </div>
-        <Button
-          icon="pi pi-discord"
-          label="Need help?"
-          onClick={handleDiscordClick}
-        />{" "}
       </div>
     </footer>
   );
