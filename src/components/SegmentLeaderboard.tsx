@@ -5,6 +5,7 @@ import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import { ProgressSpinner } from "primereact/progressspinner";
+import { SelectButton } from "primereact/selectbutton";
 import { useTheme } from "./ThemeProvider";
 import { useUser } from "../context/UserContext";
 import { fetchSegmentLeaderboard } from "../services/segment.service";
@@ -38,6 +39,13 @@ export default function SegmentEffortLeaderboard({
   const [fetchingIntegration, setFetchingIntegration] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [oauthStatus, setOauthStatus] = useState("");
+  const [sexFilter, setSexFilter] = useState<string>("OVERALL");
+
+  const filterOptions = [
+    { label: "Overall", value: "OVERALL" },
+    { label: "Male", value: "M" },
+    { label: "Female", value: "F" },
+  ];
 
   const userInLeaderboard = user?.userId
     ? efforts.some((effort) => effort.userId === user["cognito:username"])
@@ -218,7 +226,7 @@ export default function SegmentEffortLeaderboard({
 
       if (result.errors) {
         throw new Error(
-          result.errors[0]?.message || "Failed to join leaderboard"
+          result.errors[0]?.message || "Failed to join leaderboard",
         );
       }
 
@@ -339,6 +347,15 @@ export default function SegmentEffortLeaderboard({
           </div>
         )}
 
+        <div className="flex items-center gap-3 mb-4">
+          <SelectButton
+            value={sexFilter}
+            onChange={(e) => setSexFilter(e.value)}
+            options={filterOptions}
+            className="text-sm"
+          />
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className={`${headerBg} border-b ${border}`}>
@@ -386,7 +403,13 @@ export default function SegmentEffortLeaderboard({
                 </tr>
               ) : (
                 efforts
-                  .sort((a, b) => b.attemptCount - a.attemptCount)
+                  .sort((a, b) => b.attemptCount - a. attemptCount)
+                  . filter((entry) => {
+                    if (sexFilter !== "OVERALL" && entry.sex !== sexFilter) {
+                      return false;
+                    }
+                    return true;
+                  })
                   .map((entry, index) => {
                     const isCurrentUser = user?.userId === entry.userId;
                     return (
@@ -397,7 +420,7 @@ export default function SegmentEffortLeaderboard({
                           isCurrentUser ? "bg-blue-500/10" : ""
                         }`}
                       >
-                        <td className="px-4 py-4">
+                        <td className="w-20 px-4 py-4">
                           <div className="flex items-center gap-2">
                             {index === 0 && (
                               <span className="text-2xl">🥇</span>
@@ -422,8 +445,8 @@ export default function SegmentEffortLeaderboard({
                               shape="circle"
                               size="normal"
                             />
-                            <div>
-                              <div className="font-medium">
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium truncate">
                                 {entry.firstName} {entry.lastName}
                                 {isCurrentUser && (
                                   <span className="ml-2 text-xs text-blue-400 font-normal">
@@ -434,7 +457,7 @@ export default function SegmentEffortLeaderboard({
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="w-28 px-4 py-4">
                           <span className="font-semibold text-lg">
                             {entry.attemptCount}
                           </span>
