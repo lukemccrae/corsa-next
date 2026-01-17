@@ -92,7 +92,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   );
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface-950">
+    <div className="flex flex-col bg-surface-950">
       <div className="rounded-t-3xl bg-surface-0 dark:bg-surface-900 py-6 px-4 lg:px-20 w-full shadow">
         {/* header */}
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 mb-4">

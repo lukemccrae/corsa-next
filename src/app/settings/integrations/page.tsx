@@ -341,7 +341,6 @@ function IntegrationsContent() {
           </div>
         </Card>
 
-        <Footer />
       </div>
 
       {/* Disconnect Confirmation Dialog */}
