@@ -15,6 +15,17 @@ import { SegmentLeaderboardEntry } from "../generated/schema";
 const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
+
+const JOIN_LEADERBOARD_MUTATION = `
+  mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
+    joinLeaderboard(input: { segmentId: $segmentId, userId: $userId }) {
+      message
+      segmentId
+      success
+    }
+  }
+`;
+
 type SegmentEffortLeaderboardProps = {
   segmentId: string;
   segmentName?: string;
@@ -38,6 +49,7 @@ export default function SegmentEffortLeaderboard({
   const [fetchingIntegration, setFetchingIntegration] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [oauthStatus, setOauthStatus] = useState("");
+  const [refreshingUserId, setRefreshingUserId] = useState<string | null>(null);
 
   const userInLeaderboard = user?.userId
     ? efforts.some((effort) => effort.userId === user["cognito:username"])
@@ -184,16 +196,6 @@ export default function SegmentEffortLeaderboard({
     console.log(user?.["cognito:username"], "<< user");
     if (!user?.["cognito:username"]) return;
     try {
-      const mutation = `
-        mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
-          joinLeaderboard(input: { segmentId: $segmentId, userId: $userId }) {
-            message
-            segmentId
-            success
-          }
-        }
-      `;
-
       const response = await fetch(APPSYNC_ENDPOINT, {
         method: "POST",
         headers: {
@@ -201,7 +203,7 @@ export default function SegmentEffortLeaderboard({
           "x-api-key": APPSYNC_API_KEY,
         },
         body: JSON.stringify({
-          query: mutation,
+          query: JOIN_LEADERBOARD_MUTATION,
           variables: {
             segmentId,
             userId: user["cognito:username"],
@@ -241,6 +243,63 @@ export default function SegmentEffortLeaderboard({
         life: 5000,
       });
       setJoining(false);
+    }
+  };
+
+  const handleRefreshEffort = async (targetUserId: string) => {
+    if (!user?.["cognito:username"]) return;
+    
+    setRefreshingUserId(targetUserId);
+    
+    try {
+      const response = await fetch(APPSYNC_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": APPSYNC_API_KEY,
+        },
+        body: JSON.stringify({
+          query: JOIN_LEADERBOARD_MUTATION,
+          variables: {
+            segmentId,
+            userId: targetUserId,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to refresh efforts");
+      }
+
+      const result = await response.json();
+
+      if (result.errors) {
+        throw new Error(
+          result.errors[0]?.message || "Failed to refresh efforts"
+        );
+      }
+
+      toast.current?.show({
+        severity: "success",
+        summary: "Success!",
+        detail: "Efforts refreshed successfully. Reloading...",
+        life: 2000,
+      });
+
+      // Refresh the leaderboard data
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (err: any) {
+      console.error("Failed to refresh efforts:", err);
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: err.message || "Failed to refresh efforts",
+        life: 5000,
+      });
+    } finally {
+      setRefreshingUserId(null);
     }
   };
 
@@ -352,12 +411,15 @@ export default function SegmentEffortLeaderboard({
                 <th className="px-4 py-3 text-left text-sm font-semibold">
                   Attempts
                 </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={3} className="px-4 py-12 text-center">
+                  <td colSpan={4} className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center gap-4">
                       <ProgressSpinner
                         style={{ width: "50px", height: "50px" }}
@@ -368,7 +430,7 @@ export default function SegmentEffortLeaderboard({
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={3} className="px-4 py-8 text-center">
+                  <td colSpan={4} className="px-4 py-8 text-center">
                     <div className="flex flex-col items-center gap-2">
                       <i className="pi pi-exclamation-triangle text-red-500 text-3xl" />
                       <p className="text-red-400">{error}</p>
@@ -378,7 +440,7 @@ export default function SegmentEffortLeaderboard({
               ) : efforts.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={3}
+                    colSpan={4}
                     className="px-4 py-8 text-center text-gray-400"
                   >
                     No entries yet. Be the first to join!
@@ -389,6 +451,10 @@ export default function SegmentEffortLeaderboard({
                   .sort((a, b) => b.attemptCount - a.attemptCount)
                   .map((entry, index) => {
                     const isCurrentUser = user?.userId === entry.userId;
+                    const isAdmin = user?.preferred_username === "lukemccrae";
+                    const canRefresh = isAdmin || user?.["cognito:username"] === entry.userId;
+                    const isRefreshing = refreshingUserId === entry.userId;
+                    
                     return (
                       <tr
                         key={entry.userId}
@@ -438,6 +504,19 @@ export default function SegmentEffortLeaderboard({
                           <span className="font-semibold text-lg">
                             {entry.attemptCount}
                           </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          {canRefresh && (
+                            <Button
+                              icon={isRefreshing ? "pi pi-spin pi-spinner" : "pi pi-refresh"}
+                              onClick={() => handleRefreshEffort(entry.userId)}
+                              disabled={isRefreshing}
+                              tooltip={isAdmin && !isCurrentUser ? "Refresh efforts" : "Refresh my efforts"}
+                              tooltipOptions={{ position: "top" }}
+                              className="p-button-rounded p-button-text p-button-sm"
+                              aria-label={isAdmin && !isCurrentUser ? "Refresh efforts" : "Refresh my efforts"}
+                            />
+                          )}
                         </td>
                       </tr>
                     );
