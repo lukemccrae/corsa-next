@@ -337,9 +337,17 @@ export default function SegmentEffortLeaderboard({
         <h1 className="text-3xl md:text-4xl font-bold mb-2">
           {segmentName} Leaderboard
         </h1>
-        <p className="text-gray-400 mb-6">
+        {/* <p className="text-gray-400 mb-6">
           Track your efforts and compete with other runners
-        </p>
+        </p> */}
+            <div className=" z-[1000] rounded py-2">
+      <img
+        src="/api_logo_pwrdBy_strava_horiz_white.svg"
+        alt="Powered by Strava"
+        className="h-4 w-auto"
+      />
+    </div>
+
         {userInLeaderboard && (
           <div className="flex items-center gap-2 text-green-500 mb-6 bg-green-500/10 border border-green-500/20 rounded-lg p-3">
             <i className="pi pi-check-circle" />

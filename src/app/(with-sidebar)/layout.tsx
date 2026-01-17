@@ -17,13 +17,16 @@ import { TrackerGroup } from "@/src/generated/schema";
  * - Adjust the entity id (ENTITY_ID env) to whatever entity you want to scope streams to.
  */
 
-const APPSYNC_ENDPOINT = "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
+const APPSYNC_ENDPOINT =
+  "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 const DEFAULT_ENTITY = "STREAM";
 
-async function fetchStreamsByEntity(entity:  string | undefined) {
+async function fetchStreamsByEntity(entity: string | undefined) {
   if (!APPSYNC_ENDPOINT || !APPSYNC_API_KEY) {
-    console.warn("APPSYNC_ENDPOINT or APPSYNC_API_KEY not configured; returning empty stream list");
+    console.warn(
+      "APPSYNC_ENDPOINT or APPSYNC_API_KEY not configured; returning empty stream list",
+    );
     return { streams: [], groups: [] };
   }
 
@@ -51,9 +54,9 @@ async function fetchStreamsByEntity(entity:  string | undefined) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key":  APPSYNC_API_KEY,
+      "x-api-key": APPSYNC_API_KEY,
     },
-    body:  JSON.stringify({ query, variables }),
+    body: JSON.stringify({ query, variables }),
     // cache/revalidate as appropriate for your app
     next: { revalidate: 30 },
   });
@@ -64,23 +67,27 @@ async function fetchStreamsByEntity(entity:  string | undefined) {
   }
 
   const json = await res.json();
-  console.log(json, '<< json');
-  
+  console.log(json, "<< json");
+
   return {
-    streams: json?.data?.getStreamsByEntity ??  [],
-    groups: json?.data?.getAllTrackerGroups ?? []
+    streams: json?.data?.getStreamsByEntity ?? [],
+    groups: json?.data?.getAllTrackerGroups ?? [],
   };
 }
 
-export default async function WithSidebarLayout({ children }: { children: React. ReactNode }) {
+export default async function WithSidebarLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   // run server-side fetch and map to Sidebar Channel shape
-  const { streams, groups } = await fetchStreamsByEntity(DEFAULT_ENTITY || undefined);
+  // const { streams, groups } = await fetchStreamsByEntity(DEFAULT_ENTITY || undefined);
   return (
     <div className="flex h-full w-full min-h-0">
-      <Sidebar groups={groups} livestreams={streams} />
-      <div className="flex-1 min-h-0 overflow-auto">
-        {children}
-      </div>
+      {/* <Sidebar groups={groups} livestreams={streams} /> */}
+
+      <Sidebar groups={[]} livestreams={[]} />
+      <div className="flex-1 min-h-0 overflow-auto">{children}</div>
     </div>
   );
 }
