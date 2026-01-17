@@ -2,6 +2,8 @@ import React from "react";
 import { Card } from "primereact/card";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { Button } from "primereact/button";
+import DiscordButton from "@/src/components/DiscordButton";
 
 export const metadata: Metadata = {
   title: "Support - CORSA",
@@ -23,7 +25,6 @@ export default function SupportPage() {
           </div>
 
           <div className="space-y-6">
-
             {/* Discord Community */}
             <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
               <div className="flex items-start gap-4">
@@ -36,15 +37,7 @@ export default function SupportPage() {
                     Join our Discord server to chat with the community and get
                     real-time support.
                   </p>
-                  <a
-                    href="https://discord.gg/UPUTkbQMWZ"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-indigo-500 hover:text-indigo-600 dark: text-indigo-400 dark:hover:text-indigo-300 font-medium"
-                  >
-                    Join Discord Server
-                    <i className="pi pi-external-link text-sm" />
-                  </a>
+                  <DiscordButton />
                 </div>
               </div>
             </div>
@@ -70,7 +63,6 @@ export default function SupportPage() {
                 </div>
               </div>
             </div>
-
           </div>
 
           {/* Additional Help Section */}

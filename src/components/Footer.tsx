@@ -3,14 +3,9 @@ import React from "react";
 import { Button } from "primereact/button";
 import { useTheme } from "./ThemeProvider";
 
-const DISCORD_INVITE_URL = "https://discord.gg/UPUTkbQMWZ";
 
 export const Footer = () => {
   const { theme } = useTheme();
-
-  const handleDiscordClick = () => {
-    window.open(DISCORD_INVITE_URL, "_blank", "noopener,noreferrer");
-  };
 
   return (
     <footer
