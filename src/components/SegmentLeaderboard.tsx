@@ -15,6 +15,17 @@ import { SegmentLeaderboardEntry } from "../generated/schema";
 const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
+
+const JOIN_LEADERBOARD_MUTATION = `
+  mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
+    joinLeaderboard(input: { segmentId: $segmentId, userId: $userId }) {
+      message
+      segmentId
+      success
+    }
+  }
+`;
+
 type SegmentEffortLeaderboardProps = {
   segmentId: string;
   segmentName?: string;
@@ -185,16 +196,6 @@ export default function SegmentEffortLeaderboard({
     console.log(user?.["cognito:username"], "<< user");
     if (!user?.["cognito:username"]) return;
     try {
-      const mutation = `
-        mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
-          joinLeaderboard(input: { segmentId: $segmentId, userId: $userId }) {
-            message
-            segmentId
-            success
-          }
-        }
-      `;
-
       const response = await fetch(APPSYNC_ENDPOINT, {
         method: "POST",
         headers: {
@@ -202,7 +203,7 @@ export default function SegmentEffortLeaderboard({
           "x-api-key": APPSYNC_API_KEY,
         },
         body: JSON.stringify({
-          query: mutation,
+          query: JOIN_LEADERBOARD_MUTATION,
           variables: {
             segmentId,
             userId: user["cognito:username"],
@@ -251,16 +252,6 @@ export default function SegmentEffortLeaderboard({
     setRefreshingUserId(targetUserId);
     
     try {
-      const mutation = `
-        mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
-          joinLeaderboard(input: { segmentId: $segmentId, userId: $userId }) {
-            message
-            segmentId
-            success
-          }
-        }
-      `;
-
       const response = await fetch(APPSYNC_ENDPOINT, {
         method: "POST",
         headers: {
@@ -268,7 +259,7 @@ export default function SegmentEffortLeaderboard({
           "x-api-key": APPSYNC_API_KEY,
         },
         body: JSON.stringify({
-          query: mutation,
+          query: JOIN_LEADERBOARD_MUTATION,
           variables: {
             segmentId,
             userId: targetUserId,
