@@ -2963,6 +2963,18 @@
             "deprecationReason": null
           },
           {
+            "name": "startDateLocalBROKEN",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "startDateUTC",
             "description": null,
             "args": [],
@@ -2992,7 +3004,7 @@
           },
           {
             "name": "timezone",
-            "description": null,
+            "description": " # bad timezones in data",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -3679,6 +3691,18 @@
             "deprecationReason": null
           },
           {
+            "name": "sex",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "userId",
             "description": null,
             "args": [],
@@ -3930,6 +3954,18 @@
           },
           {
             "name": "athleteProfileMedium",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "athleteSex",
             "description": null,
             "args": [],
             "type": {

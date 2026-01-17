@@ -99,6 +99,7 @@ export const fetchSegmentLeaderboard = async ({
         username
         firstName
         lastName
+        sex
       }
     }
   `;

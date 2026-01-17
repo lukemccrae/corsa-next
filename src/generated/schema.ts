@@ -372,8 +372,10 @@ export type Segment = {
   location?: Maybe<LatLng>;
   otherPrize?: Maybe<Scalars['String']['output']>;
   segmentId: Scalars['ID']['output'];
+  startDateLocalBROKEN?: Maybe<Scalars['String']['output']>;
   startDateUTC: Scalars['AWSDateTime']['output'];
   state?: Maybe<Scalars['String']['output']>;
+  /**  # bad timezones in data */
   timezone?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
 };
@@ -438,6 +440,7 @@ export type SegmentLeaderboardEntry = {
   lastName?: Maybe<Scalars['String']['output']>;
   profilePicture?: Maybe<Scalars['String']['output']>;
   segmentId: Scalars['ID']['output'];
+  sex?: Maybe<Scalars['String']['output']>;
   userId: Scalars['ID']['output'];
   username: Scalars['String']['output'];
 };
@@ -466,6 +469,7 @@ export type StravaIntegration = {
   athleteLastName?: Maybe<Scalars['String']['output']>;
   athleteProfile?: Maybe<Scalars['String']['output']>;
   athleteProfileMedium?: Maybe<Scalars['String']['output']>;
+  athleteSex?: Maybe<Scalars['String']['output']>;
   athleteUsername?: Maybe<Scalars['String']['output']>;
   createdAt?: Maybe<Scalars['String']['output']>;
   expiresAt?: Maybe<Scalars['String']['output']>;
