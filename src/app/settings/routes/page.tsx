@@ -422,7 +422,6 @@ export default function RoutesSettingsPage() {
         redirectAfter={false}
       />
 
-      <Footer />
     </>
   );
 }

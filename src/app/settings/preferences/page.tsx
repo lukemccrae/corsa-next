@@ -40,7 +40,6 @@ export default function PreferencesPage() {
           />
         </div>
       </div>
-      <Footer />
     </>
   );
 }

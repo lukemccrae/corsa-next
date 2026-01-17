@@ -258,7 +258,6 @@ export default function AccountSettingsPage() {
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

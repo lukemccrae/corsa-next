@@ -10,7 +10,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <Header></Header>
       {children}
       {/* Footer overlay */}
-      <Footer></Footer>
     </div>
   );
 }
