@@ -39,7 +39,9 @@ export default function SegmentEffortLeaderboard({
   const [fetchingIntegration, setFetchingIntegration] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [oauthStatus, setOauthStatus] = useState("");
-  const [refreshingUsers, setRefreshingUsers] = useState<Set<string>>(new Set());
+  const [refreshingUsers, setRefreshingUsers] = useState<Set<string>>(
+    new Set(),
+  );
   const [sexFilter, setSexFilter] = useState<string>("OVERALL");
 
   const filterOptions = [
@@ -140,7 +142,6 @@ export default function SegmentEffortLeaderboard({
         .catch((error) => {
           console.error("Strava connection error:", error);
 
-          // Check for duplicate athlete ID
           const isDuplicateAthlete =
             error.message?.includes("already connected") ||
             error.message?.includes("duplicate") ||
@@ -179,12 +180,10 @@ export default function SegmentEffortLeaderboard({
       return;
     }
 
-    // If user has Strava integration, join directly
     if (userIntegration) {
       setJoining(true);
       await handleJoinLeaderboard();
     } else {
-      // No integration - show modal to connect
       setShowJoinModal(true);
     }
   };
@@ -223,60 +222,61 @@ export default function SegmentEffortLeaderboard({
 
     if (result.errors) {
       throw new Error(
-        result.errors[0]?.message || "Failed to join leaderboard"
+        result.errors[0]?.message || "Failed to join leaderboard",
       );
     }
 
     return result;
   };
 
+  const callRefreshLeaderboardEntryMutation = async (userId: string) => {
+    const mutation = `
+      mutation RefreshLeaderboardEntry($segmentId: ID!, $userId: ID!) {
+        refreshLeaderboardEntry(input: { segmentId: $segmentId, userId: $userId }) {
+          message
+          segmentId
+          success
+        }
+      }
+    `;
+
+    const response = await fetch(APPSYNC_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": APPSYNC_API_KEY,
+      },
+      body: JSON.stringify({
+        query: mutation,
+        variables: {
+          segmentId,
+          userId,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to refresh entry");
+    }
+
+    const result = await response.json();
+
+    if (result.errors) {
+      throw new Error(result.errors[0]?.message || "Failed to refresh entry");
+    }
+
+    return result;
+  };
+
   const handleJoinLeaderboard = async () => {
-    console.log(user?.["cognito:username"], "<< user");
     if (!user?.["cognito:username"]) return;
     try {
       await callJoinLeaderboardMutation(user["cognito:username"]);
-      const mutation = `
-        mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
-          joinLeaderboard(input: { segmentId: $segmentId, userId: $userId }) {
-            message
-            segmentId
-            success
-          }
-        }
-      `;
-
-      const response = await fetch(APPSYNC_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": APPSYNC_API_KEY,
-        },
-        body: JSON.stringify({
-          query: mutation,
-          variables: {
-            segmentId,
-            userId: user["cognito:username"],
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        console.log(response, "<< res");
-        throw new Error("Failed to join leaderboard");
-      }
-
-      const result = await response.json();
-
-      if (result.errors) {
-        throw new Error(
-          result.errors[0]?.message || "Failed to join leaderboard",
-        );
-      }
 
       toast.current?.show({
         severity: "success",
         summary: "Success! ",
-        detail: "You've joined the leaderboard.  Refreshing...",
+        detail: "You've joined the leaderboard.  Refreshing.. .",
         life: 2000,
       });
 
@@ -299,7 +299,7 @@ export default function SegmentEffortLeaderboard({
     setRefreshingUsers((prev) => new Set(prev).add(userId));
 
     try {
-      await callJoinLeaderboardMutation(userId);
+      await callRefreshLeaderboardEntryMutation(userId);
 
       toast.current?.show({
         severity: "success",
@@ -308,9 +308,9 @@ export default function SegmentEffortLeaderboard({
         life: 3000,
       });
 
-      // Refresh the leaderboard data
       const leaderboardResult = await fetchSegmentLeaderboard({ segmentId });
-      const leaderboardData = leaderboardResult?.data?.getSegmentLeaderboard || [];
+      const leaderboardData =
+        leaderboardResult?.data?.getSegmentLeaderboard || [];
       setEfforts(leaderboardData);
     } catch (err: any) {
       console.error("Failed to refresh entry:", err);
@@ -361,78 +361,63 @@ export default function SegmentEffortLeaderboard({
   };
 
   return (
-    <div className="relative min-h-screen p-4 md:p-8">
+    <div className="relative">
       <Toast ref={toast} />
 
-      {/* Loading Overlay */}
       {(joining || oauthLoading) && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 shadow-2xl flex flex-col items-center gap-6 max-w-sm mx-4">
-            <ProgressSpinner
-              style={{ width: "80px", height: "80px" }}
-              strokeWidth="4"
-              animationDuration="1s"
-            />
-            <div className="text-center">
-              <h3 className="text-xl font-semibold text-white mb-2">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className={`${cardBg} p-8 max-w-md text-center`}>
+            <ProgressSpinner className="mb-4" />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">
                 {oauthLoading
                   ? "Connecting to Strava..."
                   : "Joining Leaderboard... "}
               </h3>
-              <p className="text-gray-400 text-sm">
+              <p className="text-sm opacity-80">
                 {oauthLoading
                   ? "Please wait while we sync your Strava account"
                   : "Adding you to the competition 🌯"}
               </p>
             </div>
-            <div className="flex gap-2 items-center text-gray-400 text-xs">
-              <i className="pi pi-info-circle" />
-              <span>This may take awhile, please be patient.</span>
-            </div>
-          </div>
+            <p className="text-xs opacity-60 mt-4">
+              <i className="pi pi-info-circle mr-1" />
+              This may take awhile, please be patient.
+            </p>
+          </Card>
         </div>
       )}
 
-      <div className={`${cardBg} rounded-lg shadow-lg p-6 md: p-8 border`}>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <Card className={`${cardBg} border`}>
+        <div className="flex items-center justify-between mb-6">
           <a
             href="/burritoleague"
-            className="flex items-center gap-2 text-blue-500 hover:text-blue-400 transition-colors"
+            className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
           >
             <i className="pi pi-arrow-left" />
             Back 🌯
           </a>
           {!userInLeaderboard && (
-            <Button
-              {...getJoinButtonProps()}
-              onClick={handleJoinClick}
-              className="w-full md:w-auto"
-              severity={userIntegration ? "success" : "info"}
-            />
+            <Button {...getJoinButtonProps()} onClick={handleJoinClick} />
           )}
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">
-          {segmentName} Leaderboard
-        </h1>
-        {/* <p className="text-gray-400 mb-6">
-          Track your efforts and compete with other runners
-        </p> */}
-            <div className=" z-[1000] rounded py-2">
-      <img
-        src="/api_logo_pwrdBy_strava_horiz_white.svg"
-        alt="Powered by Strava"
-        className="h-4 w-auto"
-      />
-    </div>
+        <h1 className="text-3xl font-bold mb-2">{segmentName} Leaderboard</h1>
+        <div className="mb-4">
+          <img
+            src="/api_logo_pwrdBy_strava_horiz_white.svg"
+            alt="Powered by Strava"
+            className="h-8"
+          />
+        </div>
 
         {userInLeaderboard && (
-          <div className="flex items-center gap-2 text-green-500 mb-6 bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-            <i className="pi pi-check-circle" />
+          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 mb-4 flex items-center gap-2">
+            <i className="pi pi-check-circle text-green-400" />
             You're on this leaderboard!
           </div>
         )}
 
-        <div className="flex items-center gap-3 mb-4">
+        <div className="mb-4">
           {!loading && (
             <SelectButton
               value={sexFilter}
@@ -447,13 +432,13 @@ export default function SegmentEffortLeaderboard({
           <table className="w-full">
             <thead className={`${headerBg} border-b ${border}`}>
               <tr>
-                <th className="px-2 py-3 text-left text-sm font-semibold">
+                <th className="px-4 py-3 text-left text-sm font-semibold">
                   Rank
                 </th>
-                <th className="px-2 py-3 text-left text-sm font-semibold">
+                <th className="px-4 py-3 text-left text-sm font-semibold">
                   User
                 </th>
-                <th className="py-3 text-left text-sm font-semibold">
+                <th className="px-4 py-3 text-left text-sm font-semibold">
                   Attempts
                 </th>
                 {user?.preferred_username === "lukemccrae" && (
@@ -466,29 +451,27 @@ export default function SegmentEffortLeaderboard({
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={user?.preferred_username === "lukemccrae" ? 4 : 3} className="px-4 py-12 text-center">
-                    <div className="flex flex-col items-center gap-4">
-                      <ProgressSpinner
-                        style={{ width: "50px", height: "50px" }}
-                      />
-                      <p className="text-gray-400">Loading...</p>
+                  <td colSpan={4} className="px-4 py-8">
+                    <div className="flex flex-col items-center gap-3">
+                      <ProgressSpinner />
+                      <p className="text-sm opacity-60">Loading... </p>
                     </div>
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={user?.preferred_username === "lukemccrae" ? 4 : 3} className="px-4 py-8 text-center">
-                    <div className="flex flex-col items-center gap-2">
-                      <i className="pi pi-exclamation-triangle text-red-500 text-3xl" />
-                      <p className="text-red-400">{error}</p>
+                  <td colSpan={4} className="px-4 py-8">
+                    <div className="flex flex-col items-center gap-2 text-red-400">
+                      <i className="pi pi-exclamation-triangle text-2xl" />
+                      <p className="text-sm">{error}</p>
                     </div>
                   </td>
                 </tr>
               ) : efforts.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={user?.preferred_username === "lukemccrae" ? 4 : 3}
-                    className="px-4 py-8 text-center text-gray-400"
+                    colSpan={4}
+                    className="px-4 py-8 text-center text-sm opacity-60"
                   >
                     No entries yet. Be the first to join!
                   </td>
@@ -508,61 +491,61 @@ export default function SegmentEffortLeaderboard({
                       <tr
                         key={entry.userId}
                         ref={isCurrentUser ? selectedRowRef : null}
-                        className={`border-b ${border} ${hoverBg} transition-colors ${
-                          isCurrentUser ? "bg-blue-500/10" : ""
-                        }`}
+                        className={`border-b ${border} ${hoverBg} transition-colors ${isCurrentUser ? "bg-blue-500/10" : ""}`}
                       >
-                        <td className="w-5 px-2 py-2 align-middle">
-                          <div className="flex items-center justify-center gap-2 h-full">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
                             {index === 0 && (
-                              <span className="text-2xl leading-none">🥇</span>
+                              <span className="text-2xl">🥇</span>
                             )}
                             {index === 1 && (
-                              <span className="text-2xl leading-none">🥈</span>
+                              <span className="text-2xl">🥈</span>
                             )}
                             {index === 2 && (
-                              <span className="text-2xl leading-none">🥉</span>
+                              <span className="text-2xl">🥉</span>
                             )}
                             {index > 2 && (
-                              <span className="text-gray-400 font-semibold leading-none">
+                              <span className="text-sm font-medium opacity-60">
                                 {index + 1}
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className="py-4">
+                        <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <Avatar
                               image={entry.profilePicture ?? undefined}
                               shape="circle"
                               size="normal"
                             />
-                            <div className="min-w-0 flex-1">
-                              <div className="font-medium truncate">
+                            <div className="flex flex-col">
+                              <span className="font-medium">
                                 {entry.firstName} {entry.lastName}
                                 {isCurrentUser && (
-                                  <span className="ml-2 text-xs text-blue-400 font-normal">
+                                  <span className="ml-2 text-xs opacity-60">
                                     (You)
                                   </span>
                                 )}
-                              </div>
+                              </span>
                             </div>
                           </div>
                         </td>
-                        <td className="w-18 py-4">
-                          <span className="font-semibold text-lg">
+                        <td className="px-4 py-3">
+                          <span className="font-semibold">
                             {entry.attemptCount}
                           </span>
                         </td>
                         {user?.preferred_username === "lukemccrae" && (
-                          <td className="px-4 py-4">
+                          <td className="px-4 py-3">
                             <Button
-                              icon="pi pi-refresh"
-                              rounded
-                              text
-                              severity="info"
-                              loading={refreshingUsers.has(entry.userId)}
+                              icon={
+                                refreshingUsers.has(entry.userId)
+                                  ? "pi pi-spin pi-spinner"
+                                  : "pi pi-refresh"
+                              }
                               onClick={() => handleRefreshEntry(entry.userId)}
+                              disabled={refreshingUsers.has(entry.userId)}
+                              className="p-button-sm p-button-text"
                               tooltip="Refresh entry"
                               tooltipOptions={{ position: "top" }}
                             />
@@ -575,7 +558,7 @@ export default function SegmentEffortLeaderboard({
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
       <StravaJoinModal
         visible={showJoinModal}
@@ -583,7 +566,6 @@ export default function SegmentEffortLeaderboard({
         segmentId={segmentId}
         onSuccess={() => {
           setShowJoinModal(false);
-          // Refresh to show updated integration status
           window.location.reload();
         }}
         userIntegration={userIntegration}
