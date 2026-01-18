@@ -377,7 +377,7 @@ export default function SegmentEffortLeaderboard({
               <p className="text-sm opacity-80">
                 {oauthLoading
                   ? "Please wait while we sync your Strava account"
-                  : "Adding you to the competition 🌯"}
+                  : "Adding you to the competition"}
               </p>
             </div>
             <p className="text-xs opacity-60 mt-4">
@@ -395,7 +395,7 @@ export default function SegmentEffortLeaderboard({
             className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
           >
             <i className="pi pi-arrow-left" />
-            Back 🌯
+            Back 
           </a>
           {!userInLeaderboard && (
             <Button {...getJoinButtonProps()} onClick={handleJoinClick} />

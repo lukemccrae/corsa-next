@@ -8,22 +8,22 @@ const createSegmentIcon = () => {
   return L.divIcon({
     className: "athlete-marker",
     html: `
-        <div
-          style="
-            width: 35px;
-            height: 35px;
-            background-color: #c61313ff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            position: relative;
-          "
-        >
-          🌯
-        </div>
-        `,
+      <div
+        style="
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+        "
+      >
+        <img 
+          src="/burrito.png" 
+          alt="Burrito" 
+          style="width: 36px; height: 36px;"
+        />
+      </div>
+    `,
     iconSize: [48, 48],
     iconAnchor: [20, 40],
     popupAnchor: [0, -40],
@@ -46,7 +46,7 @@ export const SegmentMap = (props: { segments: Segment[] }) => (
       minZoom={2}
       maxZoom={17}
       maxBounds={[
-        [-85, -180], 
+        [-85, -180],
         [85, 180],
       ]}
     >
@@ -73,7 +73,14 @@ export const SegmentMap = (props: { segments: Segment[] }) => (
             >
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="text-2xl">🌯</div>
+                  <div className="text-2xl">
+                    {" "}
+                    <img
+                      src="/burrito.png"
+                      alt="Burrito"
+                      style={{ width: "24px", height: "24px" }}
+                    />
+                  </div>
                   <div>
                     <h3 className="font-semibold text-base leading-tight">
                       {segment.title}

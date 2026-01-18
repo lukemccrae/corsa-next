@@ -51,7 +51,7 @@ export default function CoverMap(props: CoverMapProps) {
             position: relative;
           "
         >
-          🌯
+          
         </div>
         `,
       iconSize: [48, 48],
@@ -109,7 +109,7 @@ export default function CoverMap(props: CoverMapProps) {
   return (
     <>
       <div className="relative w-full max-w-3xl mx-auto aspect-[16/9] rounded-lg overflow-hidden mt-10">
-        <h2 className="text-2xl font-bold mb-3">🌯 Burrito League</h2>
+        <h2 className="text-2xl font-bold mb-3">Burrito League</h2>
         <MapContent />
 
         {/* <ProfileLiveChat

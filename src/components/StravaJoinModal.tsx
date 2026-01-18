@@ -108,7 +108,7 @@ export default function StravaJoinModal({
       toast.current?.show({
         severity: "success",
         summary: "Success!",
-        detail: "You've joined the leaderboard 🌯",
+        detail: "You've joined the leaderboard",
         life: 2000,
       });
 
@@ -199,7 +199,7 @@ export default function StravaJoinModal({
       <Dialog
         visible={visible}
         onHide={onHide}
-        header="Join Burrito League 🌯"
+        header="Join Burrito League"
         modal
         className="max-w-md w-full"
         footer={

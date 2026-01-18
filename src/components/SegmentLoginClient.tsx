@@ -38,7 +38,7 @@ export default function SegmentLoginClient({
             Sign in to join
           </p>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            🌯 {segmentName}
+            {segmentName}
           </h1>
         </div>
       )}

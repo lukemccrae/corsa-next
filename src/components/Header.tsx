@@ -14,14 +14,20 @@ export default function TemplateDemo() {
   const start = (
     <div className="flex align-items-center gap-2">
       <Button
-        label="🌯"
         className="p-button-text"
-        style={{ fontSize: "2.25rem" }} // 🌯 bigger burrito
+        style={{ fontSize: "1.25rem !important" }}
         onClick={() => {
           window.location.href = `/burritoleague`;
         }}
         aria-label="Home"
-      />
+      >
+        {" "}
+        <img
+          src="/burrito.png"
+          alt="Burrito"
+          style={{ width: "36px", height: "36px" }}
+        />
+      </Button>
     </div>
   );
 

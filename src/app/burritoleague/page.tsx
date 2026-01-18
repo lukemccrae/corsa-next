@@ -5,11 +5,11 @@ import type { Metadata } from "next";
 import BurritoLeagueStats from "@/src/components/BurritoLeagueStats";
 
 export const metadata: Metadata = {
-  title: "🌯 Burrito League - CORSA",
+  title: "Burrito League - CORSA",
   description:
     "Connect with others in the Burrito League",
   openGraph: {
-    title: "🌯 Burrito League - CORSA",
+    title: "Burrito League - CORSA",
     description:
       "Connect with others in the Burrito League",
     images: [
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "🌯 Burrito League - CORSA",
+    title: "Burrito League - CORSA",
     description:
       "Connect with others in Burrito League",
     images: ["https://i.imgur.com/gZiA2pq.png"],
