@@ -5,6 +5,7 @@ import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import { ProgressSpinner } from "primereact/progressspinner";
+import { SelectButton } from "primereact/selectbutton";
 import { useTheme } from "./ThemeProvider";
 import { useUser } from "../context/UserContext";
 import { fetchSegmentLeaderboard } from "../services/segment.service";
@@ -38,6 +39,14 @@ export default function SegmentEffortLeaderboard({
   const [fetchingIntegration, setFetchingIntegration] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [oauthStatus, setOauthStatus] = useState("");
+  const [refreshingUsers, setRefreshingUsers] = useState<Set<string>>(new Set());
+  const [sexFilter, setSexFilter] = useState<string>("OVERALL");
+
+  const filterOptions = [
+    { label: "Overall", value: "OVERALL" },
+    { label: "Male", value: "M" },
+    { label: "Female", value: "F" },
+  ];
 
   const userInLeaderboard = user?.userId
     ? efforts.some((effort) => effort.userId === user["cognito:username"])
@@ -180,10 +189,52 @@ export default function SegmentEffortLeaderboard({
     }
   };
 
+  const callJoinLeaderboardMutation = async (userId: string) => {
+    const mutation = `
+      mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
+        joinLeaderboard(input: { segmentId: $segmentId, userId: $userId }) {
+          message
+          segmentId
+          success
+        }
+      }
+    `;
+
+    const response = await fetch(APPSYNC_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": APPSYNC_API_KEY,
+      },
+      body: JSON.stringify({
+        query: mutation,
+        variables: {
+          segmentId,
+          userId,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to join leaderboard");
+    }
+
+    const result = await response.json();
+
+    if (result.errors) {
+      throw new Error(
+        result.errors[0]?.message || "Failed to join leaderboard"
+      );
+    }
+
+    return result;
+  };
+
   const handleJoinLeaderboard = async () => {
     console.log(user?.["cognito:username"], "<< user");
     if (!user?.["cognito:username"]) return;
     try {
+      await callJoinLeaderboardMutation(user["cognito:username"]);
       const mutation = `
         mutation JoinLeaderboard($segmentId: ID!, $userId: ID!) {
           joinLeaderboard(input: { segmentId: $segmentId, userId: $userId }) {
@@ -218,7 +269,7 @@ export default function SegmentEffortLeaderboard({
 
       if (result.errors) {
         throw new Error(
-          result.errors[0]?.message || "Failed to join leaderboard"
+          result.errors[0]?.message || "Failed to join leaderboard",
         );
       }
 
@@ -241,6 +292,40 @@ export default function SegmentEffortLeaderboard({
         life: 5000,
       });
       setJoining(false);
+    }
+  };
+
+  const handleRefreshEntry = async (userId: string) => {
+    setRefreshingUsers((prev) => new Set(prev).add(userId));
+
+    try {
+      await callJoinLeaderboardMutation(userId);
+
+      toast.current?.show({
+        severity: "success",
+        summary: "Success",
+        detail: "Entry refreshed successfully",
+        life: 3000,
+      });
+
+      // Refresh the leaderboard data
+      const leaderboardResult = await fetchSegmentLeaderboard({ segmentId });
+      const leaderboardData = leaderboardResult?.data?.getSegmentLeaderboard || [];
+      setEfforts(leaderboardData);
+    } catch (err: any) {
+      console.error("Failed to refresh entry:", err);
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: err.message || "Failed to refresh entry",
+        life: 5000,
+      });
+    } finally {
+      setRefreshingUsers((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
     }
   };
 
@@ -267,7 +352,7 @@ export default function SegmentEffortLeaderboard({
 
     if (!userIntegration)
       return {
-        label: "Sync Strava to Join",
+        label: "Join Leaderboard",
         icon: "pi pi-sync",
         disabled: false,
       };
@@ -329,9 +414,17 @@ export default function SegmentEffortLeaderboard({
         <h1 className="text-3xl md:text-4xl font-bold mb-2">
           {segmentName} Leaderboard
         </h1>
-        <p className="text-gray-400 mb-6">
+        {/* <p className="text-gray-400 mb-6">
           Track your efforts and compete with other runners
-        </p>
+        </p> */}
+            <div className=" z-[1000] rounded py-2">
+      <img
+        src="/api_logo_pwrdBy_strava_horiz_white.svg"
+        alt="Powered by Strava"
+        className="h-4 w-auto"
+      />
+    </div>
+
         {userInLeaderboard && (
           <div className="flex items-center gap-2 text-green-500 mb-6 bg-green-500/10 border border-green-500/20 rounded-lg p-3">
             <i className="pi pi-check-circle" />
@@ -339,25 +432,41 @@ export default function SegmentEffortLeaderboard({
           </div>
         )}
 
+        <div className="flex items-center gap-3 mb-4">
+          {!loading && (
+            <SelectButton
+              value={sexFilter}
+              onChange={(e) => setSexFilter(e.value)}
+              options={filterOptions}
+              className="text-sm"
+            />
+          )}
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className={`${headerBg} border-b ${border}`}>
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold">
+                <th className="px-2 py-3 text-left text-sm font-semibold">
                   Rank
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">
+                <th className="px-2 py-3 text-left text-sm font-semibold">
                   User
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">
+                <th className="py-3 text-left text-sm font-semibold">
                   Attempts
                 </th>
+                {user?.preferred_username === "lukemccrae" && (
+                  <th className="px-4 py-3 text-left text-sm font-semibold">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={3} className="px-4 py-12 text-center">
+                  <td colSpan={user?.preferred_username === "lukemccrae" ? 4 : 3} className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center gap-4">
                       <ProgressSpinner
                         style={{ width: "50px", height: "50px" }}
@@ -368,7 +477,7 @@ export default function SegmentEffortLeaderboard({
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={3} className="px-4 py-8 text-center">
+                  <td colSpan={user?.preferred_username === "lukemccrae" ? 4 : 3} className="px-4 py-8 text-center">
                     <div className="flex flex-col items-center gap-2">
                       <i className="pi pi-exclamation-triangle text-red-500 text-3xl" />
                       <p className="text-red-400">{error}</p>
@@ -378,7 +487,7 @@ export default function SegmentEffortLeaderboard({
               ) : efforts.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={3}
+                    colSpan={user?.preferred_username === "lukemccrae" ? 4 : 3}
                     className="px-4 py-8 text-center text-gray-400"
                   >
                     No entries yet. Be the first to join!
@@ -387,6 +496,12 @@ export default function SegmentEffortLeaderboard({
               ) : (
                 efforts
                   .sort((a, b) => b.attemptCount - a.attemptCount)
+                  .filter((entry) => {
+                    if (sexFilter !== "OVERALL" && entry.sex !== sexFilter) {
+                      return false;
+                    }
+                    return true;
+                  })
                   .map((entry, index) => {
                     const isCurrentUser = user?.userId === entry.userId;
                     return (
@@ -397,33 +512,33 @@ export default function SegmentEffortLeaderboard({
                           isCurrentUser ? "bg-blue-500/10" : ""
                         }`}
                       >
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-2">
+                        <td className="w-5 px-2 py-2 align-middle">
+                          <div className="flex items-center justify-center gap-2 h-full">
                             {index === 0 && (
-                              <span className="text-2xl">🥇</span>
+                              <span className="text-2xl leading-none">🥇</span>
                             )}
                             {index === 1 && (
-                              <span className="text-2xl">🥈</span>
+                              <span className="text-2xl leading-none">🥈</span>
                             )}
                             {index === 2 && (
-                              <span className="text-2xl">🥉</span>
+                              <span className="text-2xl leading-none">🥉</span>
                             )}
                             {index > 2 && (
-                              <span className="text-gray-400 font-semibold">
+                              <span className="text-gray-400 font-semibold leading-none">
                                 {index + 1}
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="py-4">
                           <div className="flex items-center gap-3">
                             <Avatar
                               image={entry.profilePicture ?? undefined}
                               shape="circle"
                               size="normal"
                             />
-                            <div>
-                              <div className="font-medium">
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium truncate">
                                 {entry.firstName} {entry.lastName}
                                 {isCurrentUser && (
                                   <span className="ml-2 text-xs text-blue-400 font-normal">
@@ -434,11 +549,25 @@ export default function SegmentEffortLeaderboard({
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="w-18 py-4">
                           <span className="font-semibold text-lg">
                             {entry.attemptCount}
                           </span>
                         </td>
+                        {user?.preferred_username === "lukemccrae" && (
+                          <td className="px-4 py-4">
+                            <Button
+                              icon="pi pi-refresh"
+                              rounded
+                              text
+                              severity="info"
+                              loading={refreshingUsers.has(entry.userId)}
+                              onClick={() => handleRefreshEntry(entry.userId)}
+                              tooltip="Refresh entry"
+                              tooltipOptions={{ position: "top" }}
+                            />
+                          </td>
+                        )}
                       </tr>
                     );
                   })

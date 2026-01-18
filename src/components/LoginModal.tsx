@@ -78,8 +78,7 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
       });
       setTimeout(() => onHide(), 1000);
     } catch (err:  any) {
-      const message = "We couldn’t sign you in. If you recently created an account, please check your email and confirm it before signing in."
-      // const message = err?.message ??  "Login failed. Please try again.";
+      const message = err?.message ?? "Login failed. Please check your credentials and try again."
       setErrorMsg(message);
       toast.current?.show({
         severity: "error",
@@ -101,9 +100,9 @@ export default function LoginModal({ visible, onHide }: LoginModalProps) {
       await registerUser(e);
       toast.current?.show({
         severity: "success",
-        summary: "Registration Successful! ",
-        detail: "Please check your email and click the verification link to activate your account.",
-        life: 8000,
+        summary: "Registration Successful!",
+        detail: "Your account has been created. You can now sign in.",
+        life: 3000,
       });
       // Show success message in modal
       setMode("login");

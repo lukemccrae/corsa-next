@@ -244,7 +244,6 @@ export default function DevicesSettingsPage() {
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

@@ -224,7 +224,7 @@ export default function RoutesSettingsPage() {
             <td className="p-2">
               <InputNumber
                 value={localDistance}
-                onChange={(e) => setLocalDistance(e.value)}
+                onChange={(e) => setLocalDistance(e.value as number)}
                 inputStyle={{ width: "100%" }}
               />
             </td>
@@ -232,7 +232,7 @@ export default function RoutesSettingsPage() {
             <td className="p-2">
               <InputNumber
                 value={localGain}
-                onChange={(e) => setLocalGain(e.value)}
+                onChange={(e) => setLocalGain(e.value as number)}
                 inputStyle={{ width: "100%" }}
               />
             </td>
@@ -422,7 +422,6 @@ export default function RoutesSettingsPage() {
         redirectAfter={false}
       />
 
-      <Footer />
     </>
   );
 }

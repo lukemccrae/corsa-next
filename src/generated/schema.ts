@@ -178,6 +178,7 @@ export type Mutation = {
   joinLeaderboard: JoinLeaderboardResponse;
   publishChat: ChatMessage;
   publishWaypoint: Waypoint;
+  refreshLeaderboardEntry: RefreshLeaderboardResponse;
   upsertDevice: Device;
   upsertLiveStream: LiveStream;
   upsertPost: Post;
@@ -206,6 +207,11 @@ export type MutationPublishChatArgs = {
 
 export type MutationPublishWaypointArgs = {
   input: WaypointInput;
+};
+
+
+export type MutationRefreshLeaderboardEntryArgs = {
+  input: RefreshLeaderboardInput;
 };
 
 
@@ -339,6 +345,21 @@ export type QueryGetUserByUserNameArgs = {
   username: Scalars['ID']['input'];
 };
 
+export type RefreshLeaderboardInput = {
+  segmentId: Scalars['ID']['input'];
+  userId: Scalars['ID']['input'];
+};
+
+export type RefreshLeaderboardResponse = {
+  __typename?: 'RefreshLeaderboardResponse';
+  message?: Maybe<Scalars['String']['output']>;
+  newActivitiesCount: Scalars['Int']['output'];
+  segmentId: Scalars['ID']['output'];
+  success: Scalars['Boolean']['output'];
+  totalAttempts: Scalars['Int']['output'];
+  userId: Scalars['ID']['output'];
+};
+
 export type Route = {
   __typename?: 'Route';
   distance?: Maybe<Scalars['Float']['output']>;
@@ -372,8 +393,10 @@ export type Segment = {
   location?: Maybe<LatLng>;
   otherPrize?: Maybe<Scalars['String']['output']>;
   segmentId: Scalars['ID']['output'];
+  startDateLocalBROKEN?: Maybe<Scalars['String']['output']>;
   startDateUTC: Scalars['AWSDateTime']['output'];
   state?: Maybe<Scalars['String']['output']>;
+  /**  # bad timezones in data */
   timezone?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
 };
@@ -405,10 +428,11 @@ export type SegmentActivity = {
 export type SegmentEffortInput = {
   attemptCount: Scalars['Int']['input'];
   firstName: Scalars['String']['input'];
-  lastEffortAt?: InputMaybe<Scalars['String']['input']>;
+  lastEffortAt: Scalars['String']['input'];
   lastName: Scalars['String']['input'];
   profilePicture?: InputMaybe<Scalars['String']['input']>;
   segmentId: Scalars['ID']['input'];
+  sex: Scalars['String']['input'];
   userId: Scalars['ID']['input'];
   username: Scalars['String']['input'];
 };
@@ -438,6 +462,7 @@ export type SegmentLeaderboardEntry = {
   lastName?: Maybe<Scalars['String']['output']>;
   profilePicture?: Maybe<Scalars['String']['output']>;
   segmentId: Scalars['ID']['output'];
+  sex?: Maybe<Scalars['String']['output']>;
   userId: Scalars['ID']['output'];
   username: Scalars['String']['output'];
 };
@@ -466,6 +491,7 @@ export type StravaIntegration = {
   athleteLastName?: Maybe<Scalars['String']['output']>;
   athleteProfile?: Maybe<Scalars['String']['output']>;
   athleteProfileMedium?: Maybe<Scalars['String']['output']>;
+  athleteSex?: Maybe<Scalars['String']['output']>;
   athleteUsername?: Maybe<Scalars['String']['output']>;
   createdAt?: Maybe<Scalars['String']['output']>;
   expiresAt?: Maybe<Scalars['String']['output']>;

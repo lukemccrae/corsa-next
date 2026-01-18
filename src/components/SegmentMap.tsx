@@ -1,18 +1,13 @@
 import { Segment } from "../generated/schema";
 import { Button } from "primereact/button";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-} from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 
-  // Create icon for the athlete's current position
-  const createSegmentIcon = () => {
-    return L.divIcon({
-      className: "athlete-marker",
-      html: `
+// Create icon for the athlete's current position
+const createSegmentIcon = () => {
+  return L.divIcon({
+    className: "athlete-marker",
+    html: `
         <div
           style="
             width: 35px;
@@ -29,16 +24,16 @@ import L from "leaflet";
           🌯
         </div>
         `,
-      iconSize: [48, 48],
-      iconAnchor: [20, 40],
-      popupAnchor: [0, -40],
-    });
-  };
+    iconSize: [48, 48],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40],
+  });
+};
 
-    const tileUrl = "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png";
-
+const tileUrl = "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png";
 
 export const SegmentMap = (props: { segments: Segment[] }) => (
+  <div className="relative w-full h-full">
     <MapContainer
       center={[37.65269205846588, -93.40350964996749]}
       zoom={3}
@@ -46,7 +41,7 @@ export const SegmentMap = (props: { segments: Segment[] }) => (
       dragging={true}
       doubleClickZoom={true}
       attributionControl={false}
-      zoomControl={true}
+      zoomControl={false}
     >
       <TileLayer
         url={tileUrl}
@@ -120,4 +115,12 @@ export const SegmentMap = (props: { segments: Segment[] }) => (
         );
       })}
     </MapContainer>
-  );
+    <div className="absolute bottom-4 left-4 z-[1000] rounded px-2 py-1">
+      <img
+        src="/api_logo_pwrdBy_strava_horiz_white.svg"
+        alt="Powered by Strava"
+        className="h-4 w-auto"
+      />
+    </div>
+  </div>
+);

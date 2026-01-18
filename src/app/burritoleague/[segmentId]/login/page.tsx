@@ -7,7 +7,7 @@ const APPSYNC_ENDPOINT =
   process.env.APPSYNC_ENDPOINT ??
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
 const APPSYNC_API_KEY =
-  process.env.APPSYNC_API_KEY ??  "da2-5f7oqdwtvnfydbn226e6c2faga";
+  process.env.APPSYNC_API_KEY ?? "da2-5f7oqdwtvnfydbn226e6c2faga";
 
 async function fetchSegmentData(segmentId: string) {
   const query = `
@@ -43,13 +43,13 @@ async function fetchSegmentData(segmentId: string) {
   }
 
   const json = await res.json();
-  return json?. data?.getSegmentBySegmentId ??  null;
+  return json?.data?.getSegmentBySegmentId ?? null;
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: { segmentId:  string };
+  params: { segmentId: string };
 }): Promise<Metadata> {
   const segmentData = await fetchSegmentData(params.segmentId);
 
@@ -65,10 +65,14 @@ export async function generateMetadata({
 
   return {
     title: `Join ${segmentData.title} - Burrito League 🌯`,
-    description: `Sign in to compete on ${segmentData.title}${location ? ` in ${location}` : ""} - Part of the Burrito League`,
+    description: `Sign in to compete on ${segmentData.title}${
+      location ? ` in ${location}` : ""
+    } - Part of the Burrito League`,
     openGraph: {
       title: `Join ${segmentData.title} - Burrito League 🌯`,
-      description: `Sign in to compete on this segment${location ? ` in ${location}` : ""}`,
+      description: `Sign in to compete on this segment${
+        location ? ` in ${location}` : ""
+      }`,
       images: [
         {
           url: "https://i.imgur.com/gZiA2pq.png",
@@ -82,7 +86,9 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       title: `Join ${segmentData.title} - Burrito League 🌯`,
-      description: `Sign in to compete on this segment${location ? ` in ${location}` : ""}`,
+      description: `Sign in to compete on this segment${
+        location ? ` in ${location}` : ""
+      }`,
       images: ["https://i.imgur.com/gZiA2pq. png"],
     },
   };
@@ -91,14 +97,16 @@ export async function generateMetadata({
 export default async function SegmentLoginPage({
   params,
 }: {
-  params: { segmentId:  string };
+  params: { segmentId: string };
 }) {
   const segmentData = await fetchSegmentData(params.segmentId);
 
   return (
-    <SegmentLoginClient
-      segmentId={params.segmentId}
-      segmentName={segmentData?.title}
-    />
+    <>
+      <SegmentLoginClient
+        segmentId={params.segmentId}
+        segmentName={segmentData?.title}
+      />
+    </>
   );
 }

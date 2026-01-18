@@ -19,14 +19,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="flex flex-col h-screen">
+      <body className="flex flex-col min-h-screen">
         <Providers>
           <Header />
           {/* children decide the content shell (some may provide a sidebar) */}
-          <main className="flex-1 min-h-0 overflow-auto">
+          <main className="flex-1 flex flex-col">
             {children}
           </main>
-          {/* <Footer /> */}
+          <Footer />
         </Providers>
       </body>
     </html>

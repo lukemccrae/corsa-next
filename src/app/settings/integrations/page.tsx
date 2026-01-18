@@ -61,7 +61,7 @@ function IntegrationsContent() {
     }
   }, [searchParams, user]);
 
-  const fetchStravaIntegration = async (username: string) => {  
+  const fetchStravaIntegration = async (username: string) => {
     setFetchingIntegration(true);
     try {
       const query = `
@@ -305,13 +305,19 @@ function IntegrationsContent() {
                       className="w-full md:w-auto"
                     />
                   ) : (
-                    <Button
-                      label="Connect to Strava"
-                      icon="pi pi-link"
+                    <img
+                      src="/btn_strava_connect_with_white.svg"
+                      alt="Connect with Strava"
                       onClick={handleConnect}
-                      disabled={loading}
-                      loading={loading}
-                      className="w-full md:w-auto"
+                      className="
+                        h-12
+                        cursor-pointer
+                        select-none
+                        hover:opacity-90
+                        active:scale-[0.98]
+                        transition
+                        disabled:opacity-50
+                      "
                     />
                   )}
                 </div>
@@ -335,7 +341,6 @@ function IntegrationsContent() {
           </div>
         </Card>
 
-        <Footer />
       </div>
 
       {/* Disconnect Confirmation Dialog */}

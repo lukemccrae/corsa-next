@@ -30,7 +30,7 @@ export default function CoverMap(props: CoverMapProps) {
         label: segment.title,
         value: segment.segmentId,
       })),
-    [props.segments]
+    [props.segments],
   );
 
   // Create icon for the athlete's current position
@@ -129,10 +129,7 @@ export default function CoverMap(props: CoverMapProps) {
           className="w-full mb-5"
           panelClassName="shadow-lg"
         />
-        <SegmentEffortLeaderboard
-          segmentId={selectedSegment}
-          className="max-w-4xl mx-auto"
-        />
+        <SegmentEffortLeaderboard segmentId={selectedSegment} />
       </div>
     </>
   );
