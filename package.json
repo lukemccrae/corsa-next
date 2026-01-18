@@ -7,7 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "codegen": "source .env && npx graphql-codegen"
+    "codegen": "npx graphql-codegen"
   },
   "dependencies": {
     "@aws-sdk/credential-providers": "^3.913.0",

@@ -178,6 +178,7 @@ export type Mutation = {
   joinLeaderboard: JoinLeaderboardResponse;
   publishChat: ChatMessage;
   publishWaypoint: Waypoint;
+  refreshLeaderboardEntry: RefreshLeaderboardResponse;
   upsertDevice: Device;
   upsertLiveStream: LiveStream;
   upsertPost: Post;
@@ -206,6 +207,11 @@ export type MutationPublishChatArgs = {
 
 export type MutationPublishWaypointArgs = {
   input: WaypointInput;
+};
+
+
+export type MutationRefreshLeaderboardEntryArgs = {
+  input: RefreshLeaderboardInput;
 };
 
 
@@ -339,6 +345,21 @@ export type QueryGetUserByUserNameArgs = {
   username: Scalars['ID']['input'];
 };
 
+export type RefreshLeaderboardInput = {
+  segmentId: Scalars['ID']['input'];
+  userId: Scalars['ID']['input'];
+};
+
+export type RefreshLeaderboardResponse = {
+  __typename?: 'RefreshLeaderboardResponse';
+  message?: Maybe<Scalars['String']['output']>;
+  newActivitiesCount: Scalars['Int']['output'];
+  segmentId: Scalars['ID']['output'];
+  success: Scalars['Boolean']['output'];
+  totalAttempts: Scalars['Int']['output'];
+  userId: Scalars['ID']['output'];
+};
+
 export type Route = {
   __typename?: 'Route';
   distance?: Maybe<Scalars['Float']['output']>;
@@ -407,10 +428,11 @@ export type SegmentActivity = {
 export type SegmentEffortInput = {
   attemptCount: Scalars['Int']['input'];
   firstName: Scalars['String']['input'];
-  lastEffortAt?: InputMaybe<Scalars['String']['input']>;
+  lastEffortAt: Scalars['String']['input'];
   lastName: Scalars['String']['input'];
   profilePicture?: InputMaybe<Scalars['String']['input']>;
   segmentId: Scalars['ID']['input'];
+  sex: Scalars['String']['input'];
   userId: Scalars['ID']['input'];
   username: Scalars['String']['input'];
 };
