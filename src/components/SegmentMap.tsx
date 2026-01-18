@@ -42,6 +42,13 @@ export const SegmentMap = (props: { segments: Segment[] }) => (
       doubleClickZoom={true}
       attributionControl={false}
       zoomControl={false}
+      maxBoundsViscosity={1.0}
+      minZoom={2}
+      maxZoom={17}
+      maxBounds={[
+        [-85, -180], 
+        [85, 180],
+      ]}
     >
       <TileLayer
         url={tileUrl}
@@ -57,7 +64,13 @@ export const SegmentMap = (props: { segments: Segment[] }) => (
             position={[segment.location.lat, segment.location.lng]}
             icon={createSegmentIcon()}
           >
-            <Popup className="segment-popup" maxWidth={320}>
+            <Popup
+              className="segment-popup"
+              maxWidth={320}
+              autoPan={true}
+              autoPanPadding={[40, 40]}
+              keepInView={true}
+            >
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="text-2xl">🌯</div>
