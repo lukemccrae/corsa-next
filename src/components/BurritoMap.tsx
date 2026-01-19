@@ -192,24 +192,18 @@ export default function BurritoMap(props: CoverMapProps) {
 
   return (
     <>
-      <div className="w-full mx-auto mb-4">
+      <div className="w-3/4 md:w-1/2 mx-auto m-4">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <span className="p-input-icon-left w-full">
-              <i className="pi pi-search" />
               <InputText
                 value={filterText}
                 onChange={(e) => setFilterText(e.target.value)}
-                placeholder="Search segments by name, location, or description..."
+                placeholder="Search"
                 className="w-full"
               />
             </span>
           </div>
-          {filterText && (
-            <div className="text-sm opacity-70">
-              Showing {filteredSegments.length} of {props.segments.length} segments
-            </div>
-          )}
         </div>
       </div>
       <div className="relative w-full mx-auto h-[70vh] rounded-lg overflow-hidden">
