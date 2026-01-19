@@ -174,9 +174,9 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       cognitoUser.refreshSession(refreshToken, (err, session) => {
         if (err) {
           console.error("Error refreshing session", err);
-          logoutUser().then(() => {
-            reject(err);
-          });
+          logoutUser()
+            .then(() => reject(err))
+            .catch(() => reject(err));
         } else {
           const newIdToken = session.getIdToken().getJwtToken();
           const newRefreshToken = session.getRefreshToken().getToken();
