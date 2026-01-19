@@ -109,6 +109,7 @@ export const countryAbbreviations: Record<string, string> = {
   BRA: "Brazil",
   BR: "Brazil",
   ARG: "Argentina",
+  AR: "Argentina",
   CHL: "Chile",
   CL: "Chile",
   ZAF: "South Africa",

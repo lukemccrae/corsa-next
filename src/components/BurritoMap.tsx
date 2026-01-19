@@ -4,7 +4,11 @@ import { InputText } from "primereact/inputtext";
 import { useTheme } from "./ThemeProvider";
 import type { Segment } from "../generated/schema";
 import dynamic from "next/dynamic";
-import { matchesState, matchesCountry } from "../utils/abbreviations";
+import {
+  matchesState,
+  matchesCountry,
+  normalizeSearchTerm,
+} from "../utils/abbreviations";
 // import { SegmentMap } from "./SegmentMap";
 type CoverMapProps = {
   segments: Segment[];
@@ -35,7 +39,7 @@ export default function BurritoMap(props: CoverMapProps) {
   const filteredSegments = useMemo(() => {
     if (!filterText.trim()) return props.segments;
 
-    const search = filterText.toLowerCase();
+    const search = normalizeSearchTerm(filterText);
     return props.segments.filter((segment) => {
       // Check title and description (direct match)
       if (segment.title?.toLowerCase().includes(search)) return true;
