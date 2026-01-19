@@ -58,13 +58,13 @@ export const stateAbbreviations: Record<string, string> = {
 };
 
 // Country code to full name mapping
+// Note: Using 3-letter ISO codes to avoid conflicts with state abbreviations
 export const countryAbbreviations: Record<string, string> = {
   USA: "United States",
   US: "United States",
   MEX: "Mexico",
   MX: "Mexico",
   CAN: "Canada",
-  CA: "Canada",
   GBR: "United Kingdom",
   GB: "United Kingdom",
   UK: "United Kingdom",
@@ -109,7 +109,6 @@ export const countryAbbreviations: Record<string, string> = {
   BRA: "Brazil",
   BR: "Brazil",
   ARG: "Argentina",
-  AR: "Argentina",
   CHL: "Chile",
   CL: "Chile",
   ZAF: "South Africa",

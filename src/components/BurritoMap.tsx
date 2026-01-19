@@ -4,10 +4,7 @@ import { InputText } from "primereact/inputtext";
 import { useTheme } from "./ThemeProvider";
 import type { Segment } from "../generated/schema";
 import dynamic from "next/dynamic";
-import {
-  getFullStateName,
-  getFullCountryName,
-} from "../utils/abbreviations";
+import { matchesState, matchesCountry } from "../utils/abbreviations";
 // import { SegmentMap } from "./SegmentMap";
 type CoverMapProps = {
   segments: Segment[];
@@ -48,24 +45,11 @@ export default function BurritoMap(props: CoverMapProps) {
       if (segment.city?.toLowerCase().includes(search)) return true;
 
       // Check state - match both abbreviation AND full name
-      if (segment.state) {
-        const stateAbbrev = segment.state.toLowerCase();
-        // Check if search matches the stored abbreviation
-        if (stateAbbrev.includes(search)) return true;
-        // Check if search matches the full state name
-        const fullStateName = getFullStateName(segment.state);
-        if (fullStateName?.toLowerCase().includes(search)) return true;
-      }
+      if (segment.state && matchesState(segment.state, search)) return true;
 
       // Check country - match both code AND full name
-      if (segment.country) {
-        const countryCode = segment.country.toLowerCase();
-        // Check if search matches the stored code
-        if (countryCode.includes(search)) return true;
-        // Check if search matches the full country name
-        const fullCountryName = getFullCountryName(segment.country);
-        if (fullCountryName?.toLowerCase().includes(search)) return true;
-      }
+      if (segment.country && matchesCountry(segment.country, search))
+        return true;
 
       return false;
     });
