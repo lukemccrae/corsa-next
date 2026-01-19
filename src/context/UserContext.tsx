@@ -100,6 +100,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
             await refreshUserSession();
           } catch (error) {
             console.error("Failed to refresh session on mount:", error);
+            // Logout if refresh fails to ensure clean state
+            await logoutUser();
           }
         }
       }
@@ -176,7 +178,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
           console.error("Error refreshing session", err);
           logoutUser()
             .then(() => reject(err))
-            .catch(() => reject(err));
+            .catch((logoutErr) => {
+              console.error("Failed to logout after refresh error:", logoutErr);
+              reject(err);
+            });
         } else {
           const newIdToken = session.getIdToken().getJwtToken();
           const newRefreshToken = session.getRefreshToken().getToken();
