@@ -9,6 +9,7 @@ import { useModal } from "./ModalProvider";
 import { ChatMessage } from "../generated/schema";
 import { generateClient } from "aws-amplify/api";
 import { Amplify } from "aws-amplify";
+import { profile } from "console";
 
 type SegmentChatProps = {
   segmentId: string;
@@ -96,20 +97,20 @@ export default function SegmentChat({
       setMessages((prevMessages) => [...prevMessages, message]);
     }
   };
-const onNewChat = /* GraphQL */ `
-  subscription OnNewChat($streamId: ID!) {
-    onNewChat(streamId: $streamId) {
-      createdAt
-      firstName
-      lastName
-      profilePicture
-      streamId
-      text
-      userId
-      username
+  const onNewChat = /* GraphQL */ `
+    subscription OnNewChat($streamId: ID!) {
+      onNewChat(streamId: $streamId) {
+        createdAt
+        firstName
+        lastName
+        profilePicture
+        streamId
+        text
+        userId
+        username
+      }
     }
-  }
-`;
+  `;
   useEffect(() => {
     if (segmentId) {
       console.log("chat sub");
@@ -146,6 +147,7 @@ const onNewChat = /* GraphQL */ `
   }, [segmentId]);
 
   const handleSend = async () => {
+    console.log('send chat')
     if (!inputValue.trim() || !user) return;
 
     try {
@@ -154,13 +156,12 @@ const onNewChat = /* GraphQL */ `
         headers: {
           "Content-Type": "application/json",
           "x-api-key": APPSYNC_API_KEY,
-          Authorization: user.idToken,
         },
         body: JSON.stringify({
           query: `
-            mutation PublishSegmentChatMessage($input: SegmentChatMessageInput!) {
-              publishSegmentChatMessage(input: $input) {
-                segmentId
+            mutation PublishChat($input: ChatMessageInput!) {
+              publishChat(input: $input) {
+                streamId
                 username
                 firstName
                 lastName
@@ -173,31 +174,34 @@ const onNewChat = /* GraphQL */ `
           `,
           variables: {
             input: {
-              segmentId,
-              text: inputValue.trim(),
+              streamId: segmentId,
               userId: user["cognito:username"],
+              text: inputValue.trim(),
+              createdAt: new Date().toISOString(),
               username: user.preferred_username,
               firstName: user.given_name,
               lastName: user.family_name,
+              profilePicture: user.picture,
             },
           },
         }),
       });
 
       const result = await response.json();
-      if (result.data?.publishSegmentChatMessage) {
+      console.log(result, '<< res')
+      if (result.data?.publishChat) {
         // Add the new message to the list
         setMessages((prev) => {
           // Prevent duplicates
           if (
             prev.some(
               (m) =>
-                m.createdAt === result.data.publishSegmentChatMessage.createdAt,
+                m.createdAt === result.data.publishChat.createdAt,
             )
           ) {
             return prev;
           }
-          return [...prev, result.data.publishSegmentChatMessage];
+          return [...prev, result.data.publishChat];
         });
         setInputValue("");
       }
