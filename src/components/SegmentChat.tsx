@@ -28,87 +28,59 @@ export default function SegmentChat({ segmentId, className = "" }: SegmentChatPr
   const APPSYNC_API_KEY =
     process.env.NEXT_PUBLIC_APPSYNC_API_KEY || "da2-5f7oqdwtvnfydbn226e6c2faga";
 
+  // Extracted function to fetch messages (DRY principle)
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch(APPSYNC_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": APPSYNC_API_KEY,
+        },
+        body: JSON.stringify({
+          query: `
+            query GetSegmentChatMessages($segmentId: ID!) {
+              getSegmentChatMessages(segmentId: $segmentId) {
+                messageId
+                segmentId
+                username
+                text
+                createdAt
+                profilePicture
+              }
+            }
+          `,
+          variables: { segmentId },
+        }),
+      });
+
+      const result = await response.json();
+      if (result.data?.getSegmentChatMessages) {
+        setMessages(result.data.getSegmentChatMessages);
+      }
+    } catch (error) {
+      console.error("Error fetching segment chat messages:", error);
+    }
+  };
+
   // Fetch initial messages when component mounts
   useEffect(() => {
     if (!segmentId) return;
-
-    const fetchMessages = async () => {
-      try {
-        const response = await fetch(APPSYNC_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": APPSYNC_API_KEY,
-          },
-          body: JSON.stringify({
-            query: `
-              query GetSegmentChatMessages($segmentId: ID!) {
-                getSegmentChatMessages(segmentId: $segmentId) {
-                  messageId
-                  segmentId
-                  username
-                  text
-                  createdAt
-                  profilePicture
-                }
-              }
-            `,
-            variables: { segmentId },
-          }),
-        });
-
-        const result = await response.json();
-        if (result.data?.getSegmentChatMessages) {
-          setMessages(result.data.getSegmentChatMessages);
-        }
-      } catch (error) {
-        console.error("Error fetching segment chat messages:", error);
-      }
-    };
-
     fetchMessages();
-  }, [segmentId, APPSYNC_ENDPOINT, APPSYNC_API_KEY]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [segmentId]);
 
   // Poll for new messages (fallback for real-time updates)
   useEffect(() => {
     if (!segmentId) return;
 
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(APPSYNC_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": APPSYNC_API_KEY,
-          },
-          body: JSON.stringify({
-            query: `
-              query GetSegmentChatMessages($segmentId: ID!) {
-                getSegmentChatMessages(segmentId: $segmentId) {
-                  messageId
-                  segmentId
-                  username
-                  text
-                  createdAt
-                  profilePicture
-                }
-              }
-            `,
-            variables: { segmentId },
-          }),
-        });
-
-        const result = await response.json();
-        if (result.data?.getSegmentChatMessages) {
-          setMessages(result.data.getSegmentChatMessages);
-        }
-      } catch (error) {
-        console.error("Error polling segment chat messages:", error);
-      }
+    const interval = setInterval(() => {
+      fetchMessages();
     }, 5000); // Poll every 5 seconds
 
     return () => clearInterval(interval);
-  }, [segmentId, APPSYNC_ENDPOINT, APPSYNC_API_KEY]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [segmentId]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
