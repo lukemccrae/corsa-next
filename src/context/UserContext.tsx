@@ -171,11 +171,12 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     });
 
     return new Promise<void>((resolve, reject) => {
-      cognitoUser.refreshSession(refreshToken, async (err, session) => {
+      cognitoUser.refreshSession(refreshToken, (err, session) => {
         if (err) {
           console.error("Error refreshing session", err);
-          await logoutUser();
-          reject(err);
+          logoutUser().then(() => {
+            reject(err);
+          });
         } else {
           const newIdToken = session.getIdToken().getJwtToken();
           const newRefreshToken = session.getRefreshToken().getToken();
