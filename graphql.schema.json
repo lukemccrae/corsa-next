@@ -228,7 +228,7 @@
               "name": null,
               "ofType": {
                 "kind": "SCALAR",
-                "name": "AWSDateTime",
+                "name": "Long",
                 "ofType": null
               }
             },
@@ -236,7 +236,7 @@
             "deprecationReason": null
           },
           {
-            "name": "messageId",
+            "name": "firstName",
             "description": null,
             "args": [],
             "type": {
@@ -244,7 +244,7 @@
               "name": null,
               "ofType": {
                 "kind": "SCALAR",
-                "name": "ID",
+                "name": "String",
                 "ofType": null
               }
             },
@@ -252,13 +252,17 @@
             "deprecationReason": null
           },
           {
-            "name": "messageType",
+            "name": "lastName",
             "description": null,
             "args": [],
             "type": {
-              "kind": "ENUM",
-              "name": "MessageType",
-              "ofType": null
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -268,9 +272,13 @@
             "description": null,
             "args": [],
             "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -308,13 +316,17 @@
             "deprecationReason": null
           },
           {
-            "name": "userColor",
+            "name": "userId",
             "description": null,
             "args": [],
             "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "ID",
+                "ofType": null
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -356,7 +368,55 @@
               "name": null,
               "ofType": {
                 "kind": "SCALAR",
-                "name": "AWSDateTime",
+                "name": "Long",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "firstName",
+            "description": null,
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "lastName",
+            "description": null,
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "profilePicture",
+            "description": null,
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
                 "ofType": null
               }
             },
@@ -405,6 +465,22 @@
               "ofType": {
                 "kind": "SCALAR",
                 "name": "ID",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "username",
+            "description": null,
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
                 "ofType": null
               }
             },

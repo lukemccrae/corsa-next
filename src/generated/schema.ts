@@ -41,21 +41,25 @@ export type BlogPost = Post & {
  */
 export type ChatMessage = {
   __typename?: 'ChatMessage';
-  createdAt: Scalars['AWSDateTime']['output'];
-  messageId: Scalars['ID']['output'];
-  messageType?: Maybe<MessageType>;
-  profilePicture?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['Long']['output'];
+  firstName: Scalars['String']['output'];
+  lastName: Scalars['String']['output'];
+  profilePicture: Scalars['String']['output'];
   streamId: Scalars['ID']['output'];
   text: Scalars['String']['output'];
-  userColor?: Maybe<Scalars['String']['output']>;
+  userId: Scalars['ID']['output'];
   username: Scalars['String']['output'];
 };
 
 export type ChatMessageInput = {
-  createdAt: Scalars['AWSDateTime']['input'];
+  createdAt: Scalars['Long']['input'];
+  firstName: Scalars['String']['input'];
+  lastName: Scalars['String']['input'];
+  profilePicture: Scalars['String']['input'];
   streamId: Scalars['ID']['input'];
   text: Scalars['String']['input'];
   userId: Scalars['ID']['input'];
+  username: Scalars['String']['input'];
 };
 
 export type Device = {

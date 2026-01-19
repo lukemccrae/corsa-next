@@ -366,7 +366,7 @@ export default function SegmentEffortLeaderboard({
 
       {(joining || oauthLoading) && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className={`${cardBg} p-8 max-w-md text-center`}>
+          <Card className={`${cardBg} p-2 max-w-md text-center`}>
             <ProgressSpinner className="mb-4" />
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">
@@ -388,47 +388,49 @@ export default function SegmentEffortLeaderboard({
         </div>
       )}
 
-      <Card className={`${cardBg} border`}>
-        <div className="flex items-center justify-between mb-6">
+      <Card className={`${cardBg} border p-0`}>
+        {/* Header with back button and join button */}
+        <div className="flex items-center justify-between mb-4">
           <a
             href="/burritoleague"
-            className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+            className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors text-sm"
           >
             <i className="pi pi-arrow-left" />
-            Back 
+            Back
           </a>
           {!userInLeaderboard && (
-            <Button {...getJoinButtonProps()} onClick={handleJoinClick} />
+            <Button
+              {...getJoinButtonProps()}
+              onClick={handleJoinClick}
+              size="small"
+            />
           )}
         </div>
-        <h1 className="text-3xl font-bold mb-2">{segmentName} Leaderboard</h1>
-        <div className="mb-4">
-          <img
-            src="/api_logo_pwrdBy_strava_horiz_white.svg"
-            alt="Powered by Strava"
-            className="h-8"
-          />
-        </div>
 
+        {/* Title */}
+        <h1 className="text-lg font-bold mb-3">{segmentName} Leaderboard</h1>
+
+        {/* Success message - more compact */}
         {userInLeaderboard && (
-          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 mb-4 flex items-center gap-2">
+          <div className="bg-green-500/10 border border-green-500/20 rounded px-3 py-2 mb-3 flex items-center gap-2 text-sm">
             <i className="pi pi-check-circle text-green-400" />
             You're on this leaderboard!
           </div>
         )}
 
-        <div className="mb-4">
-          {!loading && (
+        {/* Filter buttons - more compact */}
+        {!loading && (
+          <div className="mb-3">
             <SelectButton
               value={sexFilter}
               onChange={(e) => setSexFilter(e.value)}
               options={filterOptions}
-              className="text-sm"
+              className="text-sm "
             />
-          )}
-        </div>
+          </div>
+        )}
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-96 mb-4">
           <table className="w-full">
             <thead className={`${headerBg} border-b ${border}`}>
               <tr>
@@ -439,7 +441,7 @@ export default function SegmentEffortLeaderboard({
                   User
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold">
-                  Attempts
+                  Segments
                 </th>
                 {user?.preferred_username === "lukemccrae" && (
                   <th className="px-4 py-3 text-left text-sm font-semibold">
@@ -557,6 +559,15 @@ export default function SegmentEffortLeaderboard({
               )}
             </tbody>
           </table>
+        </div>
+        <div className="relative mb-2">
+          <div className="absolute right-0 top-0">
+            <img
+              src="/api_logo_pwrdBy_strava_horiz_white.svg"
+              alt="Powered by Strava"
+              className="h-4"
+            />
+          </div>
         </div>
       </Card>
 
