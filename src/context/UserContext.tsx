@@ -28,6 +28,8 @@ type User = {
   preferred_username: string;
   "cognito:username": string; // THIS IS THE COGNITO PK
   picture: string;
+  given_name: string;
+  family_name: string;
 };
 
 export type Anon = {
@@ -325,6 +327,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       preferred_username,
       picture,
       "cognito:username": username,
+      given_name,
+      family_name,
     } = decodedToken;
     const userId = sub;
 
@@ -336,6 +340,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       preferred_username,
       picture,
       "cognito:username": username,
+      given_name,
+      family_name,
     });
     localStorage.setItem("user", idToken);
   };

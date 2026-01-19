@@ -7,20 +7,26 @@ import { useTheme } from "./ThemeProvider";
 import { useUser } from "../context/UserContext";
 import { useModal } from "./ModalProvider";
 import { ChatMessage } from "../generated/schema";
+import { generateClient } from "aws-amplify/api";
+import { Amplify } from "aws-amplify";
 
 type SegmentChatProps = {
   segmentId: string;
   className?: string;
 };
 
-export default function SegmentChat({ segmentId, className = "" }: SegmentChatProps) {
-  const { theme } = useTheme();
+export default function SegmentChat({
+  segmentId,
+  className = "",
+}: SegmentChatProps) {
+  const theme = "dark";
   const { user } = useUser();
   const { openLogin } = useModal();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const client = generateClient();
 
   const APPSYNC_ENDPOINT =
     process.env.NEXT_PUBLIC_APPSYNC_ENDPOINT ||
@@ -39,46 +45,103 @@ export default function SegmentChat({ segmentId, className = "" }: SegmentChatPr
         },
         body: JSON.stringify({
           query: `
-            query GetSegmentChatMessages($segmentId: ID!) {
-              getSegmentChatMessages(segmentId: $segmentId) {
-                messageId
-                segmentId
-                username
-                text
+          query MyQuery {
+            getSegmentBySegmentId(segmentId: "${segmentId}") {
+              chat {
                 createdAt
+                firstName
+                lastName
                 profilePicture
+                streamId
+                text
+                userId
+                username
               }
             }
+          }
           `,
           variables: { segmentId },
         }),
       });
 
       const result = await response.json();
-      if (result.data?.getSegmentChatMessages) {
-        setMessages(result.data.getSegmentChatMessages);
+      console.log(result);
+      if (result.data?.getSegmentBySegmentId?.chat) {
+        setMessages(result.data.getSegmentBySegmentId.chat);
       }
     } catch (error) {
       console.error("Error fetching segment chat messages:", error);
     }
   };
 
+  Amplify.configure({
+    API: {
+      GraphQL: {
+        endpoint:
+          "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql",
+        region: "us-west-1",
+        defaultAuthMode: "iam",
+      },
+    },
+    Auth: {
+      Cognito: {
+        identityPoolId: "us-west-1:495addf9-156d-41fd-bf55-3c576a9e1c5e",
+        allowGuestAccess: true,
+      },
+    },
+  });
+
+  const handleReceivedComments = (message: any) => {
+    if (message.streamId && message.text) {
+      setMessages((prevMessages) => [...prevMessages, message]);
+    }
+  };
+const onNewChat = /* GraphQL */ `
+  subscription OnNewChat($streamId: ID!) {
+    onNewChat(streamId: $streamId) {
+      createdAt
+      firstName
+      lastName
+      profilePicture
+      streamId
+      text
+      userId
+      username
+    }
+  }
+`;
+  useEffect(() => {
+    if (segmentId) {
+      console.log("chat sub");
+      let unsubscribe: (() => void) | undefined;
+
+      (async () => {
+        const { subscribe } = (await client.graphql({
+          query: onNewChat,
+          variables: { segmentId },
+        })) as any;
+        console.log(subscribe, "<< sub");
+
+        unsubscribe = subscribe({
+          next: ({ data }: { data: any }) => {
+            handleReceivedComments(data.onNewChat);
+          },
+          error: ({ error }: { error: any }) =>
+            console.warn("Chat subscription error:", error),
+        });
+      })();
+
+      return () => {
+        // Cleanup subscriptions
+        if (unsubscribe) unsubscribe();
+      };
+    }
+  }, [segmentId]);
+
   // Fetch initial messages when component mounts
   useEffect(() => {
     if (!segmentId) return;
     fetchMessages();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [segmentId]);
-
-  // Poll for new messages (fallback for real-time updates)
-  useEffect(() => {
-    if (!segmentId) return;
-
-    const interval = setInterval(() => {
-      fetchMessages();
-    }, 5000); // Poll every 5 seconds
-
-    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segmentId]);
 
@@ -97,12 +160,14 @@ export default function SegmentChat({ segmentId, className = "" }: SegmentChatPr
           query: `
             mutation PublishSegmentChatMessage($input: SegmentChatMessageInput!) {
               publishSegmentChatMessage(input: $input) {
-                messageId
                 segmentId
                 username
+                firstName
+                lastName
                 text
                 createdAt
                 profilePicture
+                userId
               }
             }
           `,
@@ -111,6 +176,9 @@ export default function SegmentChat({ segmentId, className = "" }: SegmentChatPr
               segmentId,
               text: inputValue.trim(),
               userId: user["cognito:username"],
+              username: user.preferred_username,
+              firstName: user.given_name,
+              lastName: user.family_name,
             },
           },
         }),
@@ -123,7 +191,8 @@ export default function SegmentChat({ segmentId, className = "" }: SegmentChatPr
           // Prevent duplicates
           if (
             prev.some(
-              (m) => m.createdAt === result.data.publishSegmentChatMessage.createdAt
+              (m) =>
+                m.createdAt === result.data.publishSegmentChatMessage.createdAt,
             )
           ) {
             return prev;
@@ -137,21 +206,6 @@ export default function SegmentChat({ segmentId, className = "" }: SegmentChatPr
     }
   };
 
-  const formatTimestamp = (timestamp: string) => {
-    const now = new Date();
-    const messageTime = new Date(timestamp);
-    const diff = now.getTime() - messageTime.getTime();
-    const seconds = Math.floor(diff / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (seconds < 60) return "just now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
-  };
-
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const cleanUrl = (url: string) => url.replace(/[.,;:!?)\]\}]+$/, "");
 
@@ -163,7 +217,9 @@ export default function SegmentChat({ segmentId, className = "" }: SegmentChatPr
   const hoverBg = theme === "dark" ? "hover:bg-gray-700" : "hover:bg-gray-50";
 
   return (
-    <div className={`flex flex-col ${bg} border ${border} rounded-lg ${className}`}>
+    <div
+      className={`flex flex-col ${bg} border ${border} rounded-lg ${className}`}
+    >
       {/* Header */}
       <div className={`px-4 py-3 border-b ${border} flex items-center gap-2`}>
         <i className="pi pi-comments text-xl" />
@@ -185,7 +241,10 @@ export default function SegmentChat({ segmentId, className = "" }: SegmentChatPr
           </div>
         ) : (
           messages.map((msg) => (
-            <div key={msg.createdAt} className={`flex gap-3 ${hoverBg} rounded-lg p-2 transition-colors`}>
+            <div
+              key={msg.createdAt}
+              className={`flex gap-3 ${hoverBg} rounded-lg p-2 transition-colors`}
+            >
               {/* Avatar */}
               <div className="flex-shrink-0">
                 {msg.profilePicture ? (
@@ -208,10 +267,7 @@ export default function SegmentChat({ segmentId, className = "" }: SegmentChatPr
               {/* Message Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2 mb-1">
-                  <span className="font-semibold text-sm">
-                    {msg.username}
-                  </span>
-                  <span className={`text-xs ${mutedText}`}>{formatTimestamp(msg.createdAt)}</span>
+                  <span className="font-semibold text-sm">{msg.username}</span>
                 </div>
 
                 <p className={`text-sm ${textColor} break-words`}>
@@ -228,7 +284,7 @@ export default function SegmentChat({ segmentId, className = "" }: SegmentChatPr
                       </a>
                     ) : (
                       part
-                    )
+                    ),
                   )}
                 </p>
               </div>
