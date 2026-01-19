@@ -134,7 +134,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     setUser(undefined);
   };
 
-  const maybeRefreshUser = async () => {
+  const maybeRefreshUser = async (): Promise<void> => {
     if (!user) return;
     const now = Date.now() / 1000;
 
@@ -144,7 +144,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     }
   };
 
-  const refreshUserSession = async () => {
+  const refreshUserSession = async (): Promise<void> => {
     const storedToken = localStorage.getItem("refreshToken");
     const storedUser = localStorage.getItem("user");
 
