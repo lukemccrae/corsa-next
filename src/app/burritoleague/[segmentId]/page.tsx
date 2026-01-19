@@ -1,6 +1,7 @@
 "use server";
 import LiveProfileClient from "@/src/components/LiveProfileClient";
 import SegmentEffortLeaderboard from "@/src/components/SegmentLeaderboard";
+import SegmentChat from "@/src/components/SegmentChat";
 import { useUser } from "@/src/context/UserContext";
 import React, { use } from "react";
 
@@ -122,11 +123,12 @@ export default async function SegmentDetailPage({
 
   return (
     <>
-      <div>
+      <div className="space-y-6">
         <SegmentEffortLeaderboard
           segmentId={segmentId}
           segmentName={segmentData.title}
         />
+        <SegmentChat segmentId={segmentId} />
       </div>
     </>
   );

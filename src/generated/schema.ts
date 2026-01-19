@@ -58,6 +58,27 @@ export type ChatMessageInput = {
   userId: Scalars['ID']['input'];
 };
 
+/**
+ *   -----------------------
+ *  SegmentChatMessage
+ *  -----------------------
+ */
+export type SegmentChatMessage = {
+  __typename?: 'SegmentChatMessage';
+  messageId: Scalars['String']['output'];
+  segmentId: Scalars['String']['output'];
+  username: Scalars['String']['output'];
+  text: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  profilePicture?: Maybe<Scalars['String']['output']>;
+};
+
+export type SegmentChatMessageInput = {
+  segmentId: Scalars['ID']['input'];
+  text: Scalars['String']['input'];
+  userId: Scalars['ID']['input'];
+};
+
 export type Device = {
   __typename?: 'Device';
   imei?: Maybe<Scalars['String']['output']>;
@@ -177,6 +198,7 @@ export type Mutation = {
   disconnectStravaIntegration: DisconnectStravaResult;
   joinLeaderboard: JoinLeaderboardResponse;
   publishChat: ChatMessage;
+  publishSegmentChatMessage: SegmentChatMessage;
   publishWaypoint: Waypoint;
   refreshLeaderboardEntry: RefreshLeaderboardResponse;
   upsertDevice: Device;
@@ -202,6 +224,11 @@ export type MutationJoinLeaderboardArgs = {
 
 export type MutationPublishChatArgs = {
   input: ChatMessageInput;
+};
+
+
+export type MutationPublishSegmentChatMessageArgs = {
+  input: SegmentChatMessageInput;
 };
 
 
@@ -300,6 +327,7 @@ export type Query = {
   getAllTrackerGroups?: Maybe<Array<Maybe<TrackerGroup>>>;
   getSegmentActivities?: Maybe<Array<Maybe<SegmentActivity>>>;
   getSegmentBySegmentId?: Maybe<Segment>;
+  getSegmentChatMessages?: Maybe<Array<Maybe<SegmentChatMessage>>>;
   getSegmentLeaderboard?: Maybe<Array<Maybe<SegmentLeaderboardEntry>>>;
   getSegmentsByEntity?: Maybe<Array<Maybe<Segment>>>;
   getStreamsByEntity?: Maybe<Array<Maybe<LiveStream>>>;
@@ -317,6 +345,11 @@ export type QueryGetSegmentActivitiesArgs = {
 
 
 export type QueryGetSegmentBySegmentIdArgs = {
+  segmentId: Scalars['ID']['input'];
+};
+
+
+export type QueryGetSegmentChatMessagesArgs = {
   segmentId: Scalars['ID']['input'];
 };
 
@@ -507,12 +540,18 @@ export type StravaIntegrationInput = {
 export type Subscription = {
   __typename?: 'Subscription';
   onNewChat?: Maybe<ChatMessage>;
+  onNewSegmentChatMessage?: Maybe<SegmentChatMessage>;
   onNewWaypoint?: Maybe<Waypoint>;
 };
 
 
 export type SubscriptionOnNewChatArgs = {
   streamId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnNewSegmentChatMessageArgs = {
+  segmentId: Scalars['ID']['input'];
 };
 
 
