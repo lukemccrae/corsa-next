@@ -87,26 +87,36 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
   // On mount, load credentials from localStorage or fetch fresh ones
   useEffect(() => {
-    const localAnonCreds = localStorage.getItem("anon");
-    const localUserCreds = localStorage.getItem("user");
+    const initializeAuth = async () => {
+      const localAnonCreds = localStorage.getItem("anon");
+      const localUserCreds = localStorage.getItem("user");
 
-    if (localUserCreds) {
-      const decodedUser: CognitoToken = jwtDecode(localUserCreds);
-      if (checkValidUser(decodedUser)) {
-        setUserInStorage(localUserCreds);
-      } else {
-        refreshUserSession();
+      if (localUserCreds) {
+        const decodedUser: CognitoToken = jwtDecode(localUserCreds);
+        if (checkValidUser(decodedUser)) {
+          setUserInStorage(localUserCreds);
+        } else {
+          try {
+            await refreshUserSession();
+          } catch (error) {
+            console.error("Failed to refresh session on mount:", error);
+            // Logout if refresh fails to ensure clean state
+            await logoutUser();
+          }
+        }
       }
-    }
 
-    if (localAnonCreds) {
-      const parsedAnon: Anon = JSON.parse(localAnonCreds);
-      setAnon(parsedAnon);
-    }
+      if (localAnonCreds) {
+        const parsedAnon: Anon = JSON.parse(localAnonCreds);
+        setAnon(parsedAnon);
+      }
 
-    if (!checkValidAnon()) {
-      retrieveAnon();
-    }
+      if (!checkValidAnon()) {
+        retrieveAnon();
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   // Auto-refresh token every 5 minutes if user is logged in
@@ -120,13 +130,13 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     return () => clearInterval(interval);
   }, [user]);
 
-  const logoutUser = async () => {
+  const logoutUser = async (): Promise<void> => {
     localStorage.removeItem("user");
     localStorage.removeItem("refreshToken");
     setUser(undefined);
   };
 
-  const maybeRefreshUser = async () => {
+  const maybeRefreshUser = async (): Promise<void> => {
     if (!user) return;
     const now = Date.now() / 1000;
 
@@ -136,7 +146,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     }
   };
 
-  const refreshUserSession = async () => {
+  const refreshUserSession = async (): Promise<void> => {
     const storedToken = localStorage.getItem("refreshToken");
     const storedUser = localStorage.getItem("user");
 
@@ -166,8 +176,12 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       cognitoUser.refreshSession(refreshToken, (err, session) => {
         if (err) {
           console.error("Error refreshing session", err);
-          logoutUser();
-          reject(err);
+          logoutUser()
+            .then(() => reject(err))
+            .catch((logoutErr) => {
+              console.error("Failed to logout after refresh error:", logoutErr);
+              reject(err);
+            });
         } else {
           const newIdToken = session.getIdToken().getJwtToken();
           const newRefreshToken = session.getRefreshToken().getToken();
