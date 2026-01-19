@@ -65,6 +65,7 @@ export const countryAbbreviations: Record<string, string> = {
   MEX: "Mexico",
   MX: "Mexico",
   CAN: "Canada",
+  CA: "Canada",
   GBR: "United Kingdom",
   GB: "United Kingdom",
   UK: "United Kingdom",
