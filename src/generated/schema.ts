@@ -41,21 +41,25 @@ export type BlogPost = Post & {
  */
 export type ChatMessage = {
   __typename?: 'ChatMessage';
-  createdAt: Scalars['AWSDateTime']['output'];
-  messageId: Scalars['ID']['output'];
-  messageType?: Maybe<MessageType>;
-  profilePicture?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['String']['output'];
+  firstName: Scalars['String']['output'];
+  lastName: Scalars['String']['output'];
+  profilePicture: Scalars['String']['output'];
   streamId: Scalars['ID']['output'];
   text: Scalars['String']['output'];
-  userColor?: Maybe<Scalars['String']['output']>;
+  userId: Scalars['ID']['output'];
   username: Scalars['String']['output'];
 };
 
 export type ChatMessageInput = {
-  createdAt: Scalars['AWSDateTime']['input'];
+  createdAt: Scalars['String']['input'];
+  firstName: Scalars['String']['input'];
+  lastName: Scalars['String']['input'];
+  profilePicture: Scalars['String']['input'];
   streamId: Scalars['ID']['input'];
   text: Scalars['String']['input'];
   userId: Scalars['ID']['input'];
+  username: Scalars['String']['input'];
 };
 
 export type Device = {
@@ -179,6 +183,7 @@ export type Mutation = {
   publishChat: ChatMessage;
   publishWaypoint: Waypoint;
   refreshLeaderboardEntry: RefreshLeaderboardResponse;
+  refreshLeaderboardEntryFromActivities: RefreshLeaderboardResponse;
   upsertDevice: Device;
   upsertLiveStream: LiveStream;
   upsertPost: Post;
@@ -211,6 +216,11 @@ export type MutationPublishWaypointArgs = {
 
 
 export type MutationRefreshLeaderboardEntryArgs = {
+  input: RefreshLeaderboardInput;
+};
+
+
+export type MutationRefreshLeaderboardEntryFromActivitiesArgs = {
   input: RefreshLeaderboardInput;
 };
 
@@ -384,6 +394,7 @@ export type Segment = {
   __typename?: 'Segment';
   activities?: Maybe<Array<Maybe<SegmentActivity>>>;
   burritoPrize?: Maybe<Scalars['String']['output']>;
+  chat?: Maybe<Array<Maybe<ChatMessage>>>;
   city?: Maybe<Scalars['String']['output']>;
   country?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;

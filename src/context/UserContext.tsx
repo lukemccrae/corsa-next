@@ -28,6 +28,8 @@ type User = {
   preferred_username: string;
   "cognito:username": string; // THIS IS THE COGNITO PK
   picture: string;
+  given_name: string;
+  family_name: string;
 };
 
 export type Anon = {
@@ -100,6 +102,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
             await refreshUserSession();
           } catch (error) {
             console.error("Failed to refresh session on mount:", error);
+            // Logout if refresh fails to ensure clean state
+            await logoutUser();
           }
         }
       }
@@ -174,9 +178,12 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       cognitoUser.refreshSession(refreshToken, (err, session) => {
         if (err) {
           console.error("Error refreshing session", err);
-          logoutUser().then(() => {
-            reject(err);
-          });
+          logoutUser()
+            .then(() => reject(err))
+            .catch((logoutErr) => {
+              console.error("Failed to logout after refresh error:", logoutErr);
+              reject(err);
+            });
         } else {
           const newIdToken = session.getIdToken().getJwtToken();
           const newRefreshToken = session.getRefreshToken().getToken();
@@ -334,6 +341,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       preferred_username,
       picture,
       "cognito:username": username,
+      given_name,
+      family_name,
     } = decodedToken;
     const userId = sub;
 
@@ -345,6 +354,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       preferred_username,
       picture,
       "cognito:username": username,
+      given_name,
+      family_name,
     });
     localStorage.setItem("user", idToken);
   };

@@ -16,6 +16,8 @@ export type CognitoToken = {
     token_use: string;
     preferred_username: string;
     picture: string;
+    given_name: string;
+    family_name: string;
   };
   
   // lightweight feed types for SmallPost and feed-related components

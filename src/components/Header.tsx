@@ -32,7 +32,7 @@ export default function TemplateDemo() {
   );
 
   const end = (
-    <div className="flex align-items-center gap-2 m-2">
+    <div className="flex align-items-centerm-2">
       {/* <CreateButton></CreateButton> */}
       <AvatarPanel></AvatarPanel>
     </div>
