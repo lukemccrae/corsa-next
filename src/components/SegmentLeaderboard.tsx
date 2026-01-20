@@ -232,7 +232,7 @@ export default function SegmentEffortLeaderboard({
   const callRefreshLeaderboardEntryMutation = async (userId: string) => {
     const mutation = `
       mutation RefreshLeaderboardEntry($segmentId: ID!, $userId: ID!) {
-        refreshLeaderboardEntryFromActivities(input: { segmentId: $segmentId, userId: $userId }) {
+        refreshLeaderboardEntry(input: { segmentId: $segmentId, userId: $userId }) {
               message
               newActivitiesCount
               segmentId
@@ -443,24 +443,24 @@ export default function SegmentEffortLeaderboard({
           </div>
         )}
 
-        <div className="overflow-x-auto max-h-96 mb-4">
+        <div className="overflow-x-auto max-h-85 mb-4">
           <table className="w-full">
             <thead className={`${headerBg} border-b ${border}`}>
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold">
+                <th className="px-4 py-2 text-left text-sm font-semibold">
                   Rank
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">
-                  User
+                <th className="px-4 pl-1 py-2 text-left text-sm font-semibold">
+                  Athlete
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">
+                <th className="px-4 py-2 text-left text-sm font-semibold">
                   Segments
                 </th>
-                {/* {user?.preferred_username === "lukemccrae" && (
+                {user?.preferred_username === "lukemccrae" && (
                   <th className="px-4 py-3 text-left text-sm font-semibold">
                     Actions
                   </th>
-                )} */}
+                )}
               </tr>
             </thead>
             <tbody>
@@ -508,7 +508,7 @@ export default function SegmentEffortLeaderboard({
                         ref={isCurrentUser ? selectedRowRef : null}
                         className={`border-b ${border} ${hoverBg} transition-colors ${isCurrentUser ? "bg-blue-500/10" : ""}`}
                       >
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-1">
                           <div className="flex items-center gap-2">
                             {index === 0 && (
                               <span className="text-2xl">🥇</span>
@@ -520,13 +520,13 @@ export default function SegmentEffortLeaderboard({
                               <span className="text-2xl">🥉</span>
                             )}
                             {index > 2 && (
-                              <span className="text-sm font-medium opacity-60">
+                              <span className="px-2 text-sm font-medium opacity-60">
                                 {index + 1}
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 pl-0 py-1">
                           <div className="flex items-center gap-3">
                             <Avatar
                               image={entry.profilePicture ?? undefined}
@@ -545,13 +545,13 @@ export default function SegmentEffortLeaderboard({
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-1">
                           <span className="font-semibold">
                             {entry.attemptCount}
                           </span>
                         </td>
-                        {/* {user?.preferred_username === "lukemccrae" && (
-                          <td className="px-4 py-3">
+                        {user?.preferred_username === "lukemccrae" && (
+                          <td className="px-4">
                             <Button
                               icon={
                                 refreshingUsers.has(entry.userId)
@@ -565,7 +565,7 @@ export default function SegmentEffortLeaderboard({
                               tooltipOptions={{ position: "top" }}
                             />
                           </td>
-                        )} */}
+                        )}
                       </tr>
                     );
                   })
