@@ -10,6 +10,12 @@ type StravaLimitDialogProps = {
   context?: "join" | "refresh" | "connect";
 };
 
+const CONTEXT_MESSAGES: Record<string, string> = {
+  join: "join the leaderboard",
+  refresh: "refresh your leaderboard entry",
+  connect: "connect your Strava account",
+};
+
 export default function StravaLimitDialog({
   visible,
   onHide,
@@ -17,13 +23,7 @@ export default function StravaLimitDialog({
 }: StravaLimitDialogProps) {
   const { theme } = useTheme();
 
-  const contextMessages: Record<string, string> = {
-    join: "join the leaderboard",
-    refresh: "refresh your leaderboard entry",
-    connect: "connect your Strava account",
-  };
-
-  const actionMessage = contextMessages[context];
+  const actionMessage = CONTEXT_MESSAGES[context];
 
   const footer = (
     <div className="flex justify-end">

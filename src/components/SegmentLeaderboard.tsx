@@ -17,6 +17,32 @@ import { SegmentLeaderboardEntry } from "../generated/schema";
 const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
+
+// Helper function to check if an error is a Strava rate limit error
+const isStravaRateLimit = (error: Error | { status?: number; message?: string; code?: string }): boolean => {
+  // Check HTTP status codes
+  if ('status' in error && (error.status === 401 || error.status === 429)) {
+    return true;
+  }
+
+  // Check error message for rate limit keywords
+  const errorMessage = error.message?.toLowerCase() || "";
+  if (
+    errorMessage.includes("rate limit") ||
+    errorMessage.includes("quota") ||
+    errorMessage.includes("limit reached")
+  ) {
+    return true;
+  }
+
+  // Check error code
+  if ('code' in error && error.code === "RATE_LIMIT_EXCEEDED") {
+    return true;
+  }
+
+  return false;
+};
+
 type SegmentEffortLeaderboardProps = {
   segmentId: string;
   segmentName?: string;
@@ -56,31 +82,6 @@ export default function SegmentEffortLeaderboard({
   const userInLeaderboard = user?.userId
     ? efforts.some((effort) => effort.userId === user["cognito:username"])
     : false;
-
-  // Helper function to check if an error is a Strava rate limit error
-  const isStravaRateLimit = (error: any): boolean => {
-    // Check HTTP status codes
-    if (error.status === 401 || error.status === 429) {
-      return true;
-    }
-
-    // Check error message for rate limit keywords
-    const errorMessage = error.message?.toLowerCase() || "";
-    if (
-      errorMessage.includes("rate limit") ||
-      errorMessage.includes("quota") ||
-      errorMessage.includes("limit reached")
-    ) {
-      return true;
-    }
-
-    // Check error code
-    if (error.code === "RATE_LIMIT_EXCEEDED") {
-      return true;
-    }
-
-    return false;
-  };
 
   // Fetch user's Strava integration
   useEffect(() => {
