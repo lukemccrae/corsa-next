@@ -361,7 +361,7 @@ export default function SegmentEffortLeaderboard({
         disabled: false,
       };
 
-    return { label: "Join", icon: "", disabled: !canJoin };
+    return { label: "Join", icon: "pi pi-sync", disabled: !canJoin };
   };
 
   return (
