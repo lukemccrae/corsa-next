@@ -352,7 +352,7 @@ export default function SegmentEffortLeaderboard({
 
     if (!userIntegration)
       return {
-        label: "Join Leaderboard",
+        label: "Join",
         icon: "pi pi-sync",
         disabled: false,
       };
