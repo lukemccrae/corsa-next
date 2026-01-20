@@ -10,6 +10,7 @@ import { useTheme } from "./ThemeProvider";
 import { useUser } from "../context/UserContext";
 import { fetchSegmentLeaderboard } from "../services/segment.service";
 import StravaJoinModal from "./StravaJoinModal";
+import StravaLimitDialog from "./StravaLimitDialog";
 import { exchangeStravaCode } from "../services/integration.service";
 import { SegmentLeaderboardEntry } from "../generated/schema";
 
@@ -43,6 +44,8 @@ export default function SegmentEffortLeaderboard({
     new Set(),
   );
   const [sexFilter, setSexFilter] = useState<string>("OVERALL");
+  const [showStravaLimitDialog, setShowStravaLimitDialog] = useState(false);
+  const [stravaLimitContext, setStravaLimitContext] = useState<"join" | "refresh" | "connect">("join");
 
   const filterOptions = [
     { label: "Overall", value: "OVERALL" },
@@ -53,6 +56,31 @@ export default function SegmentEffortLeaderboard({
   const userInLeaderboard = user?.userId
     ? efforts.some((effort) => effort.userId === user["cognito:username"])
     : false;
+
+  // Helper function to check if an error is a Strava rate limit error
+  const isStravaRateLimit = (error: any): boolean => {
+    // Check HTTP status codes
+    if (error.status === 401 || error.status === 429) {
+      return true;
+    }
+
+    // Check error message for rate limit keywords
+    const errorMessage = error.message?.toLowerCase() || "";
+    if (
+      errorMessage.includes("rate limit") ||
+      errorMessage.includes("quota") ||
+      errorMessage.includes("limit reached")
+    ) {
+      return true;
+    }
+
+    // Check error code
+    if (error.code === "RATE_LIMIT_EXCEEDED") {
+      return true;
+    }
+
+    return false;
+  };
 
   // Fetch user's Strava integration
   useEffect(() => {
@@ -141,6 +169,14 @@ export default function SegmentEffortLeaderboard({
         })
         .catch((error) => {
           console.error("Strava connection error:", error);
+
+          if (isStravaRateLimit(error)) {
+            setStravaLimitContext("connect");
+            setShowStravaLimitDialog(true);
+            setOauthStatus("error");
+            setJoining(false);
+            return;
+          }
 
           const isDuplicateAthlete =
             error.message?.includes("already connected") ||
@@ -285,12 +321,18 @@ export default function SegmentEffortLeaderboard({
       }, 2000);
     } catch (err: any) {
       console.error("Failed to join leaderboard:", err);
-      toast.current?.show({
-        severity: "error",
-        summary: "Error",
-        detail: err.message || "Failed to join leaderboard",
-        life: 5000,
-      });
+      
+      if (isStravaRateLimit(err)) {
+        setStravaLimitContext("join");
+        setShowStravaLimitDialog(true);
+      } else {
+        toast.current?.show({
+          severity: "error",
+          summary: "Error",
+          detail: err.message || "Failed to join leaderboard",
+          life: 5000,
+        });
+      }
       setJoining(false);
     }
   };
@@ -314,12 +356,18 @@ export default function SegmentEffortLeaderboard({
       setEfforts(leaderboardData);
     } catch (err: any) {
       console.error("Failed to refresh entry:", err);
-      toast.current?.show({
-        severity: "error",
-        summary: "Error",
-        detail: err.message || "Failed to refresh entry",
-        life: 5000,
-      });
+      
+      if (isStravaRateLimit(err)) {
+        setStravaLimitContext("refresh");
+        setShowStravaLimitDialog(true);
+      } else {
+        toast.current?.show({
+          severity: "error",
+          summary: "Error",
+          detail: err.message || "Failed to refresh entry",
+          life: 5000,
+        });
+      }
     } finally {
       setRefreshingUsers((prev) => {
         const newSet = new Set(prev);
@@ -569,6 +617,12 @@ export default function SegmentEffortLeaderboard({
           window.location.reload();
         }}
         userIntegration={userIntegration}
+      />
+
+      <StravaLimitDialog
+        visible={showStravaLimitDialog}
+        onHide={() => setShowStravaLimitDialog(false)}
+        context={stravaLimitContext}
       />
     </div>
   );
