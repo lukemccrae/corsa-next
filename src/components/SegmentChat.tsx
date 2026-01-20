@@ -9,8 +9,7 @@ import { useModal } from "./ModalProvider";
 import { ChatMessage } from "../generated/schema";
 import { generateClient } from "aws-amplify/api";
 import { Amplify } from "aws-amplify";
-import * as subscriptions from '../graphql/subscriptions';
-
+import * as subscriptions from "../graphql/subscriptions";
 
 type SegmentChatProps = {
   segmentId: string;
@@ -93,15 +92,18 @@ export default function SegmentChat({
     },
   });
 
-    useEffect(() => {
+  useEffect(() => {
     if (segmentId) {
       const subscribe2Chat = client
-        .graphql({ query: subscriptions.onNewChat, variables: { streamId: segmentId } })
+        .graphql({
+          query: subscriptions.onNewChat,
+          variables: { streamId: segmentId },
+        })
         .subscribe({
           next: ({ data }) => {
             handleReceivedComments(data.onNewChat);
           },
-          error: error => console.warn('Chat subscription error:', error),
+          error: (error) => console.warn("Chat subscription error:", error),
         });
 
       return () => {
@@ -116,20 +118,20 @@ export default function SegmentChat({
       setMessages((prevMessages) => [...prevMessages, message]);
     }
   };
-const onNewChat = /* GraphQL */ `
-  subscription OnNewChat($streamId: ID!) {
-    onNewChat(streamId: $streamId) {
-      createdAt
-      firstName
-      lastName
-      profilePicture
-      streamId
-      text
-      userId
-      username
+  const onNewChat = /* GraphQL */ `
+    subscription OnNewChat($streamId: ID!) {
+      onNewChat(streamId: $streamId) {
+        createdAt
+        firstName
+        lastName
+        profilePicture
+        streamId
+        text
+        userId
+        username
+      }
     }
-  }
-`;
+  `;
 
   useEffect(() => {
     if (segmentId) {
@@ -174,7 +176,7 @@ const onNewChat = /* GraphQL */ `
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": user.idToken,
+          Authorization: user.idToken,
         },
         body: JSON.stringify({
           query: `
@@ -212,10 +214,7 @@ const onNewChat = /* GraphQL */ `
         setMessages((prev) => {
           // Prevent duplicates
           if (
-            prev.some(
-              (m) =>
-                m.createdAt === result.data.publishChat.createdAt,
-            )
+            prev.some((m) => m.createdAt === result.data.publishChat.createdAt)
           ) {
             return prev;
           }
@@ -236,20 +235,38 @@ const onNewChat = /* GraphQL */ `
   const textColor = theme === "dark" ? "text-gray-100" : "text-gray-900";
   const mutedText = theme === "dark" ? "text-gray-400" : "text-gray-600";
   const inputBg = theme === "dark" ? "bg-gray-700" : "bg-gray-50";
-  const hoverBg = theme === "dark" ? "hover:bg-gray-700" : "hover:bg-gray-50";
+
+  const USER_COLORS = [
+    "#FF5C5C",
+    "#4FC3F7",
+    "#81C784",
+    "#BA68C8",
+    "#FFD54F",
+    "#F06292",
+    "#4DD0E1",
+    "#AED581",
+  ];
+
+  function getUsernameColor(username: string) {
+    let hash = 0;
+    for (let i = 0; i < username.length; i++) {
+      hash = username.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return USER_COLORS[Math.abs(hash) % USER_COLORS.length];
+  }
 
   return (
     <div
       className={`flex flex-col ${bg} border ${border} rounded-lg ${className}`}
     >
       {/* Header */}
-      <div className={`px-4 py-3 border-b ${border} flex items-center gap-2`}>
+      {/* <div className={`px-4 py-3 border-b ${border} flex items-center gap-2`}>
         <i className="pi pi-comments text-xl" />
         <h3 className={`font-semibold ${textColor}`}>Segment Chat</h3>
         <span className={`ml-auto text-sm ${mutedText}`}>
           {messages.length} {messages.length === 1 ? "message" : "messages"}
         </span>
-      </div>
+      </div> */}
 
       {/* Messages Container */}
       <div
@@ -258,41 +275,53 @@ const onNewChat = /* GraphQL */ `
         style={{ minHeight: "300px", maxHeight: "500px" }}
       >
         {messages.length === 0 ? (
-          <div className={`text-center ${mutedText} py-8`}>
+          <div className={`text-center ${mutedText} py-2`}>
             Be the first to chat about this segment!
           </div>
         ) : (
           messages.map((msg) => (
             <div
               key={msg.createdAt}
-              className={`flex gap-3 ${hoverBg} rounded-lg p-2 transition-colors`}
+              className="flex gap-2 text-sm leading-snug"
             >
-              {/* Avatar */}
-              <div className="flex-shrink-0">
+              {/* Avatar column */}
+              <div className="shrink-0 w-8 flex justify-center">
                 {msg.profilePicture ? (
                   <Avatar
                     image={msg.profilePicture}
                     shape="circle"
-                    size="normal"
-                    className="w-8 h-8"
+                    className="w-12 h-12"
                   />
                 ) : (
                   <Avatar
                     label={msg.username.charAt(0).toUpperCase()}
                     shape="circle"
-                    size="normal"
-                    className="w-8 h-8"
+                    className="w-12 h-12"
                   />
                 )}
               </div>
 
-              {/* Message Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2 mb-1">
-                  <span className="font-semibold text-sm">{msg.username}</span>
+              {/* Content column */}
+              <div className="flex flex-col min-w-0">
+                {/* Top line: username + badges */}
+                <div className="flex items-center gap-2">
+                  <span
+                    className="font-semibold"
+                    style={{ color: getUsernameColor(msg.username) }}
+                  >
+                    {msg.username}
+                  </span>
+
+                  {/* example badge */}
+                  {/* {msg.isMod && (
+                    <span className="text-xs bg-purple-600 text-white px-1.5 py-0.5 rounded">
+                      MOD
+                    </span>
+                  )} */}
                 </div>
 
-                <p className={`text-sm ${textColor} break-words`}>
+                {/* Message body (wraps under username) */}
+                <div className="text-gray-200 break-words">
                   {msg.text.split(urlRegex).map((part, index) =>
                     urlRegex.test(part) ? (
                       <a
@@ -300,7 +329,7 @@ const onNewChat = /* GraphQL */ `
                         href={cleanUrl(part)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline"
+                        className="text-blue-400 hover:underline"
                       >
                         {cleanUrl(part)}
                       </a>
@@ -308,7 +337,7 @@ const onNewChat = /* GraphQL */ `
                       part
                     ),
                   )}
-                </p>
+                </div>
               </div>
             </div>
           ))

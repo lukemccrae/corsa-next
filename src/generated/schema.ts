@@ -41,7 +41,7 @@ export type BlogPost = Post & {
  */
 export type ChatMessage = {
   __typename?: 'ChatMessage';
-  createdAt: Scalars['Long']['output'];
+  createdAt: Scalars['String']['output'];
   firstName: Scalars['String']['output'];
   lastName: Scalars['String']['output'];
   profilePicture: Scalars['String']['output'];
@@ -52,7 +52,7 @@ export type ChatMessage = {
 };
 
 export type ChatMessageInput = {
-  createdAt: Scalars['Long']['input'];
+  createdAt: Scalars['String']['input'];
   firstName: Scalars['String']['input'];
   lastName: Scalars['String']['input'];
   profilePicture: Scalars['String']['input'];
@@ -183,6 +183,7 @@ export type Mutation = {
   publishChat: ChatMessage;
   publishWaypoint: Waypoint;
   refreshLeaderboardEntry: RefreshLeaderboardResponse;
+  refreshLeaderboardEntryFromActivities: RefreshLeaderboardResponse;
   upsertDevice: Device;
   upsertLiveStream: LiveStream;
   upsertPost: Post;
@@ -215,6 +216,11 @@ export type MutationPublishWaypointArgs = {
 
 
 export type MutationRefreshLeaderboardEntryArgs = {
+  input: RefreshLeaderboardInput;
+};
+
+
+export type MutationRefreshLeaderboardEntryFromActivitiesArgs = {
   input: RefreshLeaderboardInput;
 };
 
@@ -388,6 +394,7 @@ export type Segment = {
   __typename?: 'Segment';
   activities?: Maybe<Array<Maybe<SegmentActivity>>>;
   burritoPrize?: Maybe<Scalars['String']['output']>;
+  chat?: Maybe<Array<Maybe<ChatMessage>>>;
   city?: Maybe<Scalars['String']['output']>;
   country?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;

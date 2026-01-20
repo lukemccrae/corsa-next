@@ -232,10 +232,13 @@ export default function SegmentEffortLeaderboard({
   const callRefreshLeaderboardEntryMutation = async (userId: string) => {
     const mutation = `
       mutation RefreshLeaderboardEntry($segmentId: ID!, $userId: ID!) {
-        refreshLeaderboardEntry(input: { segmentId: $segmentId, userId: $userId }) {
-          message
-          segmentId
-          success
+        refreshLeaderboardEntryFromActivities(input: { segmentId: $segmentId, userId: $userId }) {
+              message
+              newActivitiesCount
+              segmentId
+              totalAttempts
+              userId
+              success
         }
       }
     `;
@@ -260,6 +263,7 @@ export default function SegmentEffortLeaderboard({
     }
 
     const result = await response.json();
+    console.log(result, "<< result");
 
     if (result.errors) {
       throw new Error(result.errors[0]?.message || "Failed to refresh entry");
@@ -352,7 +356,7 @@ export default function SegmentEffortLeaderboard({
 
     if (!userIntegration)
       return {
-        label: "Join Leaderboard",
+        label: "Join",
         icon: "pi pi-sync",
         disabled: false,
       };
@@ -388,9 +392,9 @@ export default function SegmentEffortLeaderboard({
         </div>
       )}
 
-      <Card className={`${cardBg} border p-0`}>
+      <Card className={`${cardBg} border p-0 mt-0`}>
         {/* Header with back button and join button */}
-        <div className="flex items-center justify-between mb-4">
+        {/* <div className="flex items-center justify-between mb-4">
           <a
             href="/burritoleague"
             className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors text-sm"
@@ -398,35 +402,44 @@ export default function SegmentEffortLeaderboard({
             <i className="pi pi-arrow-left" />
             Back
           </a>
-          {!userInLeaderboard && (
-            <Button
-              {...getJoinButtonProps()}
-              onClick={handleJoinClick}
-              size="small"
-            />
-          )}
-        </div>
+        </div> */}
 
         {/* Title */}
-        <h1 className="text-lg font-bold mb-3">{segmentName} Leaderboard</h1>
-
-        {/* Success message - more compact */}
-        {userInLeaderboard && (
-          <div className="bg-green-500/10 border border-green-500/20 rounded px-3 py-2 mb-3 flex items-center gap-2 text-sm">
-            <i className="pi pi-check-circle text-green-400" />
-            You're on this leaderboard!
-          </div>
-        )}
+        <h1 className="text-md font-bold mb-1">{segmentName} Leaderboard</h1>
 
         {/* Filter buttons - more compact */}
         {!loading && (
-          <div className="mb-3">
-            <SelectButton
-              value={sexFilter}
-              onChange={(e) => setSexFilter(e.value)}
-              options={filterOptions}
-              className="text-sm "
-            />
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex-shrink-0">
+              <SelectButton
+                value={sexFilter}
+                onChange={(e) => setSexFilter(e.value)}
+                options={filterOptions}
+                pt={{
+                  root: { className: "scale-70 origin-left inline-block" },
+                  button: { className: "px-2 py-1 text-sm" },
+                }}
+              />
+            </div>
+
+            {!userInLeaderboard && (
+              <Button
+                {...getJoinButtonProps()}
+                onClick={handleJoinClick}
+                size="small"
+                className="flex-shrink-0"
+              />
+            )}
+
+            {/* Success message - more compact */}
+            {/* {userInLeaderboard && (
+              <div className="flex-shrink-0">
+                <div className="bg-green-500/10 border border-green-500/20 rounded px-3 py-2 flex items-center gap-2 text-md scale-80 origin-left">
+                  <i className="pi pi-check-circle text-green-400" />
+                  Joined
+                </div>
+              </div>
+            )} */}
           </div>
         )}
 
@@ -443,11 +456,11 @@ export default function SegmentEffortLeaderboard({
                 <th className="px-4 py-3 text-left text-sm font-semibold">
                   Segments
                 </th>
-                {user?.preferred_username === "lukemccrae" && (
+                {/* {user?.preferred_username === "lukemccrae" && (
                   <th className="px-4 py-3 text-left text-sm font-semibold">
                     Actions
                   </th>
-                )}
+                )} */}
               </tr>
             </thead>
             <tbody>
@@ -537,7 +550,7 @@ export default function SegmentEffortLeaderboard({
                             {entry.attemptCount}
                           </span>
                         </td>
-                        {user?.preferred_username === "lukemccrae" && (
+                        {/* {user?.preferred_username === "lukemccrae" && (
                           <td className="px-4 py-3">
                             <Button
                               icon={
@@ -552,7 +565,7 @@ export default function SegmentEffortLeaderboard({
                               tooltipOptions={{ position: "top" }}
                             />
                           </td>
-                        )}
+                        )} */}
                       </tr>
                     );
                   })
