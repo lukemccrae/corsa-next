@@ -23,7 +23,7 @@ export default function StravaLimitDialog({
 }: StravaLimitDialogProps) {
   const { theme } = useTheme();
 
-  const actionMessage = CONTEXT_MESSAGES[context];
+  const actionMessage = CONTEXT_MESSAGES[context] || CONTEXT_MESSAGES["join"];
 
   const footer = (
     <div className="flex justify-end">
