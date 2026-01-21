@@ -210,16 +210,6 @@ export default function SegmentChat({
 
       const result = await response.json();
       if (result.data?.publishChat) {
-        // Add the new message to the list
-        setMessages((prev) => {
-          // Prevent duplicates
-          if (
-            prev.some((m) => m.createdAt === result.data.publishChat.createdAt)
-          ) {
-            return prev;
-          }
-          return [...prev, result.data.publishChat];
-        });
         setInputValue("");
       }
     } catch (error) {
