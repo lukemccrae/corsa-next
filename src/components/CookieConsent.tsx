@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { Checkbox } from "primereact/checkbox";
-import { useTheme } from "./ThemeProvider";
 
 type CookiePreferences = {
   essential: boolean;
@@ -15,7 +14,6 @@ type CookiePreferences = {
 const STORAGE_KEY = "cookie-consent";
 
 export default function CookieConsent() {
-  const { theme } = useTheme();
   const [visible, setVisible] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [preferences, setPreferences] = useState<CookiePreferences>({
@@ -50,7 +48,7 @@ export default function CookieConsent() {
       essential: true,
       analytics: true,
       preferences: true,
-      timestamp: Date.now(),
+      timestamp: 0, // Will be set by savePreferences
     });
   };
 
@@ -59,7 +57,7 @@ export default function CookieConsent() {
       essential: true,
       analytics: false,
       preferences: false,
-      timestamp: Date.now(),
+      timestamp: 0, // Will be set by savePreferences
     });
   };
 
