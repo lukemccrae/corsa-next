@@ -206,7 +206,7 @@ export default function BurritoMap(props: CoverMapProps) {
           </div>
         </div>
       </div>
-      <div className="relative w-full mx-auto h-[60vh] rounded-lg overflow-hidden">
+      <div className="relative w-full md:w-3/4 mx-auto h-[70vh] rounded-lg overflow-hidden">
         <SegmentMap segments={filteredSegments}></SegmentMap>
       </div>
     </>

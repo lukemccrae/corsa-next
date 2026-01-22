@@ -25,6 +25,7 @@ export default function SegmentChat({
   const { openLogin } = useModal();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
+    const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const client = generateClient();
@@ -171,6 +172,7 @@ export default function SegmentChat({
   const handleSend = async () => {
     if (!inputValue.trim() || !user) return;
 
+    setLoading(true);
     try {
       const response = await fetch(APPSYNC_ENDPOINT, {
         method: "POST",
@@ -214,6 +216,8 @@ export default function SegmentChat({
       }
     } catch (error) {
       console.error("Error sending message:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -355,7 +359,7 @@ export default function SegmentChat({
             <Button
               icon="pi pi-send"
               onClick={handleSend}
-              disabled={!inputValue.trim()}
+              disabled={loading || !inputValue.trim()}
               className="p-button-primary self-end"
             />
           </div>

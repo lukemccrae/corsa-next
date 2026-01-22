@@ -2,6 +2,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import type { LiveStream, TrackerGroup } from "@/src/generated/schema";
+import { redirect } from "next/navigation";
 
 const FullScreenMap = dynamic(() => import("../../components/BasicMap"), {
   ssr: false,
@@ -11,9 +12,13 @@ const APPSYNC_ENDPOINT = "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 
 export default function Home() {
-  const [livestreams, setLivestreams] = useState<LiveStream[]>([]);
-  const [groups, setGroups] = useState<TrackerGroup[]>([]);
-  const [mapCenter, setMapCenter] = useState<[number, number]>([45.5231, -122.6765]);
+  redirect("https://corsa.run/burritoleague");
+}
+
+// export default function Home() {
+//   const [livestreams, setLivestreams] = useState<LiveStream[]>([]);
+//   const [groups, setGroups] = useState<TrackerGroup[]>([]);
+//   const [mapCenter, setMapCenter] = useState<[number, number]>([45.5231, -122.6765]);
 
   // useEffect(() => {
   //   async function fetchData() {
@@ -90,14 +95,14 @@ export default function Home() {
   //   return () => clearInterval(interval);
   // }, []);
 
-  return (
-    <div className="w-full h-screen">
-      <FullScreenMap
-        center={mapCenter}
-        zoom={6}
-        livestreams={livestreams}
-        groups={groups}
-      />
-    </div>
-  );
-}
+//   return (
+//     <div className="w-full h-screen">
+//       <FullScreenMap
+//         center={mapCenter}
+//         zoom={6}
+//         livestreams={livestreams}
+//         groups={groups}
+//       />
+//     </div>
+//   );
+// }
