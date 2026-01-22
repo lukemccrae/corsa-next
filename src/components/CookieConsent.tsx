@@ -80,141 +80,114 @@ export default function CookieConsent() {
       dismissableMask={false}
       closable={false}
       position="bottom"
-      className="w-full max-w-4xl"
+      className="w-full max-w-2xl"
       contentClassName="pb-0"
       pt={{
-        root: { className: "m-4 md:m-8" },
+        root: { className: "m-2 md:m-4" },
         content: { className: "rounded-lg" },
       }}
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         {/* Header */}
-        <div className="flex items-start gap-3">
-          <i className="pi pi-info-circle text-2xl text-blue-500" aria-hidden="true" />
+        <div className="flex items-start gap-2">
+          <i className="pi pi-cookie text-lg text-blue-500" aria-hidden="true" />
           <div className="flex-1">
-            <h2 className="text-xl font-bold m-0 mb-2">Cookie Consent</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 m-0">
-              We use cookies to enhance your browsing experience, analyze site traffic, 
-              and personalize content. By clicking "Accept All", you consent to our use of cookies.
+            <h2 className="text-base font-semibold m-0 mb-1">Cookie Notice</h2>
+            <p className="text-xs text-gray-600 dark:text-gray-400 m-0">
+              We use cookies for essential site functionality and analytics.
             </p>
           </div>
         </div>
 
         {/* Cookie Categories - Expandable */}
         {showPreferences && (
-          <div className="flex flex-col gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <h3 className="text-base font-semibold m-0">Cookie Preferences</h3>
-            
+          <div className="flex flex-col gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded">
             {/* Essential Cookies */}
-            <div className="flex items-start gap-3">
+            <div className="flex items-center gap-2">
               <Checkbox
                 inputId="essential"
                 checked={preferences.essential}
                 disabled
-                className="mt-1"
                 aria-label="Essential cookies (always enabled)"
               />
-              <div className="flex-1">
-                <label htmlFor="essential" className="font-medium text-sm cursor-not-allowed">
-                  Essential Cookies (Required)
-                </label>
-                <p className="text-xs text-gray-600 dark:text-gray-400 m-0 mt-1">
-                  These cookies are necessary for the website to function and cannot be disabled.
-                  They enable core functionality such as security, network management, and accessibility.
-                </p>
-              </div>
+              <label htmlFor="essential" className="text-xs cursor-not-allowed">
+                Essential (Required)
+              </label>
             </div>
 
             {/* Analytics Cookies */}
-            <div className="flex items-start gap-3">
+            <div className="flex items-center gap-2">
               <Checkbox
                 inputId="analytics"
                 checked={preferences.analytics}
                 onChange={() => togglePreference("analytics")}
-                className="mt-1"
                 aria-label="Analytics cookies"
               />
-              <div className="flex-1">
-                <label htmlFor="analytics" className="font-medium text-sm cursor-pointer">
-                  Analytics Cookies
-                </label>
-                <p className="text-xs text-gray-600 dark:text-gray-400 m-0 mt-1">
-                  These cookies help us understand how visitors interact with our website by collecting
-                  and reporting information anonymously. This helps us improve our service.
-                </p>
-              </div>
+              <label htmlFor="analytics" className="text-xs cursor-pointer">
+                Analytics
+              </label>
             </div>
 
             {/* Preference Cookies */}
-            <div className="flex items-start gap-3">
+            <div className="flex items-center gap-2">
               <Checkbox
                 inputId="preferences"
                 checked={preferences.preferences}
                 onChange={() => togglePreference("preferences")}
-                className="mt-1"
                 aria-label="Preference cookies"
               />
-              <div className="flex-1">
-                <label htmlFor="preferences" className="font-medium text-sm cursor-pointer">
-                  Preference Cookies
-                </label>
-                <p className="text-xs text-gray-600 dark:text-gray-400 m-0 mt-1">
-                  These cookies enable the website to remember choices you make (such as your preferred
-                  language or region) and provide enhanced, more personalized features.
-                </p>
-              </div>
+              <label htmlFor="preferences" className="text-xs cursor-pointer">
+                Preferences
+              </label>
             </div>
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-wrap gap-2 items-center justify-between">
+          <div className="flex gap-2">
             {!showPreferences ? (
               <Button
-                label="Manage Preferences"
-                icon="pi pi-cog"
+                label="Customize"
                 severity="secondary"
-                outlined
+                text
                 onClick={() => setShowPreferences(true)}
-                className="text-sm"
+                className="text-xs p-2"
                 aria-label="Manage cookie preferences"
               />
             ) : (
               <Button
-                label="Save Preferences"
-                icon="pi pi-check"
+                label="Save"
                 severity="success"
                 onClick={handleSavePreferences}
-                className="text-sm"
+                className="text-xs p-2"
                 aria-label="Save cookie preferences"
               />
             )}
             <a
               href="/privacy"
-              className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline px-3 py-2"
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline p-2"
               aria-label="View privacy policy"
             >
-              <i className="pi pi-external-link" aria-hidden="true" />
-              Privacy Policy
+              Privacy
             </a>
           </div>
 
           {!showPreferences && (
             <div className="flex gap-2">
               <Button
-                label="Reject All"
+                label="Reject"
                 severity="secondary"
                 outlined
                 onClick={handleRejectAll}
-                className="text-sm"
+                className="text-xs p-2"
                 aria-label="Reject all optional cookies"
               />
               <Button
-                label="Accept All"
+                label="Accept"
                 severity="primary"
                 onClick={handleAcceptAll}
-                className="text-sm"
+                className="text-xs p-2"
                 aria-label="Accept all cookies"
               />
             </div>
