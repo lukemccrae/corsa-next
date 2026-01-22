@@ -5,23 +5,41 @@ import L from "leaflet";
 
 // Create icon for the athlete's current position
 const createSegmentIcon = () => {
+  // Generate random counts for badges
+  const userCount = Math.floor(Math.random() * 11) + 5; // Random number between 5-15
+  const chatCount = Math.floor(Math.random() * 41) + 10; // Random number between 10-50
+  
   return L.divIcon({
     className: "athlete-marker",
     html: `
-      <div
-        style="
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-        "
-      >
-        <img 
-          src="/burrito.png" 
-          alt="Burrito" 
-          style="width: 36px; height: 36px;"
-        />
+      <div style="position: relative;">
+        <div
+          style="
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+          "
+        >
+          <img 
+            src="/burrito.png" 
+            alt="Burrito" 
+            style="width: 36px; height: 36px;"
+          />
+        </div>
+        <div style="position: absolute; top: -8px; right: -8px; display: flex; flex-direction: column; gap: 2px;">
+          <!-- User count badge -->
+          <div class="bg-red-500 text-white rounded-full px-1 text-xs flex items-center gap-1" style="box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+            <i class="pi pi-users" style="font-size: 8px;"></i>
+            <span style="font-size: 10px; font-weight: 600;">${userCount}</span>
+          </div>
+          <!-- Chat count badge -->
+          <div class="bg-red-600 text-white rounded-full px-1 text-xs flex items-center gap-1" style="box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+            <i class="pi pi-comments" style="font-size: 8px;"></i>
+            <span style="font-size: 10px; font-weight: 600;">${chatCount}</span>
+          </div>
+        </div>
       </div>
     `,
     iconSize: [48, 48],
