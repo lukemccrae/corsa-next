@@ -65,30 +65,28 @@ export default function SupportPage() {
             </div>
           </div>
 
-          {/* Additional Help Section */}
-          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
-              Before You Reach Out
-            </h3>
-            <ul className="space-y-2 text-gray-600 dark: text-gray-400">
-              <li className="flex items-start gap-2">
-                <i className="pi pi-check text-green-500 mt-1" />
-                <span>
-                  Check if your issue is already answered in our Discord
-                  community
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <i className="pi pi-check text-green-500 mt-1" />
-                <span>
-                  Include as much detail as possible when reporting bugs
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <i className="pi pi-check text-green-500 mt-1" />
-                <span>Let us know your username if it's account-related</span>
-              </li>
-            </ul>
+          {/* Instagram */}
+          <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-start gap-4">
+              <i className="pi pi-instagram text-3xl text-pink-500 mt-1" />
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  Instagram
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-3">
+                  Follow us on Instagram for updates and community highlights.
+                </p>
+                <a
+                  href="https://www.instagram.com/corsa.run/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-pink-500 hover:text-pink-600 dark:text-pink-400 dark:hover:text-pink-300 font-medium"
+                >
+                  @corsa.run
+                  <i className="pi pi-external-link text-sm" />
+                </a>
+              </div>
+            </div>
           </div>
         </Card>
       </div>
