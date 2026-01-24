@@ -28,7 +28,7 @@ export default function SegmentEffortLeaderboard({
   segmentName,
   showDailyLimit = false,
 }: SegmentEffortLeaderboardProps) {
-  const theme = "dark";
+  const { theme } = useTheme();
   const { user } = useUser();
   const toast = useRef<Toast>(null);
   const selectedRowRef = useRef<HTMLTableRowElement>(null);

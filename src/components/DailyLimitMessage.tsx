@@ -11,7 +11,8 @@ export default function DailyLimitMessage() {
     const calculateTimeRemaining = () => {
       const now = new Date();
       const midnight = new Date();
-      midnight.setUTCHours(24, 0, 0, 0);
+      midnight.setUTCDate(midnight.getUTCDate() + 1);
+      midnight.setUTCHours(0, 0, 0, 0);
 
       const diff = midnight.getTime() - now.getTime();
 
