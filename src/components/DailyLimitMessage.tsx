@@ -5,32 +5,33 @@ import { useTheme } from "./ThemeProvider";
 
 export default function DailyLimitMessage() {
   const { theme } = useTheme();
-  const [timeRemaining, setTimeRemaining] = useState("");
+  
+  // Calculate initial time remaining
+  const calculateTimeRemaining = () => {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+    tomorrow.setUTCHours(0, 0, 0, 0);
+
+    const diff = tomorrow.getTime() - now.getTime();
+
+    if (diff <= 0) {
+      return "00:00:00";
+    }
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  };
+
+  const [timeRemaining, setTimeRemaining] = useState(calculateTimeRemaining());
 
   useEffect(() => {
-    const calculateTimeRemaining = () => {
-      const now = new Date();
-      const midnight = new Date();
-      midnight.setUTCDate(midnight.getUTCDate() + 1);
-      midnight.setUTCHours(0, 0, 0, 0);
-
-      const diff = midnight.getTime() - now.getTime();
-
-      if (diff <= 0) {
-        setTimeRemaining("00:00:00");
-        return;
-      }
-
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      const formatted = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-      setTimeRemaining(formatted);
-    };
-
-    calculateTimeRemaining();
-    const interval = setInterval(calculateTimeRemaining, 1000);
+    const interval = setInterval(() => {
+      setTimeRemaining(calculateTimeRemaining());
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
