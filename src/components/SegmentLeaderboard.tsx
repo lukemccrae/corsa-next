@@ -12,6 +12,7 @@ import { fetchSegmentLeaderboard } from "../services/segment.service";
 import StravaJoinModal from "./StravaJoinModal";
 import { exchangeStravaCode } from "../services/integration.service";
 import { SegmentLeaderboardEntry } from "../generated/schema";
+import DailyLimitMessage from "./DailyLimitMessage";
 
 const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
@@ -19,11 +20,13 @@ const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 type SegmentEffortLeaderboardProps = {
   segmentId: string;
   segmentName?: string;
+  showDailyLimit?: boolean;
 };
 
 export default function SegmentEffortLeaderboard({
   segmentId,
   segmentName,
+  showDailyLimit = false,
 }: SegmentEffortLeaderboardProps) {
   const theme = "dark";
   const { user } = useUser();
@@ -407,6 +410,9 @@ export default function SegmentEffortLeaderboard({
         {/* Title */}
         <h1 className="text-md font-bold mb-1">{segmentName} Leaderboard</h1>
 
+        {/* Daily Limit Message */}
+        {showDailyLimit && <DailyLimitMessage />}
+
         {/* Filter buttons - more compact */}
         {!loading && (
           <div className="flex items-center gap-2 flex-wrap">
@@ -422,7 +428,7 @@ export default function SegmentEffortLeaderboard({
               />
             </div>
 
-            {!userInLeaderboard && (
+            {!userInLeaderboard && !showDailyLimit && (
               <Button
                 {...getJoinButtonProps()}
                 onClick={handleJoinClick}
