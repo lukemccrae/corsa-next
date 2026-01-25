@@ -251,7 +251,7 @@ export default function SegmentChat({
 
   return (
     <div
-      className={`flex flex-col ${bg} border ${border} rounded-lg ${className}`}
+      className={`flex flex-col ${bg} border ${border} rounded-lg ${className} max-w-xl`}
     >
       {/* Header */}
       {/* <div className={`px-4 py-3 border-b ${border} flex items-center gap-2`}>

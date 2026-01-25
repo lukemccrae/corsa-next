@@ -12,6 +12,7 @@ import { fetchSegmentLeaderboard } from "../services/segment.service";
 import StravaJoinModal from "./StravaJoinModal";
 import { exchangeStravaCode } from "../services/integration.service";
 import { SegmentLeaderboardEntry } from "../generated/schema";
+import RateLimitDialog from "./RateLimit";
 
 const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
@@ -43,6 +44,7 @@ export default function SegmentEffortLeaderboard({
     new Set(),
   );
   const [sexFilter, setSexFilter] = useState<string>("OVERALL");
+  const [showRateLimitDialog, setShowRateLimitDialog] = useState(true);
 
   const filterOptions = [
     { label: "Overall", value: "OVERALL" },
@@ -593,6 +595,11 @@ export default function SegmentEffortLeaderboard({
           window.location.reload();
         }}
         userIntegration={userIntegration}
+      />
+      <RateLimitDialog
+        visible={showRateLimitDialog}
+        onHide={() => setShowRateLimitDialog(false)}
+        resetTime={"6pm MST"}
       />
     </div>
   );
