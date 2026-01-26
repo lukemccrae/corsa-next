@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { UserProvider } from "../context/UserContext";
 import ModalProvider from "./ModalProvider";
 import ThemeProvider from './ThemeProvider';
+import CookieConsent from './CookieConsent';
 import { Amplify } from "aws-amplify";
 
 
@@ -21,7 +22,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <UserProvider>
       <ThemeProvider>
-        <ModalProvider>{children}</ModalProvider>
+        <ModalProvider>
+          {children}
+          <CookieConsent />
+        </ModalProvider>
       </ThemeProvider>
     </UserProvider>
   );
