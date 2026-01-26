@@ -3,25 +3,77 @@ import { Button } from "primereact/button";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 
+// Simple hash function to generate consistent random values from a string
+const hashCode = (str: string): number => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+};
+
 // Create icon for the athlete's current position
-const createSegmentIcon = () => {
+const createSegmentIcon = (segmentId: string) => {
+  // Generate consistent random counts for badges based on segment ID
+  const hash = hashCode(segmentId);
+  const userCount = (hash % 11) + 5; // Random number between 5-15
+  const chatCount = ((hash >> 4) % 41) + 10; // Random number between 10-50
+
+  if (Number(segmentId) % 3 === 0) {
+    return L.divIcon({
+      className: "athlete-marker",
+      html: `
+      <div style="position: relative;">
+        <div
+          style="
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+          "
+        >
+          <img 
+            src="/burrito.png" 
+            alt="Burrito" 
+            style="width: 36px; height: 36px;"
+          />
+        </div>
+        <div style="position: absolute; top: -8px; right: -8px; display: flex; flex-direction: column; gap: 2px;">
+          <!-- User count badge -->
+          <div class="bg-red-500 text-white rounded-full px-1 text-xs flex items-center gap-1" style="box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+            <i class="pi pi-users" style="font-size: 14px;"></i>
+            <span style="font-size: 14px; font-weight: 600;">${userCount}</span>
+          </div>
+        </div>
+      </div>
+    `,
+      iconSize: [48, 48],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40],
+    });
+  }
   return L.divIcon({
     className: "athlete-marker",
     html: `
-      <div
-        style="
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-        "
-      >
-        <img 
-          src="/burrito.png" 
-          alt="Burrito" 
-          style="width: 36px; height: 36px;"
-        />
+      <div style="position: relative;">
+        <div
+          style="
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+          "
+        >
+          <img 
+            src="/burrito.png" 
+            alt="Burrito" 
+            style="width: 36px; height: 36px;"
+          />
+        </div>
       </div>
     `,
     iconSize: [48, 48],
@@ -62,7 +114,7 @@ export const SegmentMap = (props: { segments: Segment[] }) => (
         return (
           <Marker
             position={[segment.location.lat, segment.location.lng]}
-            icon={createSegmentIcon()}
+            icon={createSegmentIcon(segment.segmentId)}
           >
             <Popup
               className="segment-popup"
