@@ -44,7 +44,7 @@ export default function SegmentEffortLeaderboard({
     new Set(),
   );
   const [sexFilter, setSexFilter] = useState<string>("OVERALL");
-  const [showRateLimitDialog, setShowRateLimitDialog] = useState(true);
+  const [showRateLimitDialog, setShowRateLimitDialog] = useState(false);
 
   const filterOptions = [
     { label: "Overall", value: "OVERALL" },
