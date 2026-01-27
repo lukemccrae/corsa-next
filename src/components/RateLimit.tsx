@@ -43,7 +43,9 @@ export default function RateLimitDialog({
             <h3 className="font-semibold mb-2">We've hit our rate limit</h3>
             <p className="text-sm mb-3">
               We've reached Strava's API rate limit so your data might be inaccurate. This
-              is a temporary limitation from Strava.
+              is a temporary limitation from Strava. 
+              You can still create an account but joining a leaderboard will not work.
+              Thank you for your patience! 
             </p>
             {resetTime && (
               <p className="text-sm">
