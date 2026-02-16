@@ -209,7 +209,7 @@ export default function Sidebar({
                       />
                   </Link>}
           </nav>
-          {/* <nav className="mt-4 flex flex-col gap-3 items-center px-1">
+          <nav className="mt-4 flex flex-col gap-3 items-center px-1">
             {Array.isArray(groups) && groups.length > 0 ? (
               groups.slice(0, 6).map((c) => {
                 const profilePic = c.user?.profilePicture;
@@ -243,8 +243,8 @@ export default function Sidebar({
                 No streams
               </div>
             )}
-          </nav> */}
-          {/* <nav className="mt-4 flex flex-col gap-3 items-center px-1">
+          </nav>
+          <nav className="mt-4 flex flex-col gap-3 items-center px-1">
             {Array.isArray(livestreams) && livestreams.length > 0 ? (
               livestreams.slice(0, 6).map((c) => {
                 const profilePic = c.profilePicture;
@@ -286,7 +286,7 @@ export default function Sidebar({
                 No streams
               </div>
             )}
-          </nav> */}
+          </nav>
         </div>
       </aside>
     );
@@ -346,7 +346,7 @@ export default function Sidebar({
             )}
           </ul>
         </section> */}
-        <section aria-labelledby="live-streams">
+        {/* <section aria-labelledby="live-streams">
           <h4
             id="live-streams"
             className="text-xs font-semibold text-gray-400 px-1 mb-2"
@@ -362,8 +362,8 @@ export default function Sidebar({
               })}
             </li>
           </ul>
-        </section>
-        {/* <section aria-labelledby="live-streams">
+        </section> */}
+        <section aria-labelledby="live-streams">
           <h4
             id="live-streams"
             className="text-xs font-semibold text-gray-400 px-1 mb-2"
@@ -379,7 +379,7 @@ export default function Sidebar({
               </li>
             )}
           </ul>
-        </section> */}
+        </section>
       </div>
     </aside>
   );

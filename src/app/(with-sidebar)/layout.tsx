@@ -81,12 +81,12 @@ export default async function WithSidebarLayout({
   children: React.ReactNode;
 }) {
   // run server-side fetch and map to Sidebar Channel shape
-  // const { streams, groups } = await fetchStreamsByEntity(DEFAULT_ENTITY || undefined);
+  const { streams, groups } = await fetchStreamsByEntity(DEFAULT_ENTITY || undefined);
   return (
     <div className="flex h-full w-full min-h-0">
-      {/* <Sidebar groups={groups} livestreams={streams} /> */}
+      <Sidebar groups={groups} livestreams={streams} />
 
-      <Sidebar groups={[]} livestreams={[]} />
+      {/* <Sidebar groups={[]} livestreams={[]} /> */}
       <div className="flex-1 min-h-0 overflow-auto">{children}</div>
     </div>
   );

@@ -5,29 +5,23 @@ import type { Metadata } from "next";
 import BurritoLeagueStats from "@/src/components/BurritoLeagueStats";
 
 export const metadata: Metadata = {
-  title: "Burrito League - CORSA",
+  title: "CORSA",
   description:
-    "Connect with others in the Burrito League",
+    "Livetracking meets storytelling",
   openGraph: {
-    title: "Burrito League - CORSA",
+    title: "CORSA",
     description:
-      "Connect with others in the Burrito League",
+      "Livetracking meets storytelling",
     images: [
-      {
-        url: "https://i.imgur.com/gZiA2pq.png", // Your burrito league image
-        width: 1200,
-        height: 630,
-        alt: "Burrito League",
-      },
     ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Burrito League - CORSA",
+    title: "CORSA",
     description:
-      "Connect with others in Burrito League",
-    images: ["https://i.imgur.com/gZiA2pq.png"],
+      "Livetracking meets storytelling",
+    images: [],
   },
 };
 
@@ -91,9 +85,6 @@ export default async function BurritoLeaguePage() {
   return (
     <>
       <BurritoMap segments={segmentData || []} />
-      {/* <BurritoLeagueStats
-        segmentName="Burrito League"
-      /> */}
     </>
   )
 }

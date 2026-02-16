@@ -22,11 +22,11 @@ export default function TemplateDemo() {
         aria-label="Home"
       >
         {" "}
-        <img
+        {/* <img
           src="/burrito.png"
           alt="Burrito"
           style={{ width: "36px", height: "36px" }}
-        />
+        /> */}
       </Button>
     </div>
   );
