@@ -82,12 +82,12 @@ async function ProfileContent({ username }: { username: string }) {
   return <ProfileClient user={user as User} username={username} />;
 }
 
-export default function ProfilePage({
+export default async function ProfilePage({
   params,
 }: {
-  params: { username: string };
+  params: Promise<{ username: string }>;
 }) {
-  const username = params.username;
+  const { username } = await params;
 
   return (
     <Suspense fallback={<ProfileSkeleton />}>
@@ -100,9 +100,9 @@ export default function ProfilePage({
 export async function generateMetadata({
   params,
 }: {
-  params: { username: string };
+  params: Promise<{ username: string }>;
 }) {
-  const username = params.username;
+  const { username } = await params;
   const user = await fetchUserProfile(username);
 
   return {

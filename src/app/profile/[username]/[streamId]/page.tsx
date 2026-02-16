@@ -119,13 +119,12 @@ async function LiveProfileContent({
   );
 }
 
-export default function ProfilePage({
+export default async function ProfilePage({
   params,
 }: {
-  params: { username: string; streamId: string };
+  params: Promise<{ username: string; streamId: string }>;
 }) {
-  const username = params?.username ?? "unknown";
-  const streamId = params?.streamId ?? "unknown";
+  const { username, streamId } = await params;
 
   return (
     <Suspense fallback={<LiveProfileSkeleton />}>
