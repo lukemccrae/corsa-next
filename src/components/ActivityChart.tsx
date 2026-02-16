@@ -203,9 +203,10 @@ const milesByHour = values.map((day) => {
   }
 
   const cellBorder = theme === "dark" ? "border-gray-700" : "border-gray-200";
+  const stickyBg = theme === "dark" ? "bg-gray-800" : "bg-white";
 
   return (
-    <div className="flex flex-col items-start max-w-full overflow-x-auto">
+    <div className="flex flex-col items-start w-full">
       {tooltip.visible && (
         <div
           className="absolute bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-2 py-1 rounded text-xs pointer-events-none whitespace-nowrap z-50"
@@ -218,12 +219,12 @@ const milesByHour = values.map((day) => {
         </div>
       )}
 
-      <div>
+      <div className="overflow-x-auto w-full">
         <table className="border-collapse">
           <tbody>
             {Array.from({ length: 24 }, (_, hi) => (
-              <tr key={hi}>
-                <td className="text-right font-bold text-xs pr-2 text-gray-700 dark:text-gray-300">
+              <tr key={hi} className="h-12">
+                <td className={`sticky left-0 z-10 ${stickyBg} text-right font-bold text-xs pr-2 text-gray-700 dark:text-gray-300 min-w-[60px]`}>
                   {hourLabels[hi]}
                 </td>
                 {values.map((day, di) => {
@@ -236,30 +237,34 @@ const milesByHour = values.map((day) => {
                   return (
                     <td
                       key={di}
-                      className={`w-5 h-3 border cursor-pointer relative transition-all ${cellBorder} ${
+                      className={`w-16 h-12 p-1 ${
                         isSelected ? "ring-2 ring-blue-500 z-10" : ""
                       }`}
-                      style={{
-                        backgroundColor: getColor(milesByHour[di][hi]),
-                      }}
-                      onMouseEnter={(e) => handleMouseEnter(e, di, hi)}
-                      onMouseLeave={handleMouseLeave}
-                      onClick={() => handleCellClick(values[di][hi])}
-                    />
+                    >
+                      <div
+                        className={`w-full h-full rounded cursor-pointer border transition-all ${cellBorder}`}
+                        style={{
+                          backgroundColor: getColor(milesByHour[di][hi]),
+                        }}
+                        onMouseEnter={(e) => handleMouseEnter(e, di, hi)}
+                        onMouseLeave={handleMouseLeave}
+                        onClick={() => handleCellClick(values[di][hi])}
+                      />
+                    </td>
                   );
                 })}
               </tr>
             ))}
           </tbody>
           <tfoot>
-            <tr>
-              <th className="text-right font-bold text-xs pr-2 text-gray-700 dark:text-gray-300">
+            <tr className="h-8">
+              <th className={`sticky left-0 z-10 ${stickyBg} text-right font-bold text-xs pr-2 text-gray-700 dark:text-gray-300 min-w-[60px]`}>
                 Day
               </th>
               {values.map((_, d) => (
                 <th
                   key={d}
-                  className="font-bold text-xs text-gray-700 dark:text-gray-300"
+                  className="w-16 font-bold text-xs text-gray-700 dark:text-gray-300"
                 >
                   {d + 1}
                 </th>
@@ -268,7 +273,7 @@ const milesByHour = values.map((day) => {
           </tfoot>
         </table>
       </div>
-      <div>
+      <div className="w-full">
         <ColorRampKey />
       </div>
     </div>
