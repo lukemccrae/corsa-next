@@ -237,12 +237,12 @@ const milesByHour = values.map((day) => {
                   return (
                     <td
                       key={di}
-                      className={`w-16 h-12 p-1 ${
-                        isSelected ? "ring-2 ring-blue-500 z-10" : ""
-                      }`}
+                      className="w-16 h-12 p-1"
                     >
                       <div
-                        className={`w-full h-full rounded cursor-pointer border transition-all ${cellBorder}`}
+                        className={`w-full h-full rounded cursor-pointer border transition-all ${cellBorder} ${
+                          isSelected ? "ring-2 ring-blue-500" : ""
+                        }`}
                         style={{
                           backgroundColor: getColor(milesByHour[di][hi]),
                         }}
