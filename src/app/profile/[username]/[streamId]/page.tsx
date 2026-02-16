@@ -1,6 +1,6 @@
-"use server";
 import LiveProfileClient from "@/src/components/LiveProfileClient";
-import React from "react";
+import LiveProfileSkeleton from "@/src/components/LiveProfileSkeleton";
+import React, { Suspense } from "react";
 
 /**
  * Server page for /profile/[username]
@@ -80,14 +80,14 @@ async function fetchProfile(username: string, streamId: string) {
   return json?.data?.getUserByUserName ?? null;
 }
 
-export default async function ProfilePage({
-  params,
+// Async component that fetches data
+async function LiveProfileContent({
+  username,
+  streamId,
 }: {
-  params: { username: string; streamId: string };
+  username: string;
+  streamId: string;
 }) {
-  const username = params?.username ?? "unknown";
-  const streamId = params?.streamId ?? "unknown";
-
   let userData = null;
   try {
     userData = await fetchProfile(username, streamId);
@@ -116,5 +116,20 @@ export default async function ProfilePage({
       user={userData}
       stream={userData.liveStreams?.[0]}
     />
+  );
+}
+
+export default function ProfilePage({
+  params,
+}: {
+  params: { username: string; streamId: string };
+}) {
+  const username = params?.username ?? "unknown";
+  const streamId = params?.streamId ?? "unknown";
+
+  return (
+    <Suspense fallback={<LiveProfileSkeleton />}>
+      <LiveProfileContent username={username} streamId={streamId} />
+    </Suspense>
   );
 }

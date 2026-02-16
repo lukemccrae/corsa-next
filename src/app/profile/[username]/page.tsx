@@ -1,5 +1,6 @@
-import React from "react";
+import React, { Suspense } from "react";
 import ProfileClient from "@/src/components/ProfileClient";
+import ProfileSkeleton from "@/src/components/ProfileSkeleton";
 import { User } from "@/src/generated/schema";
 
 const APPSYNC_ENDPOINT = "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
@@ -62,12 +63,8 @@ async function fetchUserProfile(username: string) {
   return json?. data?.getUserByUserName ??  null;
 }
 
-export default async function ProfilePage({
-  params,
-}: {
-  params: { username: string };
-}) {
-  const username = params.username;
+// Async component that fetches data
+async function ProfileContent({ username }: { username: string }) {
   const user = await fetchUserProfile(username);
 
   if (!user) {
@@ -83,6 +80,20 @@ export default async function ProfilePage({
   }
 
   return <ProfileClient user={user as User} username={username} />;
+}
+
+export default function ProfilePage({
+  params,
+}: {
+  params: { username: string };
+}) {
+  const username = params.username;
+
+  return (
+    <Suspense fallback={<ProfileSkeleton />}>
+      <ProfileContent username={username} />
+    </Suspense>
+  );
 }
 
 // Generate metadata for the page
