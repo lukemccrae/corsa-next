@@ -204,6 +204,7 @@ const milesByHour = values.map((day) => {
 
   const cellBorder = theme === "dark" ? "border-gray-700" : "border-gray-200";
   const stickyBg = theme === "dark" ? "bg-gray-800" : "bg-white";
+  const stickyLabelClass = `sticky left-0 z-10 ${stickyBg} text-right font-bold text-xs pr-2 text-gray-700 dark:text-gray-300 min-w-[60px]`;
 
   return (
     <div className="flex flex-col items-start w-full">
@@ -224,7 +225,7 @@ const milesByHour = values.map((day) => {
           <tbody>
             {Array.from({ length: 24 }, (_, hi) => (
               <tr key={hi} className="h-12">
-                <td className={`sticky left-0 z-10 ${stickyBg} text-right font-bold text-xs pr-2 text-gray-700 dark:text-gray-300 min-w-[60px]`}>
+                <td className={stickyLabelClass}>
                   {hourLabels[hi]}
                 </td>
                 {values.map((day, di) => {
@@ -258,7 +259,7 @@ const milesByHour = values.map((day) => {
           </tbody>
           <tfoot>
             <tr className="h-8">
-              <th className={`sticky left-0 z-10 ${stickyBg} text-right font-bold text-xs pr-2 text-gray-700 dark:text-gray-300 min-w-[60px]`}>
+              <th className={stickyLabelClass}>
                 Day
               </th>
               {values.map((_, d) => (
