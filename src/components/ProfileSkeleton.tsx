@@ -26,7 +26,7 @@ export default function ProfileSkeleton() {
         />
 
         {/* Avatar and button skeleton */}
-        <div className="absolute inset-x-0 -bottom-15 flex items-end justify-between px-6">
+        <div className="absolute inset-x-0 -bottom-[3.75rem] flex items-end justify-between px-6">
           <Skeleton
             shape="circle"
             size="7rem"
@@ -37,7 +37,7 @@ export default function ProfileSkeleton() {
       </div>
 
       {/* Profile info skeleton */}
-      <div className="mt-15">
+      <div className="mt-[3.75rem]">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="w-full">
             {/* Username skeleton */}
