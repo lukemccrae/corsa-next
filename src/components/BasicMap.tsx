@@ -248,10 +248,10 @@ export default function FullScreenMap({
                 position={[lat, lng]}
                 icon={createStreamIcon(stream)}
               >
-                <Popup>
-                  <Card className="m-0 p-0 border-none shadow-none">
+                <Popup className="dark-popup">
+                  <div className="bg-gray-900 text-gray-100 rounded-lg p-4 min-w-[280px]">
                     {/* Header with clickable username */}
-                    <div className="flex items-center gap-3 mb-3 pb-3 border-b">
+                    <div className="flex items-start gap-3 mb-3 pb-3 border-b border-gray-700">
                       {stream.profilePicture && (
                         <img
                           src={stream.profilePicture}
@@ -263,12 +263,12 @@ export default function FullScreenMap({
                         {username && (
                           <a
                             href={`/profile/${username}`}
-                            className="text-primary font-semibold block mb-1 hover:underline"
+                            className="text-blue-700 font-semibold block mb-1 hover:text-blue-700 hover:underline"
                           >
                             @{username}
                           </a>
                         )}
-                        <p className="text-sm font-medium m-0">
+                        <p className="text-sm font-medium text-gray-300 m-0">
                           {stream.title || "Untitled Stream"}
                         </p>
                       </div>
@@ -276,9 +276,9 @@ export default function FullScreenMap({
 
                     {/* Live badge */}
                     {stream.live && (
-                      <div className="flex items-center gap-2 p-2 bg-red-100 dark:bg-red-900 rounded mb-3">
+                      <div className="flex items-center gap-2 p-2 bg-red-900/30 rounded mb-3 border border-red-700">
                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-sm font-semibold text-red-600 dark:text-red-400 uppercase">
+                        <span className="text-sm font-semibold text-red-400 uppercase">
                           Live Now
                         </span>
                       </div>
@@ -289,10 +289,10 @@ export default function FullScreenMap({
                       {/* Distance */}
                       {typeof stream.mileMarker === "number" && (
                         <div>
-                          <div className="text-xs text-color-secondary uppercase mb-1">
+                          <div className="text-xs text-gray-500 uppercase mb-1">
                             Distance
                           </div>
-                          <div className="text-base font-semibold">
+                          <div className="text-base font-semibold text-gray-100">
                             {stream.mileMarker.toFixed(2)} mi
                           </div>
                         </div>
@@ -301,10 +301,10 @@ export default function FullScreenMap({
                       {/* Elapsed Time */}
                       {stream.startTime && (
                         <div>
-                          <div className="text-xs text-color-secondary uppercase mb-1">
+                          <div className="text-xs text-gray-500 uppercase mb-1">
                             Elapsed
                           </div>
-                          <div className="text-base font-semibold">
+                          <div className="text-base font-semibold text-gray-100">
                             {(() => {
                               const start = new Date(
                                 stream.startTime,
@@ -325,25 +325,13 @@ export default function FullScreenMap({
                         </div>
                       )}
 
-                      {/* Elevation Gain */}
-                      {typeof stream.cumulativeVert === "number" && (
-                        <div>
-                          <div className="text-xs text-color-secondary uppercase mb-1">
-                            Elevation
-                          </div>
-                          <div className="text-base font-semibold">
-                            {stream.cumulativeVert.toLocaleString()} ft
-                          </div>
-                        </div>
-                      )}
-
                       {/* Location */}
                       {stream.currentLocation && (
                         <div>
-                          <div className="text-xs text-color-secondary uppercase mb-1">
+                          <div className="text-xs text-gray-500 uppercase mb-1">
                             Location
                           </div>
-                          <div className="text-xs font-mono text-color-secondary">
+                          <div className="text-xs font-mono text-gray-500">
                             {stream.currentLocation.lat.toFixed(3)},{" "}
                             {stream.currentLocation.lng.toFixed(3)}
                           </div>
@@ -355,13 +343,13 @@ export default function FullScreenMap({
                     {username && (
                       <a
                         href={`/profile/${username}/${stream.streamId}`}
-                        className="flex items-center justify-center gap-2 w-full p-button p-component p-button-primary text-center no-underline"
+                        className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors no-underline"
                       >
-                        <i className="pi pi-eye" />
-                        <span className="font-semibold">View Stream</span>
+                        <i className="pi pi-eye text-white" />
+                        <span className="text-white">View Stream</span>
                       </a>
                     )}
-                  </Card>
+                  </div>
                 </Popup>
               </Marker>
             );
