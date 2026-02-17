@@ -17,7 +17,7 @@ export default function TemplateDemo() {
         className="p-button-text"
         style={{ fontSize: "1.25rem !important" }}
         onClick={() => {
-          window.location.href = `/burritoleague`;
+          window.location.href = `/`;
         }}
         aria-label="Home"
       >

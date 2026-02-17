@@ -27,7 +27,6 @@ export default function CoverMap(props: CoverMapProps) {
 
   // Determine the actual center:  current location or provided center
   const mapCenter = useMemo<[number, number]>(() => {
-
     const lastWaypoint = props.waypoints[props.waypoints.length - 1];
     return [lastWaypoint.lat, lastWaypoint.lng];
   }, [props.waypoints]);
@@ -147,11 +146,8 @@ export default function CoverMap(props: CoverMapProps) {
       )}
 
       {/* Current location marker with profile picture */}
-      {(
-        <Marker
-          position={lastWaypoint}
-          icon={createAthleteIcon()}
-        >
+      {
+        <Marker position={lastWaypoint} icon={createAthleteIcon()}>
           <Popup>
             <div className="text-sm">
               <div className="font-semibold mb-1">@{props.username}</div>
@@ -166,7 +162,7 @@ export default function CoverMap(props: CoverMapProps) {
             </div>
           </Popup>
         </Marker>
-      )}
+      }
 
       {/* Waypoint markers */}
       {props.waypoints?.map((waypoint, index) => {
@@ -225,9 +221,7 @@ export default function CoverMap(props: CoverMapProps) {
 
   return (
     <>
-      <div
-        className={`h-80 w-full rounded-lg overflow-hidden relative`}
-      >
+      <div className={`h-80 w-full rounded-lg overflow-hidden relative`}>
         <MapContent />
         <div className="absolute top-2 right-2 z-[1000]">
           <Button
@@ -236,7 +230,7 @@ export default function CoverMap(props: CoverMapProps) {
             text
             severity="secondary"
             onClick={() => setExpanded(true)}
-            className="bg-white dark:bg-gray-800 shadow-md hover:shadow-lg"
+            className="bg-white text-white dark:bg-gray-800 dark:text-white shadow-md hover:shadow-lg"
             aria-label="Expand map"
             tooltip="Expand map"
             tooltipOptions={{ position: "left" }}

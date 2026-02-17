@@ -35,13 +35,13 @@ function getColor(val: number, max = 4): string {
   const rangePct = range === 0 ? 0 : (percent - lower.pct) / range;
 
   const r = Math.round(
-    lower.color[0] + (upper.color[0] - lower.color[0]) * rangePct
+    lower.color[0] + (upper.color[0] - lower.color[0]) * rangePct,
   );
   const g = Math.round(
-    lower.color[1] + (upper.color[1] - lower.color[1]) * rangePct
+    lower.color[1] + (upper.color[1] - lower.color[1]) * rangePct,
   );
   const b = Math.round(
-    lower.color[2] + (upper.color[2] - lower.color[2]) * rangePct
+    lower.color[2] + (upper.color[2] - lower.color[2]) * rangePct,
   );
 
   return `rgb(${r},${g},${b})`;
@@ -51,8 +51,8 @@ function ColorRampKey() {
   const gradient = `linear-gradient(to right, ${COLOR_STOPS.map(
     (stop) =>
       `rgb(${stop.color[0]},${stop.color[1]},${stop.color[2]}) ${Math.round(
-        stop.pct * 100
-      )}%`
+        stop.pct * 100,
+      )}%`,
   ).join(", ")})`;
 
   return (
@@ -79,7 +79,7 @@ const pointsPerDay = (points: Waypoint[], timezone: string): DailyData => {
   if (points.length === 0) return [];
 
   const sorted = [...points].sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
   );
 
   const getLocalHour = (ts: string) =>
@@ -88,7 +88,7 @@ const pointsPerDay = (points: Waypoint[], timezone: string): DailyData => {
         hour: "numeric",
         hour12: false,
         timeZone: timezone,
-      }).format(new Date(ts))
+      }).format(new Date(ts)),
     );
 
   const firstTs = new Date(sorted[0].timestamp).getTime();
@@ -156,30 +156,30 @@ function HeatmapTable({
 
   let prevMileAcrossDays: number | null = null;
 
-const milesByHour = values.map((day) => {
-  const hours: number[] = Array(24).fill(0);
-  let prevMileInDay: number | null = prevMileAcrossDays;
+  const milesByHour = values.map((day) => {
+    const hours: number[] = Array(24).fill(0);
+    let prevMileInDay: number | null = prevMileAcrossDays;
 
-  day.forEach((hourPoints, hi) => {
-    hourPoints.forEach((point) => {
-      if (point.mileMarker == null) return;
+    day.forEach((hourPoints, hi) => {
+      hourPoints.forEach((point) => {
+        if (point.mileMarker == null) return;
 
-      const currMile = Number(point.mileMarker);
+        const currMile = Number(point.mileMarker);
 
-      if (prevMileInDay !== null) {
-        const delta = currMile - prevMileInDay;
-        if (delta >= 0 && delta < 10) {
-          hours[hi] += delta;   // ✅ correct hour
+        if (prevMileInDay !== null) {
+          const delta = currMile - prevMileInDay;
+          if (delta >= 0 && delta < 10) {
+            hours[hi] += delta; // ✅ correct hour
+          }
         }
-      }
 
-      prevMileInDay = currMile;
-      prevMileAcrossDays = currMile;
+        prevMileInDay = currMile;
+        prevMileAcrossDays = currMile;
+      });
     });
-  });
 
-  return hours;
-});
+    return hours;
+  });
 
   function handleMouseEnter(e: React.MouseEvent, di: number, hi: number) {
     const rect = (e.target as HTMLElement).getBoundingClientRect();
@@ -197,7 +197,7 @@ const milesByHour = values.map((day) => {
 
   function handleCellClick(points: Waypoint[]) {
     const pointTimestamps = points.map((point) =>
-      new Date(point.timestamp).getTime()
+      new Date(point.timestamp).getTime(),
     );
     setSelectedCell(pointTimestamps);
   }
@@ -218,55 +218,57 @@ const milesByHour = values.map((day) => {
         </div>
       )}
 
-      <div>
-        <table className="border-collapse">
-          <tbody>
-            {Array.from({ length: 24 }, (_, hi) => (
-              <tr key={hi}>
-                <td className="text-right font-bold text-xs pr-2 text-gray-700 dark:text-gray-300">
-                  {hourLabels[hi]}
-                </td>
-                {values.map((day, di) => {
-                  let isSelected = false;
-                  if (day[hi].length > 0 && selected) {
-                    isSelected = selected?.includes(
-                      new Date(day[hi][0].timestamp).getTime()
+      <div className="overflow-x-auto max-w-full">
+        <div className="inline-block min-w-full">
+          <table className="border-collapse">
+            <tbody>
+              {Array.from({ length: 24 }, (_, hi) => (
+                <tr key={hi} className="h-5">
+                  <td className="text-right font-bold text-xs pr-2 text-gray-700 dark:text-gray-300 sticky left-0 bg-white dark:bg-gray-800 z-20">
+                    {hourLabels[hi]}
+                  </td>
+                  {values.map((day, di) => {
+                    let isSelected = false;
+                    if (day[hi].length > 0 && selected) {
+                      isSelected = selected?.includes(
+                        new Date(day[hi][0].timestamp).getTime(),
+                      );
+                    }
+                    return (
+                      <td
+                        key={di}
+                        className={`w-10 h-6 min-h-[20px] max-h-[20px] border cursor-pointer relative transition-all ${cellBorder} ${
+                          isSelected ? "ring-2 ring-blue-500 z-10" : ""
+                        }`}
+                        style={{
+                          backgroundColor: getColor(milesByHour[di][hi]),
+                        }}
+                        onMouseEnter={(e) => handleMouseEnter(e, di, hi)}
+                        onMouseLeave={handleMouseLeave}
+                        onClick={() => handleCellClick(values[di][hi])}
+                      />
                     );
-                  }
-                  return (
-                    <td
-                      key={di}
-                      className={`w-10 h-3 border cursor-pointer relative transition-all ${cellBorder} ${
-                        isSelected ? "ring-2 ring-blue-500 z-10" : ""
-                      }`}
-                      style={{
-                        backgroundColor: getColor(milesByHour[di][hi]),
-                      }}
-                      onMouseEnter={(e) => handleMouseEnter(e, di, hi)}
-                      onMouseLeave={handleMouseLeave}
-                      onClick={() => handleCellClick(values[di][hi])}
-                    />
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr>
-              <th className="text-right font-bold text-xs pr-2 text-gray-700 dark:text-gray-300">
-                Day
-              </th>
-              {values.map((_, d) => (
-                <th
-                  key={d}
-                  className="font-bold text-xs text-gray-700 dark:text-gray-300"
-                >
-                  {d + 1}
-                </th>
+                  })}
+                </tr>
               ))}
-            </tr>
-          </tfoot>
-        </table>
+            </tbody>
+            <tfoot>
+              <tr className="h-6">
+                <th className="text-right font-bold text-xs pr-2 text-gray-700 dark:text-gray-300 sticky left-0 bg-white dark:bg-gray-800 z-20">
+                  Day
+                </th>
+                {values.map((_, d) => (
+                  <th
+                    key={d}
+                    className="font-bold text-xs text-gray-700 dark:text-gray-300 min-w-[40px]"
+                  >
+                    {d + 1}
+                  </th>
+                ))}
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
       <div>
         <ColorRampKey />
@@ -297,7 +299,7 @@ export default function ActivityHeatmap({
 
   const values: HourlyData[] = useMemo(
     () => pointsPerDay(points, timezone),
-    [points, timezone]
+    [points, timezone],
   );
 
   const startingHour = useMemo(() => {
@@ -306,7 +308,7 @@ export default function ActivityHeatmap({
         timeZone: timezone,
         hour: "numeric",
         hour12: false,
-      }).format(new Date(startTime))
+      }).format(new Date(startTime)),
     );
   }, [timezone, startTime]);
 
