@@ -25,11 +25,6 @@ export default function ProfileLiveChat({
   const [text, setText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages update
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
   useEffect(() => {
   setMessages(initialMessages);
 }, [initialMessages]);

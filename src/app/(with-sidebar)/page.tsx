@@ -2,7 +2,6 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import type { LiveStream, TrackerGroup } from "@/src/generated/schema";
-import { redirect } from "next/navigation";
 
 const FullScreenMap = dynamic(() => import("../../components/BasicMap"), {
   ssr: false,
@@ -61,8 +60,9 @@ export default function Home() {
         });
 
         const { data } = await response.json();
+        console.log(data, "<< fetched data");
         
-        const streams = data?. getStreamsByEntity || [];
+        const streams = data?.getStreamsByEntity || [];
         const trackerGroups = data?.getAllTrackerGroups || [];
         
         setLivestreams(streams);
@@ -70,12 +70,18 @@ export default function Home() {
 
         // Center map on first live stream with location
         const liveStream = streams.find(
-          (s:  LiveStream) => s.live && s.currentLocation
+          (s: LiveStream) => s.live && s.currentLocation
         );
-        if (liveStream?. currentLocation) {
+        if (liveStream?.currentLocation) {
           setMapCenter([
-            liveStream.currentLocation. lat,
-            liveStream. currentLocation.lng,
+            liveStream.currentLocation.lat,
+            liveStream.currentLocation.lng,
+          ]);
+        } else if (streams.length > 0 && streams[0].currentLocation) {
+          // Fallback to first stream with location
+          setMapCenter([
+            streams[0].currentLocation.lat,
+            streams[0].currentLocation.lng,
           ]);
         }
       } catch (error) {
@@ -92,12 +98,12 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="w-full h-screen">
-      <FullScreenMap
-        center={mapCenter}
-        zoom={6}
-        livestreams={livestreams}
+    <div className="h-screen w-full">
+      <FullScreenMap 
+        livestreams={livestreams} 
         groups={groups}
+        zoom={3}
+        center={mapCenter}
       />
     </div>
   );

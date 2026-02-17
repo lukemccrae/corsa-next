@@ -230,7 +230,7 @@ export default function FullScreenMap({
 
         {/* Render livestream markers */}
         {livestreams
-          .filter((stream) => stream.currentLocation?. lat && stream.currentLocation?.lng)
+          .filter((stream) => stream.currentLocation?.lat && stream.currentLocation?.lng)
           .map((stream) => {
             const { lat, lng } = stream.currentLocation! ;
             const username = stream.username;

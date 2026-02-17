@@ -31,3 +31,26 @@
     opacity: 0.5;
   }
 }
+
+/* Color-changing hue rotation animation */
+@keyframes hue-rotate {
+  0% {
+    filter: hue-rotate(0deg) brightness(1.1);
+  }
+  25% {
+    filter: hue-rotate(90deg) brightness(1.1);
+  }
+  50% {
+    filter: hue-rotate(180deg) brightness(1.1);
+  }
+  75% {
+    filter: hue-rotate(270deg) brightness(1.1);
+  }
+  100% {
+    filter: hue-rotate(360deg) brightness(1.1);
+  }
+}
+
+.animate-hue-rotate {
+  animation: hue-rotate 10s linear infinite;
+}

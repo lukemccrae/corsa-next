@@ -12,22 +12,18 @@ import { CreateButton } from "./CreateButton";
 
 export default function TemplateDemo() {
   const start = (
-    <div className="flex align-items-center gap-2">
-      <Button
-        className="p-button-text"
-        style={{ fontSize: "1.25rem !important" }}
-        onClick={() => {
-          window.location.href = `/`;
-        }}
+    <div className="flex items-center gap-2">
+      <a
+        href="/"
+        className="cursor-pointer transition-all duration-300 hover:scale-110"
         aria-label="Home"
       >
-        {" "}
-        {/* <img
-          src="/burrito.png"
-          alt="Burrito"
-          style={{ width: "36px", height: "36px" }}
-        /> */}
-      </Button>
+        <img
+          src="/logo.png"
+          alt="Logo"
+          className="w-12 h-12 animate-hue-rotate"
+        />
+      </a>
     </div>
   );
 

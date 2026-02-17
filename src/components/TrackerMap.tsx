@@ -40,6 +40,7 @@ export default function TrackerMap({
   }, []);
 
   const createProfileIcon = () => {
+    console.log(isLive, profilePicture, '<< isLive, profilePicture');
     const liveIndicator = isLive
       ? `<span style="position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; background:  #ef4444; border:  2px solid white; border-radius: 50%;"></span>`
       : "";

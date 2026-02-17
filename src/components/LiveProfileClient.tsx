@@ -33,7 +33,6 @@ import ActivityHeatmap from "./ActivityChart";
 const FeedItem = dynamic(() => import("./FeedItem"), { ssr: false });
 
 export default function LiveProfileClient({ user, stream }: Props) {
-  console.log(stream)
   const chatMessgaes = user.liveStreams?.[0]?.chatMessages ?? [];
   if (
     !user.liveStreams ||
@@ -59,7 +58,7 @@ export default function LiveProfileClient({ user, stream }: Props) {
   }, [user]);
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-sm mx-auto px-4 py-6 space-y-6">
       {/* Profile Card */}
       {startTime && (
         <LiveProfileCard
