@@ -42,8 +42,8 @@ export type BlogPost = Post & {
 export type ChatMessage = {
   __typename?: 'ChatMessage';
   createdAt: Scalars['String']['output'];
-  firstName: Scalars['String']['output'];
-  lastName: Scalars['String']['output'];
+  firstName?: Maybe<Scalars['String']['output']>;
+  lastName?: Maybe<Scalars['String']['output']>;
   profilePicture: Scalars['String']['output'];
   streamId: Scalars['ID']['output'];
   text: Scalars['String']['output'];
@@ -77,8 +77,8 @@ export type DeviceInput = {
   make: Scalars['String']['input'];
   model: Scalars['String']['input'];
   name: Scalars['String']['input'];
-  shareUrl: Scalars['String']['input'];
-  trackingIntervalInMS: Scalars['Int']['input'];
+  shareUrl?: InputMaybe<Scalars['String']['input']>;
+  userId: Scalars['ID']['input'];
 };
 
 export enum DeviceLogo {

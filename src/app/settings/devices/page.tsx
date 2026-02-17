@@ -4,9 +4,12 @@ import { Toast } from "primereact/toast";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
-import { Footer } from "../../../components/Footer";
+import { ProgressSpinner } from "primereact/progressspinner";
 import { useUser } from "../../../context/UserContext";
 import { useTheme } from "../../../components/ThemeProvider";
+
+const APPSYNC_ENDPOINT = "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
+const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 
 type DeviceMake = "garmin" | "spot" | "bivy" | "zoleo";
 type Device = {
@@ -29,31 +32,74 @@ export default function DevicesSettingsPage() {
   const { user } = useUser();
   const { theme } = useTheme();
 
-  // All tracked devices
   const [devices, setDevices] = useState<Device[]>([]);
-  // id of device currently being edited (can be new or existing)
   const [editingId, setEditingId] = useState<string | null>(null);
-  // local scratch for editing (per device)
   const [editForm, setEditForm] = useState<Device | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
+  // Fetch devices from GraphQL API
   useEffect(() => {
-    setDevices([
-      {
-        id: "1",
-        imei: "123456789012345",
-        name: "Garmin InReach Mini",
-        make: "garmin",
-        model: "Mini"
-      },
-      {
-        id: "2",
-        imei: "987654321098765",
-        name: "Spot Gen4",
-        make: "spot",
-        model: "Gen4"
+    if (!user?.preferred_username) return;
+
+    const fetchDevices = async () => {
+      setLoading(true);
+      try {
+        const query = `
+          query GetUserDevices {
+            getUserByUserName(username: "${user.preferred_username}") {
+              devices {
+                imei
+                name
+                make
+                model
+              }
+            }
+          }
+        `;
+
+        const response = await fetch(APPSYNC_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": APPSYNC_API_KEY,
+          },
+          body: JSON.stringify({ query }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch devices");
+        }
+
+        const result = await response.json();
+        console.log(user.preferred_username, "<< fetched devices", result);
+        const userDevices = result?.data?.getUserByUserName?.devices || [];
+        
+        // Map deviceId to id for UI compatibility
+        const mappedDevices = userDevices.map((d: any) => ({
+          id: d.deviceId,
+          imei: d.imei,
+          name: d.name,
+          make: d.make,
+          model: d.model,
+        }));
+
+        setDevices(mappedDevices);
+      } catch (error) {
+        console.error("Error fetching devices:", error);
+        toast.current?.show({
+          severity: "error",
+          summary: "Failed to load devices",
+          detail: "Could not fetch your devices. Please try again.",
+          life: 5000,
+        });
+      } finally {
+        setLoading(false);
       }
-    ]);
-  }, []);
+    };
+
+    fetchDevices();
+  }, [user?.preferred_username]);
 
   // Start editing a device
   function startEditing(device?: Device) {
@@ -61,9 +107,11 @@ export default function DevicesSettingsPage() {
       setEditingId(device.id);
       setEditForm({ ...device });
     } else {
-      // new row
       const newId = "new-" + Date.now();
-      setDevices((ds) => [{ id: newId, imei: "", name: "", make: "garmin", model: "" }, ...ds]);
+      setDevices((ds) => [
+        { id: newId, imei: "", name: "", make: "garmin", model: "" },
+        ...ds,
+      ]);
       setEditingId(newId);
       setEditForm({ id: newId, imei: "", name: "", make: "garmin", model: "" });
     }
@@ -75,18 +123,9 @@ export default function DevicesSettingsPage() {
       return;
     }
     setDevices((ds) => ds.map(dev => dev.id === d.id ? d : dev));
-    setEditingId(null);
-    setEditForm(null);
-    toast.current?.show({ severity: "success", summary: "Device saved", life: 1300 });
-  }
-
-  function deleteDevice(id: string) {
-    setDevices((ds) => ds.filter(dev => dev.id !== id));
-    if (editingId === id) {
       setEditingId(null);
       setEditForm(null);
-    }
-    toast.current?.show({ severity: "warn", summary: "Device deleted", life: 1000 });
+    toast.current?.show({ severity: "success", summary: "Device saved", life: 1300 });
   }
 
   function cancelEdit() {
@@ -163,7 +202,7 @@ export default function DevicesSettingsPage() {
         <td className="p-2 text-xs">{deviceMakes.find(m=>m.value===device.make)?.label}</td>
         <td className="p-2 text-xs">{device.model}</td>
         <td className="p-2 text-right">
-          <div className="flex gap-1 justify-end">
+          <div className="flex gap-1 justify-start">
             <Button
               icon="pi pi-pencil"
               className="p-button-text p-button-sm text-xs px-2 py-1"
@@ -172,7 +211,7 @@ export default function DevicesSettingsPage() {
             <Button
               icon="pi pi-trash"
               className="p-button-text p-button-danger p-button-sm text-xs px-2 py-1"
-              onClick={() => deleteDevice(device.id)}
+              // onClick={() => deleteDevice(device.id)}
             />
           </div>
         </td>
@@ -190,7 +229,6 @@ export default function DevicesSettingsPage() {
             </h2>
           </div>
 
-          {/* Stack on small screens, side-by-side on md+ */}
           <div className="flex flex-col lg:flex-row gap-4 md:gap-6 mt-4">
             <main className="flex-1">
               <Toast ref={toast} />
@@ -208,37 +246,48 @@ export default function DevicesSettingsPage() {
                   />
                 </div>
 
-                {/* Make table horizontally scrollable on narrow screens */}
-                <div className="overflow-x-auto">
-                  <table className="min-w-[680px] w-full table-auto">
-                    <thead>
-                      <tr className="text-xs font-semibold text-gray-400 text-left">
-                        <th className="p-2">IMEI</th>
-                        <th className="p-2">Name</th>
-                        <th className="p-2">Make</th>
-                        <th className="p-2">Model</th>
-                        <th className="p-2 text-right">&nbsp;</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {devices.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="p-6 text-sm text-gray-400 text-center">
-                            No devices added yet.
-                          </td>
+                {loading ? (
+                  <div className="flex justify-center items-center p-6">
+                    <ProgressSpinner
+                      style={{ width: "50px", height: "50px" }}
+                      strokeWidth="4"
+                    />
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-[680px] w-full table-auto">
+                      <thead>
+                        <tr className="text-xs font-semibold text-gray-400 text-left">
+                          <th className="p-2">IMEI</th>
+                          <th className="p-2">Name</th>
+                          <th className="p-2">Make</th>
+                          <th className="p-2">Model</th>
+                          <th className="p-2 text-right">&nbsp;</th>
                         </tr>
-                      ) : (
-                        devices.map((d) =>
-                          <DeviceRow
-                            key={d.id}
-                            device={d}
-                            editing={editingId === d.id}
-                          />
-                        )
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {devices.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={5}
+                              className="p-6 text-sm text-gray-400 text-center"
+                            >
+                              No devices added yet.
+                            </td>
+                          </tr>
+                        ) : (
+                          devices.map((d) => (
+                            <DeviceRow
+                              key={d.id}
+                              device={d}
+                              editing={editingId === d.id}
+                            />
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </main>
           </div>
