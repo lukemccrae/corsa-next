@@ -137,16 +137,16 @@ export default function DevicesSettingsPage() {
             />
           </td>
           <td className="p-2 text-right">
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-1 justify-end">
               <Button
                 icon="pi pi-check"
-                className="p-button-sm p-button-success"
+                className="p-button-sm p-button-success text-xs px-2 py-1"
                 onClick={() => editForm && saveDevice(editForm)}
                 disabled={!editForm?.imei || !editForm?.name || !editForm?.make}
               />
               <Button
                 icon="pi pi-times"
-                className="p-button-text p-button-sm"
+                className="p-button-text p-button-sm text-xs px-2 py-1"
                 onClick={cancelEdit}
               />
             </div>
@@ -166,12 +166,12 @@ export default function DevicesSettingsPage() {
           <div className="flex gap-1 justify-end">
             <Button
               icon="pi pi-pencil"
-              className="p-button-text p-button-sm"
+              className="p-button-text p-button-sm text-xs px-2 py-1"
               onClick={() => startEditing(device)}
             />
             <Button
               icon="pi pi-trash"
-              className="p-button-text p-button-danger p-button-sm"
+              className="p-button-text p-button-danger p-button-sm text-xs px-2 py-1"
               onClick={() => deleteDevice(device.id)}
             />
           </div>
@@ -183,15 +183,15 @@ export default function DevicesSettingsPage() {
   return (
     <>
       <div className="flex flex-col flex-auto min-h-screen bg-surface-950">
-        <div className="rounded-t-3xl bg-surface-0 dark:bg-surface-900 py-2 px-2 lg:px-20 max-w-5xl mx-auto w-full shadow">
-          <div className="flex flex-col gap-2 mb-6">
-            <h2 className="text-2xl font-semibold text-surface-900 dark:text-surface-0">
+        <div className="rounded-t-3xl bg-surface-0 dark:bg-surface-900 py-4 px-4 lg:px-8 max-w-5xl mx-auto w-full shadow">
+          <div className="flex flex-col gap-1 mb-4">
+            <h2 className="text-xl font-semibold text-surface-900 dark:text-surface-0">
               Device Settings
             </h2>
           </div>
 
           {/* Stack on small screens, side-by-side on md+ */}
-          <div className="flex flex-col md:flex-row gap-10 mt-6">
+          <div className="flex flex-col lg:flex-row gap-4 md:gap-6 mt-4">
             <main className="flex-1">
               <Toast ref={toast} />
               <div className="rounded-xl border border-gray-200 dark:border-white/6 bg-white dark:bg-gray-950 p-2 max-w-2xl">
@@ -202,7 +202,7 @@ export default function DevicesSettingsPage() {
                   <Button
                     icon="pi pi-plus"
                     label="Add"
-                    className="p-button-primary p-button-sm"
+                    className="p-button-primary p-button-sm text-xs px-3 py-1.5"
                     onClick={() => startEditing()}
                     disabled={!!editingId}
                   />

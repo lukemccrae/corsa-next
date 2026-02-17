@@ -241,13 +241,13 @@ export default function RoutesSettingsPage() {
               <div className="flex gap-1 justify-end">
                 <Button
                   icon="pi pi-check"
-                  className="p-button-sm p-button-success"
+                  className="p-button-sm p-button-success text-xs px-2 py-1"
                   onClick={saveEdit}
                   disabled={!localName.trim()}
                 />
                 <Button
                   icon="pi pi-times"
-                  className="p-button-text p-button-sm"
+                  className="p-button-text p-button-sm text-xs px-2 py-1"
                   onClick={() => setEditingId(null)}
                 />
               </div>
@@ -277,12 +277,12 @@ export default function RoutesSettingsPage() {
               <div className="flex gap-1 justify-end">
                 <Button
                   icon="pi pi-pencil"
-                  className="p-button-text p-button-sm"
+                  className="p-button-text p-button-sm text-xs px-2 py-1"
                   onClick={() => setEditingId(route.id)}
                 />
                 <Button
                   icon="pi pi-eye"
-                  className="p-button-text p-button-sm"
+                  className="p-button-text p-button-sm text-xs px-2 py-1"
                   onClick={() => {
                     setViewRoute(route);
                     setHoverPoint(null);
@@ -290,7 +290,7 @@ export default function RoutesSettingsPage() {
                 />
                 <Button
                   icon="pi pi-trash"
-                  className="p-button-text p-button-danger p-button-sm"
+                  className="p-button-text p-button-danger p-button-sm text-xs px-2 py-1"
                   onClick={() => delRoute(route.id)}
                 />
               </div>
@@ -329,18 +329,18 @@ export default function RoutesSettingsPage() {
   return (
     <>
       <div className="flex flex-col flex-auto min-h-screen bg-surface-950">
-        <div className="rounded-t-3xl bg-surface-0 dark:bg-surface-900 py-8 px-8 lg:px-20 max-w-5xl mx-auto w-full shadow">
-          <div className="flex flex-col gap-2 mb-6">
-            <h2 className="text-2xl font-semibold text-surface-900 dark:text-surface-0">
+        <div className="rounded-t-3xl bg-surface-0 dark:bg-surface-900 py-4 px-4 lg:px-8 max-w-5xl mx-auto w-full shadow">
+          <div className="flex flex-col gap-1 mb-4">
+            <h2 className="text-xl font-semibold text-surface-900 dark:text-surface-0">
               Route Settings
             </h2>
-            <p className="text-gray-400 text-sm max-w-2xl mt-2">
+            <p className="text-gray-400 text-xs max-w-2xl">
               Upload and manage your GPX routes for pre-calculation of stats.
             </p>
           </div>
 
           {/* Keep columns stacked on small screens */}
-          <div className="flex flex-col gap-6 md:flex-row md:gap-10 mt-6">
+          <div className="flex flex-col gap-4 lg:flex-row md:gap-6 mt-4">
             <main className="flex-1">
               <Toast ref={toast} />
 
@@ -358,7 +358,8 @@ export default function RoutesSettingsPage() {
                       name="route"
                       accept=".gpx"
                       maxFileSize={10000000}
-                      chooseLabel="Upload GPX (quick)"
+                      chooseLabel="Quick Upload"
+                      chooseOptions={{ className: "text-xs px-3 py-1.5" }}
                       customUpload
                       auto
                       uploadHandler={handleUpload}
@@ -367,10 +368,10 @@ export default function RoutesSettingsPage() {
 
                     {/* New modal flow */}
                     <Button
-                      label="Upload GPX (modal)"
+                      label="Upload GPX"
                       icon="pi pi-upload"
                       onClick={() => setUploadModalOpen(true)}
-                      className="p-button-primary"
+                      className="p-button-primary text-xs px-3 py-1.5"
                     />
                   </div>
                 </div>
