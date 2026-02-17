@@ -4,12 +4,13 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { useTheme } from "./ThemeProvider";
 import type { LiveStream, TrackerGroup } from "../generated/schema";
+import { Card } from "primereact/card";
 
 type FullScreenMapProps = {
   center: [number, number];
   zoom?: number;
   className?: string;
-  livestreams?:  LiveStream[];
+  livestreams?: LiveStream[];
   groups?: TrackerGroup[];
 };
 
@@ -19,7 +20,7 @@ export default function FullScreenMap({
   className = "",
   livestreams = [],
   groups = [],
-}:  FullScreenMapProps) {
+}: FullScreenMapProps) {
   const { theme } = useTheme();
 
   // Create icon for livestreams
@@ -30,7 +31,7 @@ export default function FullScreenMap({
     const isLive = stream.live;
 
     const liveIndicator = isLive
-      ?  `<div style="
+      ? `<div style="
           position: absolute;
           top: -2px;
           right: -2px;
@@ -66,7 +67,7 @@ export default function FullScreenMap({
           </div>
         `,
         iconSize: [40, 40],
-        iconAnchor:  [20, 40],
+        iconAnchor: [20, 40],
         popupAnchor: [0, -40],
       });
     }
@@ -96,7 +97,7 @@ export default function FullScreenMap({
       `,
       iconSize: [40, 40],
       iconAnchor: [20, 40],
-      popupAnchor:  [0, -40],
+      popupAnchor: [0, -40],
     });
   };
 
@@ -195,16 +196,19 @@ export default function FullScreenMap({
 
   // Calculate bounds to fit all markers
   const bounds = useMemo(() => {
-    const allPoints:  [number, number][] = [];
+    const allPoints: [number, number][] = [];
 
     livestreams.forEach((stream) => {
-      if (stream.currentLocation?. lat && stream.currentLocation?.lng) {
-        allPoints.push([stream.currentLocation.lat, stream.currentLocation.lng]);
+      if (stream.currentLocation?.lat && stream.currentLocation?.lng) {
+        allPoints.push([
+          stream.currentLocation.lat,
+          stream.currentLocation.lng,
+        ]);
       }
     });
 
     groups.forEach((group) => {
-      if (group.currentLocation?. lat && group.currentLocation?.lng) {
+      if (group.currentLocation?.lat && group.currentLocation?.lng) {
         allPoints.push([group.currentLocation.lat, group.currentLocation.lng]);
       }
     });
@@ -230,9 +234,12 @@ export default function FullScreenMap({
 
         {/* Render livestream markers */}
         {livestreams
-          .filter((stream) => stream.currentLocation?.lat && stream.currentLocation?.lng)
+          .filter(
+            (stream) =>
+              stream.currentLocation?.lat && stream.currentLocation?.lng,
+          )
           .map((stream) => {
-            const { lat, lng } = stream.currentLocation! ;
+            const { lat, lng } = stream.currentLocation!;
             const username = stream.username;
 
             return (
@@ -240,54 +247,121 @@ export default function FullScreenMap({
                 key={stream.streamId}
                 position={[lat, lng]}
                 icon={createStreamIcon(stream)}
-                eventHandlers={{
-                  click:  () => {
-                    if (username) {
-                      window.location.href = `/profile/${username}/${stream.streamId}`;
-                    }
-                  },
-                }}
               >
                 <Popup>
-                  <div className="min-w-[200px] p-2">
-                    <div className="flex items-center gap-2 mb-2">
+                  <Card className="m-0 p-0 border-none shadow-none">
+                    {/* Header with clickable username */}
+                    <div className="flex items-center gap-3 mb-3 pb-3 border-b">
                       {stream.profilePicture && (
                         <img
                           src={stream.profilePicture}
                           alt={username || "User"}
-                          className="w-8 h-8 rounded-full object-cover"
+                          className="w-12 h-12 rounded-full object-cover"
                         />
                       )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm truncate">
-                          {stream.title}
-                        </p>
+                      <div className="flex-1">
                         {username && (
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                          <a
+                            href={`/profile/${username}`}
+                            className="text-primary font-semibold block mb-1 hover:underline"
+                          >
                             @{username}
-                          </p>
+                          </a>
                         )}
+                        <p className="text-sm font-medium m-0">
+                          {stream.title || "Untitled Stream"}
+                        </p>
                       </div>
                     </div>
 
+                    {/* Live badge */}
                     {stream.live && (
-                      <div className="flex items-center gap-1 mb-2">
+                      <div className="flex items-center gap-2 p-2 bg-red-100 dark:bg-red-900 rounded mb-3">
                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-xs font-medium text-red-600 dark:text-red-400">
-                          LIVE NOW
+                        <span className="text-sm font-semibold text-red-600 dark:text-red-400 uppercase">
+                          Live Now
                         </span>
                       </div>
                     )}
 
+                    {/* Stats grid */}
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      {/* Distance */}
+                      {typeof stream.mileMarker === "number" && (
+                        <div>
+                          <div className="text-xs text-color-secondary uppercase mb-1">
+                            Distance
+                          </div>
+                          <div className="text-base font-semibold">
+                            {stream.mileMarker.toFixed(2)} mi
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Elapsed Time */}
+                      {stream.startTime && (
+                        <div>
+                          <div className="text-xs text-color-secondary uppercase mb-1">
+                            Elapsed
+                          </div>
+                          <div className="text-base font-semibold">
+                            {(() => {
+                              const start = new Date(
+                                stream.startTime,
+                              ).getTime();
+                              const end = stream.finishTime
+                                ? new Date(stream.finishTime).getTime()
+                                : Date.now();
+                              const diffMs = end - start;
+                              const hours = Math.floor(
+                                diffMs / (1000 * 60 * 60),
+                              );
+                              const minutes = Math.floor(
+                                (diffMs % (1000 * 60 * 60)) / (1000 * 60),
+                              );
+                              return `${hours}h ${minutes}m`;
+                            })()}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Elevation Gain */}
+                      {typeof stream.cumulativeVert === "number" && (
+                        <div>
+                          <div className="text-xs text-color-secondary uppercase mb-1">
+                            Elevation
+                          </div>
+                          <div className="text-base font-semibold">
+                            {stream.cumulativeVert.toLocaleString()} ft
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Location */}
+                      {stream.currentLocation && (
+                        <div>
+                          <div className="text-xs text-color-secondary uppercase mb-1">
+                            Location
+                          </div>
+                          <div className="text-xs font-mono text-color-secondary">
+                            {stream.currentLocation.lat.toFixed(3)},{" "}
+                            {stream.currentLocation.lng.toFixed(3)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action button */}
                     {username && (
                       <a
                         href={`/profile/${username}/${stream.streamId}`}
-                        className="inline-block w-full text-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
+                        className="flex items-center justify-center gap-2 w-full p-button p-component p-button-primary text-center no-underline"
                       >
-                        View Stream
+                        <i className="pi pi-eye" />
+                        <span className="font-semibold">View Stream</span>
                       </a>
                     )}
-                  </div>
+                  </Card>
                 </Popup>
               </Marker>
             );
@@ -295,18 +369,20 @@ export default function FullScreenMap({
 
         {/* Render tracker group markers */}
         {groups
-          .filter((group) => group.currentLocation?.lat && group.currentLocation?.lng)
+          .filter(
+            (group) => group.currentLocation?.lat && group.currentLocation?.lng,
+          )
           .map((group) => {
             const { lat, lng } = group.currentLocation!;
             const username = group.user?.username;
 
             return (
               <Marker
-                key={group. groupId}
+                key={group.groupId}
                 position={[lat, lng]}
                 icon={createGroupIcon(group)}
                 eventHandlers={{
-                  click:  () => {
+                  click: () => {
                     // Navigate to group page when implemented
                     console.log("Group clicked:", group.groupId);
                   },
@@ -334,7 +410,7 @@ export default function FullScreenMap({
                       </div>
                     </div>
 
-                    {group. user?.live && (
+                    {group.user?.live && (
                       <div className="flex items-center gap-1">
                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                         <span className="text-xs font-medium text-red-600 dark:text-red-400">

@@ -12,14 +12,14 @@ import { CreateButton } from "./CreateButton";
 
 export default function TemplateDemo() {
   const start = (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 px-4 md:px-6 lg:px-8">
       <a
         href="/"
         className="cursor-pointer transition-all duration-300 hover:scale-110"
         aria-label="Home"
       >
         <img
-          src="/logo.png"
+          src="/logo2.png"
           alt="Logo"
           className="w-12 h-12 animate-hue-rotate"
         />
@@ -28,7 +28,7 @@ export default function TemplateDemo() {
   );
 
   const end = (
-    <div className="flex align-items-centerm-2">
+    <div className="flex align-items-centerm-2 px-4 md:px-6 lg:px-8">
       {/* <CreateButton></CreateButton> */}
       <AvatarPanel></AvatarPanel>
     </div>
