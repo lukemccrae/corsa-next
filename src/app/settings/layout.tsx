@@ -43,44 +43,44 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
   const NavList = ({ onItemClick }: { onItemClick?: () => void }) => (
     <nav aria-label="Settings navigation" className="flex flex-col min-h-[200px]">
-      <div className="px-4 py-3 border-b border-gray-100 dark:border-white/6">
+      <div className="px-3 py-2 border-b border-gray-100 dark:border-white/6">
         <div className="text-xs font-semibold text-gray-400">Settings</div>
       </div>
 
-      <ul className="p-3 flex flex-col gap-1">
+      <ul className="p-2 flex flex-col gap-1">
         {MENU.map((m) => (
           <li key={m.key}>
             {/* Use Link without nested <a> to satisfy Next 13+ rules */}
             <Link
               href={m.href}
               onClick={onItemClick}
-              className={`flex items-center gap-3 w-full px-3 py-2 rounded-md transition-colors text-sm ${
+              className={`flex items-center gap-2 w-full px-2.5 py-1.5 rounded-md transition-colors text-sm ${
                 isActive(m.href)
                   ? "bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-200"
                   : "hover:bg-gray-100 dark:hover:bg-white/5 text-gray-800 dark:text-gray-200"
               }`}
               aria-current={isActive(m.href) ? "page" : undefined}
             >
-              {m.icon && <i className={`${m.icon} text-sm`} aria-hidden />}
-              <span className="truncate">{m.label}</span>
+              {m.icon && <i className={`${m.icon} text-xs`} aria-hidden />}
+              <span className="truncate text-sm">{m.label}</span>
             </Link>
           </li>
         ))}
       </ul>
 
       {/* optional user info at bottom of nav */}
-      <div className="mt-auto px-3 py-3 border-t border-gray-100 dark:border-white/6">
+      <div className="mt-auto px-2.5 py-2 border-t border-gray-100 dark:border-white/6">
         {user ? (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Avatar
               image={user.picture ?? undefined}
               label={!user.picture ? user.preferred_username?.charAt(0).toUpperCase() : undefined}
               size="normal"
               shape="circle"
-              className="!w-9 !h-9"
+              className="!w-8 !h-8"
             />
             <div className="min-w-0">
-              <div className="text-sm font-medium truncate">{user.preferred_username}</div>
+              <div className="text-xs font-medium truncate">{user.preferred_username}</div>
               <div className="text-xs text-gray-400 truncate">{user.email}</div>
             </div>
           </div>
@@ -93,16 +93,16 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
   return (
     <div className="flex flex-col bg-surface-950">
-      <div className="rounded-t-3xl bg-surface-0 dark:bg-surface-900 py-6 px-4 lg:px-20 w-full shadow">
+      <div className="rounded-t-3xl bg-surface-0 dark:bg-surface-900 py-3 px-3 lg:px-8 w-full shadow">
         {/* header */}
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 mb-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 mb-3">
 
 
           {/* mobile menu toggle */}
           <div className="md:hidden">
             <Button
               icon="pi pi-bars"
-              className="p-button-text"
+              className="p-button-text text-sm"
               aria-label="Open settings menu"
               onClick={() => setOpen(true)}
             />
@@ -110,7 +110,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
         </div>
 
         {/* layout: desktop nav + content */}
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-[16rem_1fr] gap-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-[14rem_1fr] gap-3">
           {/* desktop sidebar */}
           <aside
             className={`hidden md:flex flex-col rounded-lg overflow-hidden shadow ${navBg} border border-gray-100 dark:border-white/6`}
@@ -135,7 +135,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
           </Sidebar>
 
           {/* main content */}
-          <main className={`min-w-0 ${contentBg} rounded-lg p-4 border border-gray-100 dark:border-white/6 shadow-sm`}>
+          <main className={`min-w-0 ${contentBg} rounded-lg p-3 border border-gray-100 dark:border-white/6 shadow-sm`}>
             {children}
           </main>
         </div>
