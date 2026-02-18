@@ -17,6 +17,10 @@ const RouteView = dynamic(() => import("@/src/components/RouteView"), { ssr: fal
 
 import { Dropdown } from "primereact/dropdown";
 import UploadRouteModal from "../../../components/UploadRouteModal";
+import { ProgressSpinner } from "primereact/progressspinner";
+
+const APPSYNC_ENDPOINT = "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
+const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 
 // Types
 type Route = {
@@ -28,6 +32,7 @@ type Route = {
   points: [number, number][];
   elevation: number[];
   uom: string;
+  storageUrl?: string;
 };
 
 // Utility for generating a fake elevation profile
@@ -42,26 +47,8 @@ export default function RoutesSettingsPage() {
   const { theme, toggle } = useTheme();
   const { user } = useUser();
 
-  // MOCK DATA
-  const [routes, setRoutes] = useState<Route[]>([
-    {
-      id: "1",
-      name: "Mt Whitney Route",
-      filename: "whitney.gpx",
-      distance: 22.5,
-      points: [
-        [36.578581, -118.291994],
-        [36.5787, -118.29],
-        [36.576, -118.288],
-        [36.574, -118.284],
-        [36.57, -118.28],
-      ],
-      elevation: [8300, 8500, 9200, 11400, 14050],
-      gain: 3567,
-      uom: "IMPERIAL",
-    },
-  ]);
-
+  const [routes, setRoutes] = useState<Route[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [viewRoute, setViewRoute] = useState<Route | null>(null);
   const fileUploadRef = useRef<any>(null);
@@ -71,6 +58,88 @@ export default function RoutesSettingsPage() {
 
   // Upload modal visibility (new flow)
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+
+  // Fetch routes from GraphQL API
+  useEffect(() => {
+    if (!user?.preferred_username) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchRoutes = async () => {
+      setLoading(true);
+      try {
+        const query = `
+          query GetUserRoutes($username: String!) {
+            getUserByUserName(username: $username) {
+              routes {
+                id
+                name
+                filename
+                distance
+                gain
+                storageUrl
+                uom
+                points {
+                  lat
+                  lng
+                  elevation
+                }
+              }
+            }
+          }
+        `;
+
+        const response = await fetch(APPSYNC_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": APPSYNC_API_KEY,
+          },
+          body: JSON.stringify({ 
+            query,
+            variables: {
+              username: user.preferred_username
+            }
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch routes");
+        }
+
+        const result = await response.json();
+        const userRoutes = result?.data?.getUserByUserName?.routes || [];
+        
+        // Map to local Route type
+        const mappedRoutes = userRoutes.map((r: any) => ({
+          id: r.id || r.storageUrl || `route-${Date.now()}`,
+          name: r.name || "Unnamed Route",
+          filename: r.filename || r.storageUrl?.split('/').pop() || 'route.gpx',
+          distance: r.distance || 0,
+          gain: r.gain || 0,
+          points: r.points?.map((p: any) => [p.lat, p.lng]) || [],
+          elevation: r.points?.map((p: any) => p.elevation || 0) || [],
+          uom: r.uom || "IMPERIAL",
+          storageUrl: r.storageUrl,
+        }));
+
+        setRoutes(mappedRoutes);
+      } catch (error) {
+        console.error("Error fetching routes:", error);
+        toast.current?.show({
+          severity: "error",
+          summary: "Failed to load routes",
+          detail: "Could not fetch your routes. Please try again.",
+          life: 5000,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoutes();
+  }, [user?.preferred_username]);
 
   // Upload handler (legacy quick upload)
   const handleUpload = async (e: any) => {
@@ -390,7 +459,16 @@ export default function RoutesSettingsPage() {
                     </thead>
 
                     <tbody>
-                      {routes.length === 0 ? (
+                      {loading ? (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="p-6 text-center"
+                          >
+                            <ProgressSpinner style={{ width: '40px', height: '40px' }} />
+                          </td>
+                        </tr>
+                      ) : routes.length === 0 ? (
                         <tr>
                           <td
                             colSpan={5}
