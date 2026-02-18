@@ -61,7 +61,10 @@ export default function RoutesSettingsPage() {
 
   // Fetch routes from GraphQL API
   useEffect(() => {
-    if (!user?.preferred_username) return;
+    if (!user?.preferred_username) {
+      setLoading(false);
+      return;
+    }
 
     const fetchRoutes = async () => {
       setLoading(true);
