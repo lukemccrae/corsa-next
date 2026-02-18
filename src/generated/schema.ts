@@ -372,20 +372,31 @@ export type RefreshLeaderboardResponse = {
 
 export type Route = {
   __typename?: 'Route';
+  createdAt: Scalars['AWSDateTime']['output'];
   distance?: Maybe<Scalars['Float']['output']>;
+  distanceInMiles?: Maybe<Scalars['Float']['output']>;
+  filename?: Maybe<Scalars['String']['output']>;
+  fullRouteData?: Maybe<Scalars['String']['output']>;
   gain?: Maybe<Scalars['Int']['output']>;
-  name?: Maybe<Scalars['String']['output']>;
+  gainInFeet?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
   points?: Maybe<Array<Maybe<FullDataWaypoint>>>;
+  routeGpxUrl?: Maybe<Scalars['String']['output']>;
   storageUrl?: Maybe<Scalars['String']['output']>;
   uom?: Maybe<UnitOfMeasure>;
+  userId: Scalars['ID']['output'];
 };
 
 export type RouteInput = {
-  createdAt: Scalars['ID']['input'];
-  distance: Scalars['Float']['input'];
-  gain: Scalars['Int']['input'];
+  createdAt: Scalars['AWSDateTime']['input'];
+  distanceInMiles?: InputMaybe<Scalars['Float']['input']>;
+  filename?: InputMaybe<Scalars['String']['input']>;
+  fullRouteData?: InputMaybe<Scalars['String']['input']>;
+  gainInFeet?: InputMaybe<Scalars['Int']['input']>;
+  id: Scalars['ID']['input'];
   name: Scalars['String']['input'];
-  storageUrl: Scalars['String']['input'];
+  routeGpxUrl?: InputMaybe<Scalars['String']['input']>;
   uom: UnitOfMeasure;
   userId: Scalars['ID']['input'];
 };
