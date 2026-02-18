@@ -70,8 +70,8 @@ export default function RoutesSettingsPage() {
       setLoading(true);
       try {
         const query = `
-          query GetUserRoutes {
-            getUserByUserName(username: "${user.preferred_username}") {
+          query GetUserRoutes($username: String!) {
+            getUserByUserName(username: $username) {
               routes {
                 id
                 name
@@ -96,7 +96,12 @@ export default function RoutesSettingsPage() {
             "Content-Type": "application/json",
             "x-api-key": APPSYNC_API_KEY,
           },
-          body: JSON.stringify({ query }),
+          body: JSON.stringify({ 
+            query,
+            variables: {
+              username: user.preferred_username
+            }
+          }),
         });
 
         if (!response.ok) {
