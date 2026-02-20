@@ -1,8 +1,20 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Dialog } from "primereact/dialog";
-import { MapContainer, TileLayer, Polyline, Marker, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Polyline,
+  Marker,
+  useMap,
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Route } from "@/src/generated/schema";
@@ -75,7 +87,7 @@ function ElevationProfile({
 
   const xFor = useCallback(
     (i: number) => (n <= 1 ? VBW / 2 : (i / (n - 1)) * VBW),
-    [n]
+    [n],
   );
 
   const yFor = useCallback(
@@ -85,7 +97,7 @@ function ElevationProfile({
       const t = (elev - bottom) / (top - bottom);
       return VBH - t * VBH;
     },
-    [maxElev, minElev, pad]
+    [maxElev, minElev, pad],
   );
 
   const { areaPath, linePath } = useMemo(() => {
@@ -141,7 +153,9 @@ function ElevationProfile({
         />
       </svg>
       <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
-        <span>{samples[0] ? `${samples[0].distance.toFixed(2)} mi` : "0.00 mi"}</span>
+        <span>
+          {samples[0] ? `${samples[0].distance.toFixed(2)} mi` : "0.00 mi"}
+        </span>
         <span>
           {samples[Math.floor(n / 2)]
             ? `${samples[Math.floor(n / 2)].distance.toFixed(2)} mi`
@@ -163,10 +177,16 @@ type Props = {
 
 export default function RouteViewerModal({ visible, onHide, route }: Props) {
   const [coords, setCoords] = useState<Coord[]>([]);
-  const [loadState, setLoadState] = useState<"idle" | "loading" | "error">("idle");
+  const [loadState, setLoadState] = useState<"idle" | "loading" | "error">(
+    "idle",
+  );
   const [errorMsg, setErrorMsg] = useState("");
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
-  const [tooltip, setTooltip] = useState<{ x: number; y: number; visible: boolean }>({
+  const [tooltip, setTooltip] = useState<{
+    x: number;
+    y: number;
+    visible: boolean;
+  }>({
     x: 0,
     y: 0,
     visible: false,
@@ -208,7 +228,7 @@ export default function RouteViewerModal({ visible, onHide, route }: Props) {
 
   const polyline = useMemo(
     () => coords.map((p) => [p.lat, p.lng] as [number, number]),
-    [coords]
+    [coords],
   );
 
   const markerPosition = useMemo(
@@ -216,7 +236,7 @@ export default function RouteViewerModal({ visible, onHide, route }: Props) {
       hoverIndex != null && coords[hoverIndex]
         ? ([coords[hoverIndex].lat, coords[hoverIndex].lng] as [number, number])
         : null,
-    [hoverIndex, coords]
+    [hoverIndex, coords],
   );
 
   const markerIcon = useMemo(
@@ -227,7 +247,7 @@ export default function RouteViewerModal({ visible, onHide, route }: Props) {
         iconSize: [14, 14],
         iconAnchor: [7, 7],
       }),
-    []
+    [],
   );
 
   const handleHover = useCallback(
@@ -239,21 +259,30 @@ export default function RouteViewerModal({ visible, onHide, route }: Props) {
         setHoverIndex(i);
         const rect = chartRef.current?.getBoundingClientRect();
         if (rect) {
-          const localX = Math.max(8, Math.min(rect.width - 8, clientX - rect.left));
-          const localY = Math.max(8, Math.min(rect.height - 8, clientY - rect.top));
+          const localX = Math.max(
+            8,
+            Math.min(rect.width - 8, clientX - rect.left),
+          );
+          const localY = Math.max(
+            8,
+            Math.min(rect.height - 8, clientY - rect.top),
+          );
           setTooltip({ x: localX, y: localY, visible: true });
         }
       }
     },
-    []
+    [],
   );
 
   const mapCenter = useMemo(
     (): [number, number] =>
       coords.length > 0
-        ? [coords[Math.floor(coords.length / 2)].lat, coords[Math.floor(coords.length / 2)].lng]
+        ? [
+            coords[Math.floor(coords.length / 2)].lat,
+            coords[Math.floor(coords.length / 2)].lng,
+          ]
         : [0, 0],
-    [coords]
+    [coords],
   );
 
   return (
@@ -290,8 +319,8 @@ export default function RouteViewerModal({ visible, onHide, route }: Props) {
               style={{ height: "100%", width: "100%" }}
             >
               <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution="Map data &copy; OpenStreetMap contributors"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
               />
               <FitBounds positions={polyline} />
               <Polyline
@@ -322,11 +351,12 @@ export default function RouteViewerModal({ visible, onHide, route }: Props) {
                       elev: {Math.round(coords[hoverIndex].elevation)} ft
                     </div>
                     <div className="text-gray-500 text-[11px]">
-                      dist: {coords[hoverIndex].distance.toFixed(2)} mi &bull; vert:{" "}
-                      {coords[hoverIndex].cumulativeVert.toFixed(0)} ft
+                      dist: {coords[hoverIndex].distance.toFixed(2)} mi &bull;
+                      vert: {coords[hoverIndex].cumulativeVert.toFixed(0)} ft
                     </div>
                     <div className="text-gray-400 text-[10px]">
-                      {coords[hoverIndex].lat.toFixed(5)}, {coords[hoverIndex].lng.toFixed(5)}
+                      {coords[hoverIndex].lat.toFixed(5)},{" "}
+                      {coords[hoverIndex].lng.toFixed(5)}
                     </div>
                   </div>
                 </div>
