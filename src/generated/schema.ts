@@ -64,12 +64,12 @@ export type ChatMessageInput = {
 
 export type Device = {
   __typename?: 'Device';
-  imei?: Maybe<Scalars['String']['output']>;
+  imei: Scalars['String']['output'];
   make?: Maybe<Scalars['String']['output']>;
   model?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   shareUrl?: Maybe<Scalars['String']['output']>;
-  userId?: Maybe<Scalars['String']['output']>;
+  userId: Scalars['String']['output'];
 };
 
 export type DeviceInput = {
@@ -373,33 +373,39 @@ export type RefreshLeaderboardResponse = {
 export type Route = {
   __typename?: 'Route';
   createdAt: Scalars['AWSDateTime']['output'];
-  distance?: Maybe<Scalars['Float']['output']>;
-  distanceInMiles?: Maybe<Scalars['Float']['output']>;
-  filename?: Maybe<Scalars['String']['output']>;
-  fullRouteData?: Maybe<Scalars['String']['output']>;
-  gain?: Maybe<Scalars['Int']['output']>;
-  gainInFeet?: Maybe<Scalars['Int']['output']>;
-  id: Scalars['ID']['output'];
+  distanceInMiles: Scalars['Float']['output'];
+  gainInFeet: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  points?: Maybe<Array<Maybe<FullDataWaypoint>>>;
-  routeGpxUrl?: Maybe<Scalars['String']['output']>;
-  storageUrl?: Maybe<Scalars['String']['output']>;
-  uom?: Maybe<UnitOfMeasure>;
+  overlayUrl: Scalars['String']['output'];
+  processingStatus: RouteProcessingStatus;
+  storageUrl: Scalars['String']['output'];
+  uom: UnitOfMeasure;
   userId: Scalars['ID']['output'];
 };
 
 export type RouteInput = {
-  createdAt: Scalars['AWSDateTime']['input'];
+  distance: Scalars['Float']['input'];
   distanceInMiles?: InputMaybe<Scalars['Float']['input']>;
   filename?: InputMaybe<Scalars['String']['input']>;
   fullRouteData?: InputMaybe<Scalars['String']['input']>;
+  gain: Scalars['Int']['input'];
   gainInFeet?: InputMaybe<Scalars['Int']['input']>;
   id: Scalars['ID']['input'];
+  lastMileDistance?: InputMaybe<Scalars['Float']['input']>;
   name: Scalars['String']['input'];
+  overlayUrl?: InputMaybe<Scalars['String']['input']>;
   routeGpxUrl?: InputMaybe<Scalars['String']['input']>;
+  storageUrl: Scalars['String']['input'];
   uom: UnitOfMeasure;
   userId: Scalars['ID']['input'];
 };
+
+export enum RouteProcessingStatus {
+  Completed = 'COMPLETED',
+  Failed = 'FAILED',
+  Pending = 'PENDING',
+  Processing = 'PROCESSING'
+}
 
 export type Segment = {
   __typename?: 'Segment';
