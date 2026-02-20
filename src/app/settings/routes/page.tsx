@@ -6,7 +6,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Toast } from "primereact/toast";
 import { useUser } from "@/src/context/UserContext";
-import { useTheme } from "@/src/components/ThemeProvider";
+// import { useTheme } from "@/src/components/ThemeProvider";
 import RouteUploadModal from "@/src/components/RouteUploadModal";
 import RouteViewerModal from "@/src/components/RouteViewerModal";
 import { Route } from "@/src/generated/schema";
@@ -17,7 +17,7 @@ const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 
 export default function RoutesSettingsPage() {
   const { user } = useUser();
-  const { theme } = useTheme();
+  // const { theme } = useTheme();
   const toast = useRef<Toast>(null);
 
   const [routes, setRoutes] = useState<Route[]>([]);
@@ -119,9 +119,7 @@ export default function RoutesSettingsPage() {
   );
 
   const cardBg =
-    theme === "dark"
-      ? "bg-gray-800 border-gray-700 text-gray-100"
-      : "bg-white border-gray-200 text-gray-900";
+    "bg-white border-gray-200 text-gray-900";
 
   return (
     <>
