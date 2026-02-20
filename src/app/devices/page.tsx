@@ -5,8 +5,8 @@ import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import { ProgressSpinner } from "primereact/progressspinner";
-import { useUser } from "../../../context/UserContext";
-import { useTheme } from "../../../components/ThemeProvider";
+import { useUser } from "../../context/UserContext";
+import { useTheme } from "../../components/ThemeProvider";
 import { Device } from "@/src/generated/schema";
 
 const APPSYNC_ENDPOINT =
@@ -237,11 +237,25 @@ export default function DevicesSettingsPage() {
       setEditForm({ ...device });
     } else {
       setDevices((ds) => [
-        { imei: "", name: "", make: "garmin", model: "" },
+        {
+          imei: "",
+          name: "",
+          make: "garmin",
+          model: "",
+          shareUrl: "",
+          userId: user?.["cognito:username"] || "",
+        },
         ...ds,
       ]);
       setEditingId(null);
-      setEditForm({ imei: "", name: "", make: "garmin", model: "" });
+      setEditForm({
+        imei: "",
+        name: "",
+        make: "garmin",
+        model: "",
+        shareUrl: "",
+        userId: user?.["cognito:username"] || "",
+      });
     }
   }
 

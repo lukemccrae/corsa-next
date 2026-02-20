@@ -7,9 +7,9 @@ import { Avatar } from "primereact/avatar";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import Cropper from "react-easy-crop";
-import { useUser } from "../../../context/UserContext";
-import { useTheme } from "../../../components/ThemeProvider";
-import { Footer } from "../../../components/Footer";
+import { useUser } from "../../context/UserContext";
+import { useTheme } from "../../components/ThemeProvider";
+import { Footer } from "../../components/Footer";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
