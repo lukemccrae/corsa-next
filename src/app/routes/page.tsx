@@ -14,10 +14,9 @@ import RouteUploadModal from "@/src/components/RouteUploadModal";
 import { Route } from "@/src/generated/schema";
 import dynamic from "next/dynamic";
 
-const RouteMapPanel = dynamic(
-  () => import("@/src/components/RouteMapPanel"),
-  { ssr: false },
-);
+const RouteMapPanel = dynamic(() => import("@/src/components/RouteMapPanel"), {
+  ssr: false,
+});
 
 const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
@@ -154,28 +153,26 @@ function ElevationProfile({
     <div className="w-full">
       <div
         ref={wrapperRef}
-        className="relative w-full h-32 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 select-none touch-none cursor-crosshair"
+        className="relative w-full"
         onMouseMove={handleMouseMove}
-        onMouseLeave={handleLeave}
-        onTouchStart={handleTouchMove}
         onTouchMove={handleTouchMove}
+        onMouseLeave={handleLeave}
         onTouchEnd={handleLeave}
-        role="img"
-        aria-label="Elevation profile"
+        style={{ touchAction: "none" }}
       >
         <svg
-          className="absolute inset-0 w-full h-full"
           viewBox={`0 0 ${VBW} ${VBH}`}
           preserveAspectRatio="none"
+          className="w-full h-24 block"
         >
-          <defs>
-            <linearGradient id="epFill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#60a5fa" stopOpacity="0.05" />
-            </linearGradient>
-          </defs>
-          <path d={areaPath} fill="url(#epFill)" />
-          <path d={linePath} fill="none" stroke="#60a5fa" strokeWidth="2" />
+          <rect x="0" y="0" width={VBW} height={VBH} fill="transparent" />
+          <path d={areaPath} fill="rgba(59,130,246,0.18)" stroke="none" />
+          <path
+            d={linePath}
+            fill="none"
+            stroke="rgba(59,130,246,0.9)"
+            strokeWidth="2"
+          />
           {activeX != null && activeY != null && (
             <>
               <line
@@ -183,27 +180,14 @@ function ElevationProfile({
                 y1={0}
                 x2={activeX}
                 y2={VBH}
-                stroke="#f97316"
-                strokeWidth="1.5"
-                opacity="0.9"
-              />
-              <line
-                x1={0}
-                y1={activeY}
-                x2={VBW}
-                y2={activeY}
-                stroke="#f97316"
+                stroke="rgba(255,255,255,0.25)"
                 strokeWidth="1"
-                strokeDasharray="6,4"
-                opacity="0.7"
               />
               <circle
                 cx={activeX}
                 cy={activeY}
-                r="5"
-                fill="#f97316"
-                stroke="#fff"
-                strokeWidth="2"
+                r="4"
+                fill="rgba(59,130,246,1)"
               />
             </>
           )}
@@ -211,33 +195,30 @@ function ElevationProfile({
 
         {active && activeX != null && (
           <div
-            className="absolute z-10 pointer-events-none"
-            style={{
-              left: `${tooltipLeftPct}%`,
-              top: tooltipAbove ? undefined : "8px",
-              bottom: tooltipAbove ? "8px" : undefined,
-              transform: "translateX(-50%)",
-            }}
+            className={[
+              "absolute z-10 px-2 py-1 rounded text-[11px] leading-tight",
+              "bg-gray-900 text-white shadow",
+              tooltipAbove ? "bottom-2" : "top-2",
+            ].join(" ")}
+            style={{ left: `${tooltipLeftPct}%`, transform: "translateX(-50%)" }}
           >
-            <div className="bg-gray-900/90 text-white text-xs rounded px-2 py-1 shadow whitespace-nowrap">
-              {active.distance.toFixed(2)} mi · {Math.round(active.elevation)} ft
-            </div>
+            {active.distance.toFixed(2)} mi · {Math.round(active.elevation)} ft
           </div>
         )}
       </div>
 
-      <div className="mt-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-        <span>
-          {samples[0] ? `${samples[0].distance.toFixed(2)} mi` : "0.00 mi"}
-        </span>
-        <span>
+      <div className="flex justify-between text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+        <div>{samples[0] ? `${samples[0].distance.toFixed(2)} mi` : "0.00 mi"}</div>
+        <div>
           {samples[Math.floor(n / 2)]
             ? `${samples[Math.floor(n / 2)].distance.toFixed(2)} mi`
             : ""}
-        </span>
-        <span>
-          {samples[n - 1] ? `${samples[n - 1].distance.toFixed(2)} mi` : ""}
-        </span>
+        </div>
+        <div>
+          {samples[n - 1]
+            ? `${samples[n - 1].distance.toFixed(2)} mi`
+            : ""}
+        </div>
       </div>
     </div>
   );
@@ -245,7 +226,7 @@ function ElevationProfile({
 
 export default function RoutesPage() {
   const { user } = useUser();
-  const toast = useRef<Toast>(null);
+  const toast = useRef<any>(null);
 
   const [routes, setRoutes] = useState<RouteWithId[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
@@ -259,6 +240,7 @@ export default function RoutesPage() {
 
   useEffect(() => {
     if (user?.preferred_username) fetchRoutes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.preferred_username]);
 
   const fetchRoutes = async () => {
@@ -364,10 +346,8 @@ export default function RoutesPage() {
     return {
       distance: fmtDistance(distanceInMiles ?? 0, uom),
       gain: fmtGain(gainInFeet ?? 0, uom),
-      minElev:
-        minElevFt != null ? fmtGain(minElevFt, uom) : null,
-      maxElev:
-        maxElevFt != null ? fmtGain(maxElevFt, uom) : null,
+      minElev: minElevFt != null ? fmtGain(minElevFt, uom) : null,
+      maxElev: maxElevFt != null ? fmtGain(maxElevFt, uom) : null,
     };
   }, [selectedRoute, coords]);
 
@@ -380,192 +360,242 @@ export default function RoutesPage() {
         onSuccess={handleUploadSuccess}
       />
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left sidebar */}
-        <div className="w-80 flex-none flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
-            {selectedRoute ? (
-              <button
-                className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-                onClick={() => setSelectedRoute(null)}
-                aria-label="Back to route list"
-              >
-                <i className="pi pi-arrow-left text-xs" />
-                <span>Routes</span>
-              </button>
-            ) : (
-              <h2 className="text-base font-semibold">My Routes</h2>
-            )}
-            <Button
-              icon="pi pi-upload"
-              rounded
-              text
-              size="small"
-              aria-label="Upload route"
-              onClick={() => setUploadModalVisible(true)}
-              disabled={!user}
-              tooltip="Upload route"
-              tooltipOptions={{ position: "left" }}
-            />
-          </div>
+      {/* IMPORTANT: prevent page scrolling; never exceed viewport height */}
+      <div className="h-[100vh] overflow-hidden">
+        <div className="h-full flex flex-col md:flex-row">
+          {/* Left sidebar (desktop) / mobile route panel */}
+          <div className="w-full md:w-[420px] md:border-r border-gray-200 dark:border-gray-800 flex flex-col min-h-0">
+            {/* Header */}
+            <div className="flex items-center justify-between gap-2 px-3 py-2 md:px-4 md:py-3 border-b border-gray-200 dark:border-gray-800">
+              {selectedRoute ? (
+                <button
+                  className="text-sm font-semibold"
+                  onClick={() => setSelectedRoute(null)}
+                  aria-label="Back to route list"
+                >
+                  <i className="pi pi-chevron-left mr-2" />
+                  Routes
+                </button>
+              ) : (
+                <h2 className="text-sm md:text-base font-semibold">My Routes</h2>
+              )}
 
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto">
-            {!selectedRoute ? (
-              loadingRoutes ? (
-                <div className="p-4 text-sm text-gray-500 flex items-center gap-2">
-                  <i className="pi pi-spin pi-spinner" />
-                  <span>Loading…</span>
-                </div>
-              ) : routes.length === 0 ? (
-                <div className="p-6 text-center text-gray-400 text-sm">
-                  <i className="pi pi-map text-3xl block mb-2" />
-                  <p>No routes yet.</p>
-                  <p className="mt-1">Upload your first route!</p>
+              <Button
+                icon="pi pi-upload"
+                onClick={() => setUploadModalVisible(true)}
+                disabled={!user}
+                tooltip="Upload route"
+                tooltipOptions={{ position: "left" }}
+                size="small"
+              />
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 min-h-0 overflow-hidden">
+              {!selectedRoute ? (
+                <div className="h-full overflow-hidden px-3 py-2 md:px-4 md:py-4">
+                  {loadingRoutes ? (
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <i className="pi pi-spin pi-spinner mr-2" />
+                      Loading…
+                    </div>
+                  ) : routes.length === 0 ? (
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      <i className="pi pi-map mr-2" />
+                      <p className="mt-1">No routes yet.</p>
+                      <p>Upload your first route!</p>
+                    </div>
+                  ) : (
+                    <ul className="space-y-1">
+                      {routes.map((r) => (
+                        <li key={`${r.storageUrl}-${r.createdAt}`}>
+                          <button
+                            className="w-full text-left rounded-md px-2 py-2 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                            onClick={() => setSelectedRoute(r)}
+                            aria-label={`View route ${r.name}`}
+                          >
+                            <div className="font-medium text-sm">{r.name}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 flex flex-wrap gap-x-2">
+                              <span>{fmtDistance(r.distanceInMiles ?? 0, r.uom)}</span>
+                              <span>↑ {fmtGain(r.gainInFeet ?? 0, r.uom)}</span>
+                              <span>{new Date(r.createdAt).toLocaleDateString()}</span>
+                            </div>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               ) : (
-                <ul className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {routes.map((r, i) => (
-                    <li key={r.storageUrl ?? i}>
-                      <button
-                        className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
-                        onClick={() => setSelectedRoute(r)}
-                        aria-label={`View route ${r.name}`}
-                      >
-                        <div className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
-                          {r.name}
-                        </div>
-                        <div className="mt-1 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                          <span>
-                            {fmtDistance(r.distanceInMiles ?? 0, r.uom)}
-                          </span>
-                          <span>↑ {fmtGain(r.gainInFeet ?? 0, r.uom)}</span>
-                          <span>
-                            {new Date(r.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )
-            ) : (
-              <div className="p-4 space-y-4">
-                {/* Name + date */}
-                <div>
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
-                    {selectedRoute.name}
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {new Date(selectedRoute.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
+                <>
+                  {/* Desktop details panel (UNCHANGED STRUCTURE), but now with safe overflow handling */}
+                  <div className="hidden md:block h-full overflow-hidden px-4 py-4">
+                    {/* Name + date */}
+                    <div className="mb-3">
+                      <h3 className="text-lg font-semibold">{selectedRoute.name}</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {new Date(selectedRoute.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
 
-                {/* Stats grid */}
-                {stats && (
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Distance
-                      </div>
-                      <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {stats.distance}
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Ascent
-                      </div>
-                      <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {stats.gain}
-                      </div>
-                    </div>
-                    {stats.minElev && (
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          Min Elev
+                    {/* Stats grid */}
+                    {stats && (
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="rounded-md border border-gray-200 dark:border-gray-800 p-3">
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            Distance
+                          </div>
+                          <div className="font-semibold">{stats.distance}</div>
                         </div>
-                        <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">
-                          {stats.minElev}
+                        <div className="rounded-md border border-gray-200 dark:border-gray-800 p-3">
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            Ascent
+                          </div>
+                          <div className="font-semibold">{stats.gain}</div>
                         </div>
+                        {stats.minElev && (
+                          <div className="rounded-md border border-gray-200 dark:border-gray-800 p-3">
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              Min Elev
+                            </div>
+                            <div className="font-semibold">{stats.minElev}</div>
+                          </div>
+                        )}
+                        {stats.maxElev && (
+                          <div className="rounded-md border border-gray-200 dark:border-gray-800 p-3">
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              Max Elev
+                            </div>
+                            <div className="font-semibold">{stats.maxElev}</div>
+                          </div>
+                        )}
                       </div>
                     )}
-                    {stats.maxElev && (
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          Max Elev
-                        </div>
-                        <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">
-                          {stats.maxElev}
-                        </div>
+
+                    {/* Loading / error / elevation profile */}
+                    {loadingCoords && (
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <i className="pi pi-spin pi-spinner mr-2" />
+                        Loading route data…
                       </div>
                     )}
-                  </div>
-                )}
-
-                {/* Loading / error / elevation profile */}
-                {loadingCoords && (
-                  <div className="text-sm text-gray-500 flex items-center gap-2">
-                    <i className="pi pi-spin pi-spinner" />
-                    <span>Loading route data…</span>
-                  </div>
-                )}
-                {coordsError && (
-                  <div className="text-sm text-red-500 flex items-center gap-1">
-                    <i className="pi pi-exclamation-triangle" />
-                    <span>{coordsError}</span>
-                  </div>
-                )}
-                {coords.length > 0 && (
-                  <div>
-                    <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Elevation Profile
-                    </div>
-                    <ElevationProfile
-                      samples={coords}
-                      activeIndex={hoverIndex}
-                      onHover={handleHover}
-                    />
-                    {hoverCoord && (
-                      <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 flex gap-4">
-                        <span>{hoverCoord.distance.toFixed(2)} mi</span>
-                        <span>{Math.round(hoverCoord.elevation)} ft</span>
-                        <span>↑ {hoverCoord.cumulativeVert.toFixed(0)} ft</span>
+                    {coordsError && (
+                      <div className="text-sm text-red-500">
+                        <i className="pi pi-exclamation-triangle mr-2" />
+                        {coordsError}
+                      </div>
+                    )}
+                    {coords.length > 0 && (
+                      <div>
+                        <div className="text-sm font-semibold mb-2">
+                          Elevation Profile
+                        </div>
+                        {hoverCoord && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                            {hoverCoord.distance.toFixed(2)} mi ·{" "}
+                            {Math.round(hoverCoord.elevation)} ft · ↑{" "}
+                            {hoverCoord.cumulativeVert.toFixed(0)} ft
+                          </div>
+                        )}
+                        <ElevationProfile
+                          samples={coords}
+                          activeIndex={hoverIndex}
+                          onHover={handleHover}
+                        />
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* Right panel: full-height map */}
-        <div className="flex-1 relative overflow-hidden">
-          <RouteMapPanel
-            polyline={polyline}
-            hoverCoord={
-              hoverCoord
-                ? {
-                    lat: hoverCoord.lat,
-                    lng: hoverCoord.lng,
-                    elevation: hoverCoord.elevation,
-                    distance: hoverCoord.distance,
-                  }
-                : null
-            }
-          />
-          {!selectedRoute && !loadingRoutes && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-white/80 dark:bg-gray-900/80 rounded-xl px-6 py-4 text-center shadow-lg">
-                <i className="pi pi-map text-4xl text-gray-400 block mb-2" />
-                <p className="text-gray-600 dark:text-gray-300 text-sm">
-                  Select a route to view it on the map
-                </p>
-              </div>
+                  {/* MOBILE panel: Map (top) + small route data + elevation (bottom). No page scroll. */}
+                  <div className="md:hidden h-full flex flex-col min-h-0 overflow-hidden">
+                    {/* MAP ON TOP (mobile only) */}
+                    <div className="h-[46vh] min-h-0">
+                      <RouteMapPanel polyline={polyline} hoverCoord={hoverCoord} />
+                    </div>
+
+                    {/* Small route data */}
+                    <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-800">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold truncate">
+                            {selectedRoute.name}
+                          </div>
+                          <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                            {new Date(selectedRoute.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+
+                        {stats ? (
+                          <div className="text-right text-[11px] leading-tight text-gray-600 dark:text-gray-300 shrink-0">
+                            <div>{stats.distance}</div>
+                            <div>↑ {stats.gain}</div>
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {hoverCoord && (
+                        <div className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                          {hoverCoord.distance.toFixed(2)} mi ·{" "}
+                          {Math.round(hoverCoord.elevation)} ft · ↑{" "}
+                          {hoverCoord.cumulativeVert.toFixed(0)} ft
+                        </div>
+                      )}
+
+                      {loadingCoords && (
+                        <div className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                          <i className="pi pi-spin pi-spinner mr-2" />
+                          Loading…
+                        </div>
+                      )}
+                      {coordsError && (
+                        <div className="mt-1 text-[11px] text-red-500">
+                          <i className="pi pi-exclamation-triangle mr-2" />
+                          {coordsError}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ELEVATION AT BOTTOM (mobile only) */}
+                    <div className="flex-1 min-h-0 px-3 py-2 overflow-hidden">
+                      {coords.length > 0 ? (
+                        <>
+                          <div className="text-xs font-semibold mb-1">
+                            Elevation
+                          </div>
+                          <ElevationProfile
+                            samples={coords}
+                            activeIndex={hoverIndex}
+                            onHover={handleHover}
+                          />
+                        </>
+                      ) : (
+                        <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                          No elevation data yet.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-          )}
+          </div>
+
+          {/* Right panel: full-height map (desktop only) */}
+          <div className="hidden md:block flex-1 min-h-0">
+            <div className="h-full">
+              <RouteMapPanel polyline={polyline} hoverCoord={hoverCoord} />
+              {!selectedRoute && !loadingRoutes && (
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div className="bg-white/80 dark:bg-gray-900/70 border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
+                    <i className="pi pi-map mr-2" />
+                    Select a route to view it on the map
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile when NO selectedRoute: keep the existing behavior (list only). */}
         </div>
       </div>
     </>
