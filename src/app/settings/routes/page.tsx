@@ -8,6 +8,7 @@ import { Toast } from "primereact/toast";
 import { useUser } from "@/src/context/UserContext";
 import { useTheme } from "@/src/components/ThemeProvider";
 import RouteUploadModal from "@/src/components/RouteUploadModal";
+import RouteViewerModal from "@/src/components/RouteViewerModal";
 import { Route } from "@/src/generated/schema";
 
 const APPSYNC_ENDPOINT =
@@ -22,6 +23,7 @@ export default function RoutesSettingsPage() {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
+  const [viewerRoute, setViewerRoute] = useState<Route | null>(null);
 
   useEffect(() => {
     if (user?.preferred_username) {
@@ -106,6 +108,16 @@ export default function RoutesSettingsPage() {
     return new Date(rowData.createdAt).toLocaleDateString();
   };
 
+  const actionsTemplate = (rowData: Route) => (
+    <Button
+      icon="pi pi-eye"
+      rounded
+      text
+      aria-label="View route"
+      onClick={() => setViewerRoute(rowData)}
+    />
+  );
+
   const cardBg =
     theme === "dark"
       ? "bg-gray-800 border-gray-700 text-gray-100"
@@ -118,6 +130,11 @@ export default function RoutesSettingsPage() {
         visible={uploadModalVisible}
         onHide={() => setUploadModalVisible(false)}
         onSuccess={handleUploadSuccess}
+      />
+      <RouteViewerModal
+        visible={viewerRoute != null}
+        onHide={() => setViewerRoute(null)}
+        route={viewerRoute}
       />
 
       <div className="p-6 max-w-7xl mx-auto">
@@ -166,6 +183,7 @@ export default function RoutesSettingsPage() {
               body={dateTemplate}
               sortable
             />
+            <Column header="" body={actionsTemplate} style={{ width: "4rem" }} />
           </DataTable>
         </Card>
       </div>
