@@ -180,7 +180,15 @@ function ElevationProfile({
                 y1={0}
                 x2={activeX}
                 y2={VBH}
-                stroke="rgba(255,255,255,0.25)"
+                stroke="rgba(255,255,255,0.35)"
+                strokeWidth="1"
+              />
+              <line
+                x1={0}
+                y1={activeY}
+                x2={VBW}
+                y2={activeY}
+                stroke="rgba(255,255,255,0.35)"
                 strokeWidth="1"
               />
               <circle
@@ -200,7 +208,7 @@ function ElevationProfile({
               "bg-gray-900 text-white shadow",
               tooltipAbove ? "bottom-2" : "top-2",
             ].join(" ")}
-            style={{ left: `${tooltipLeftPct}%`, transform: "translateX(-50%)" }}
+            style={{ left: `${tooltipLeftPct}%`, transform: "translateX(-50%)", pointerEvents: "none" }}
           >
             {active.distance.toFixed(2)} mi · {Math.round(active.elevation)} ft
           </div>
@@ -235,6 +243,7 @@ export default function RoutesPage() {
 
   const [coords, setCoords] = useState<Coord[]>([]);
   const [loadingCoords, setLoadingCoords] = useState(false);
+  const [failedThumbnails, setFailedThumbnails] = useState<Set<string>>(new Set());
   const [coordsError, setCoordsError] = useState("");
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
@@ -410,15 +419,27 @@ export default function RoutesPage() {
                       {routes.map((r) => (
                         <li key={`${r.storageUrl}-${r.createdAt}`}>
                           <button
-                            className="w-full text-left rounded-md px-2 py-2 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                            className="w-full text-left rounded-md px-2 py-2 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors flex items-center gap-3"
                             onClick={() => setSelectedRoute(r)}
                             aria-label={`View route ${r.name}`}
                           >
-                            <div className="font-medium text-sm">{r.name}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 flex flex-wrap gap-x-2">
-                              <span>{fmtDistance(r.distanceInMiles ?? 0, r.uom)}</span>
-                              <span>↑ {fmtGain(r.gainInFeet ?? 0, r.uom)}</span>
-                              <span>{new Date(r.createdAt).toLocaleDateString()}</span>
+                            {r.overlayUrl && !r.overlayUrl.startsWith("http") && !failedThumbnails.has(r.overlayUrl) && (
+                              <img
+                                src={`${S3_BASE}${r.overlayUrl}`}
+                                alt=""
+                                className="w-14 h-14 object-cover rounded shrink-0"
+                                onError={() => {
+                                  setFailedThumbnails((prev) => new Set(prev).add(r.overlayUrl!));
+                                }}
+                              />
+                            )}
+                            <div className="min-w-0">
+                              <div className="font-medium text-sm">{r.name}</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 flex flex-wrap gap-x-2">
+                                <span>{fmtDistance(r.distanceInMiles ?? 0, r.uom)}</span>
+                                <span>↑ {fmtGain(r.gainInFeet ?? 0, r.uom)}</span>
+                                <span>{new Date(r.createdAt).toLocaleDateString()}</span>
+                              </div>
                             </div>
                           </button>
                         </li>
