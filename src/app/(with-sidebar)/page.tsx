@@ -60,7 +60,6 @@ export default function Home() {
         });
 
         const { data } = await response.json();
-        console.log(data, "<< fetched data");
         
         const streams = data?.getStreamsByEntity || [];
         const trackerGroups = data?.getAllTrackerGroups || [];

@@ -67,7 +67,6 @@ async function fetchStreamsByEntity(entity: string | undefined) {
   }
 
   const json = await res.json();
-  console.log(json, "<< json");
 
   return {
     streams: json?.data?.getStreamsByEntity ?? [],

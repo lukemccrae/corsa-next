@@ -8,8 +8,13 @@ import { Toast } from "primereact/toast";
 import { useUser } from "@/src/context/UserContext";
 // import { useTheme } from "@/src/components/ThemeProvider";
 import RouteUploadModal from "@/src/components/RouteUploadModal";
-import RouteViewerModal from "@/src/components/RouteViewerModal";
 import { Route } from "@/src/generated/schema";
+import dynamic from "next/dynamic";
+
+const RouteViewerModal = dynamic(
+  () => import("@/src/components/RouteViewerModal"),
+  { ssr: false },
+);
 
 const APPSYNC_ENDPOINT =
   "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";

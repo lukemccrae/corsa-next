@@ -8,7 +8,6 @@ const APPSYNC_ENDPOINT =
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 
 async function fetchGroupData(groupId: string) {
-  console.log(groupId, "fetching group data for groupId");
   const query = `
     query MyQuery {
       getTrackerGroupData(groupId: "${groupId}") {

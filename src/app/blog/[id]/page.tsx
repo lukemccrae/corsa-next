@@ -4,7 +4,6 @@ import { Editor } from "primereact/editor";
 import { Button } from "primereact/button";
 export default function BlogEditorPage() {
   const [content, setContent] = React.useState("");
-  console.log(content)
   return (
     <div className="max-w-2xl mx-auto py-8">
       <h2 className="text-2xl font-semibold mb-4">Write a Blog Post</h2>

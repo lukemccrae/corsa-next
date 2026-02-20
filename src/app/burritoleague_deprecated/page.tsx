@@ -73,7 +73,6 @@ export default async function BurritoLeaguePage() {
 
   try {
     const data = await fetchSegmentData();
-    console.log(data);
     segmentData = data.segments.filter(
       (segment: Segment) => segment.title !== "ATY TEST"
     );
