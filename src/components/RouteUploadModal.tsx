@@ -267,6 +267,7 @@ export default function RouteUploadModal({
               uploadLabel="Upload"
               cancelLabel="Clear"
               auto={false}
+              mode={"basic"}
               customUpload
             />
             {selectedFile && (
