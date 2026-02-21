@@ -584,14 +584,6 @@ export default function RoutesPage() {
           <div className="hidden md:block flex-1 min-h-0">
             <div className="h-full">
               <RouteMapPanel polyline={polyline} hoverCoord={hoverCoord} />
-              {!selectedRoute && !loadingRoutes && (
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <div className="bg-white/80 dark:bg-gray-900/70 border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
-                    <i className="pi pi-map mr-2" />
-                    Select a route to view it on the map
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
