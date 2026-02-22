@@ -572,7 +572,7 @@ export default function RegisterDevicePage() {
         <Button
           label="Go to my devices"
           icon="pi pi-list"
-          onClick={() => router.push("/settings/devices")}
+          onClick={() => router.push("/devices")}
         />
         <Button
           label="Register another"
@@ -599,7 +599,7 @@ export default function RegisterDevicePage() {
           icon="pi pi-times"
           severity="secondary"
           outlined
-          onClick={() => router.push("/settings/devices")}
+          onClick={() => router.push("/devices")}
         />
       </div>
     </div>

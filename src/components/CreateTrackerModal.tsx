@@ -6,7 +6,27 @@ import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import { InputSwitch } from "primereact/inputswitch";
 import { Calendar } from "primereact/calendar";
+import { Message } from "primereact/message";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useUser } from "../context/UserContext";
+
+const APPSYNC_ENDPOINT =
+  "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
+const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
+
+interface RegisteredDevice {
+  imei: string;
+  name?: string | null;
+  make?: string | null;
+}
+
+const routeOptions = [
+  { label: "Select a route...", value: "" },
+  { label: "Coastal 50k", value: "coastal-50k" },
+  { label: "Mountain Loop", value: "mountain-loop" },
+  { label: "Custom (upload later)", value: "custom" },
+];
 
 type CreateTrackerModalProps = {
   visible: boolean;
@@ -15,22 +35,12 @@ type CreateTrackerModalProps = {
 
 export default function CreateTrackerModal({ visible, onHide }: CreateTrackerModalProps) {
   const router = useRouter();
+  const { user } = useUser();
 
-  // Example device/route lists — replace with fetched data if you have APIs
-  const deviceOptions = [
-    { label: "Garmin", value: "garmin" },
-    { label: "Bivy", value: "bivy" },
-    { label: "Phone (GPS)", value: "phone" },
-  ];
+  const [registeredDevices, setRegisteredDevices] = useState<RegisteredDevice[]>([]);
+  const [loadingDevices, setLoadingDevices] = useState(false);
 
-  const routeOptions = [
-    { label: "Select a route...", value: "" },
-    { label: "Coastal 50k", value: "coastal-50k" },
-    { label: "Mountain Loop", value: "mountain-loop" },
-    { label: "Custom (upload later)", value: "custom" },
-  ];
-
-  const [device, setDevice] = useState<string | undefined>(deviceOptions[0].value);
+  const [device, setDevice] = useState<string | undefined>(undefined);
   const [route, setRoute] = useState<string | undefined>(routeOptions[0].value);
   const [name, setName] = useState("");
   const [isPublic, setIsPublic] = useState<boolean>(true);
@@ -38,20 +48,63 @@ export default function CreateTrackerModal({ visible, onHide }: CreateTrackerMod
   const [startTime, setStartTime] = useState<Date | null>(new Date());
 
   useEffect(() => {
-    // when opening modal, set defaults
     if (visible) {
-      setDevice(deviceOptions[0].value);
       setRoute(routeOptions[0].value);
       setName("");
       setIsPublic(true);
       setStartNow(true);
       setStartTime(new Date());
+      if (user?.preferred_username) {
+        fetchDevices();
+      }
     }
-  }, [visible]);
+  // fetchDevices is defined below and stable within the component lifecycle
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, user?.preferred_username]);
+
+  const fetchDevices = async () => {
+    setLoadingDevices(true);
+    try {
+      const query = `
+        query GetUserDevices($username: String!) {
+          getUserByUserName(username: $username) {
+            devices {
+              imei
+              name
+              make
+            }
+          }
+        }
+      `;
+      const response = await fetch(APPSYNC_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": APPSYNC_API_KEY },
+        body: JSON.stringify({ query, variables: { username: user?.preferred_username } }),
+      });
+      const result = await response.json();
+      const devices: RegisteredDevice[] =
+        result?.data?.getUserByUserName?.devices || [];
+      setRegisteredDevices(devices);
+      if (devices.length > 0) {
+        setDevice(devices[0].imei);
+      } else {
+        setDevice(undefined);
+      }
+    } catch {
+      setRegisteredDevices([]);
+      setDevice(undefined);
+    } finally {
+      setLoadingDevices(false);
+    }
+  };
+
+  const deviceOptions = registeredDevices.map((d) => ({
+    label: `${d.name ?? "Device"}${d.make ? ` (${d.make})` : ""} – ${d.imei}`,
+    value: d.imei,
+  }));
 
   const submit = () => {
     const chosenStart = startNow ? new Date() : startTime ?? new Date();
-    // For now redirect to /track/new with query params (server or page can pick these up)
     const params = new URLSearchParams({
       device: device ?? "",
       route: route ?? "",
@@ -60,12 +113,11 @@ export default function CreateTrackerModal({ visible, onHide }: CreateTrackerMod
       start: chosenStart.toISOString(),
     });
 
-    // Close modal first for nicer UX
     onHide();
-
-    // Navigate to tracker creation page (implement server-side or page to accept these)
     router.push(`/track/new?${params.toString()}`);
   };
+
+  const hasNoDevices = !loadingDevices && registeredDevices.length === 0;
 
   const footer = (
     <div className="flex justify-between items-center gap-2">
@@ -75,7 +127,7 @@ export default function CreateTrackerModal({ visible, onHide }: CreateTrackerMod
         <Button
           label="Start Tracker"
           onClick={submit}
-          disabled={!name.trim()}
+          disabled={!name.trim() || !device || hasNoDevices}
           className="p-button-primary"
         />
       </div>
@@ -87,13 +139,35 @@ export default function CreateTrackerModal({ visible, onHide }: CreateTrackerMod
       <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit(); }}>
         <div>
           <label className="text-sm font-medium text-gray-700 block mb-1">Device</label>
-          <Dropdown
-            value={device}
-            options={deviceOptions}
-            onChange={(e) => setDevice(e.value)}
-            className="w-full"
-            placeholder="Select device"
-          />
+          {loadingDevices ? (
+            <div className="text-sm text-gray-500 flex items-center gap-2">
+              <i className="pi pi-spin pi-spinner" /> Loading devices…
+            </div>
+          ) : hasNoDevices ? (
+            <div className="space-y-2">
+              <Message
+                severity="warn"
+                text="You have no registered devices. Register a device before starting a tracker."
+                className="w-full"
+              />
+              <Link href="/devices/register" onClick={onHide}>
+                <Button
+                  label="Register a device"
+                  icon="pi pi-plus"
+                  size="small"
+                  type="button"
+                />
+              </Link>
+            </div>
+          ) : (
+            <Dropdown
+              value={device}
+              options={deviceOptions}
+              onChange={(e) => setDevice(e.value)}
+              className="w-full"
+              placeholder="Select registered device"
+            />
+          )}
         </div>
 
         <div>

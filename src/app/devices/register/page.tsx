@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Button } from "primereact/button";
 import { Card } from "primereact/card";
@@ -8,16 +9,17 @@ import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Message } from "primereact/message";
 import { Steps } from "primereact/steps";
-import { Divider } from "primereact/divider";
 import { Toast } from "primereact/toast";
 import { useUser } from "../../../context/UserContext";
 import {
-  validateDeviceShareUrl,
-  startDeviceVerification,
-  confirmDeviceVerification,
   upsertDevice,
-  type DeviceVerificationSession,
+  fetchDeviceLocationFromShareUrl,
+  type DeviceLocation,
 } from "../../../services/device.service";
+
+const TrackerMap = dynamic(() => import("../../../components/TrackerMap"), {
+  ssr: false,
+});
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -40,15 +42,7 @@ const STEPS = [
 // State machine types
 // ---------------------------------------------------------------------------
 
-type FlowState =
-  | "form"
-  | "validatingUrl"
-  | "startingVerification"
-  | "verificationPending"
-  | "confirming"
-  | "savingDevice"
-  | "success"
-  | "error";
+type FlowState = "form" | "verifying" | "locationConfirm" | "success" | "error";
 
 interface FormData {
   name: string;
@@ -62,19 +56,10 @@ interface FormData {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatCountdown(ms: number): string {
-  if (ms <= 0) return "00:00";
-  const totalSec = Math.floor(ms / 1000);
-  const min = Math.floor(totalSec / 60);
-  const sec = totalSec % 60;
-  return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-}
-
 function stepIndex(state: FlowState): number {
-  if (["form", "validatingUrl", "startingVerification"].includes(state))
-    return 0;
-  if (["verificationPending", "confirming"].includes(state)) return 1;
-  if (["savingDevice", "success"].includes(state)) return 2;
+  if (state === "form") return 0;
+  if (state === "verifying" || state === "locationConfirm") return 1;
+  if (state === "success") return 2;
   return 0;
 }
 
@@ -100,89 +85,8 @@ export default function RegisterDevicePage() {
   const [flowState, setFlowState] = useState<FlowState>("form");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  // Verification session
-  const [session, setSession] = useState<DeviceVerificationSession | null>(
-    null
-  );
-  const [waypointReceived, setWaypointReceived] = useState(false);
-  const [debugOpen, setDebugOpen] = useState(false);
-
-  // Countdown
-  const [msLeft, setMsLeft] = useState<number>(0);
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Polling ref (fallback for subscription)
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // ---------------------------------------------------------------------------
-  // Countdown ticker
-  // ---------------------------------------------------------------------------
-
-  const startCountdown = useCallback((expiresAt: string) => {
-    if (countdownRef.current) clearInterval(countdownRef.current);
-    const update = () => {
-      const remaining = new Date(expiresAt).getTime() - Date.now();
-      setMsLeft(Math.max(0, remaining));
-    };
-    update();
-    countdownRef.current = setInterval(update, 1000);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (countdownRef.current) clearInterval(countdownRef.current);
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, []);
-
-  // ---------------------------------------------------------------------------
-  // Waypoint polling fallback
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Polls onNewWaypoint via a regular query (AppSync HTTP) as a fallback for
-   * the WebSocket subscription, which requires Amplify subscription wiring not
-   * currently configured in this project.  When a waypoint is returned the
-   * confirm button is auto-enabled.
-   */
-  const startWaypointPolling = useCallback((streamId: string) => {
-    if (pollRef.current) clearInterval(pollRef.current);
-
-    const APPSYNC_ENDPOINT =
-      "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
-
-    const poll = async () => {
-      try {
-        // We query the most recent waypoint for this stream as a proxy for
-        // the onNewWaypoint subscription.
-        const query = `
-          query PollWaypoint($streamId: ID!) {
-            getLatestWaypoint(streamId: $streamId) {
-              streamId
-              timestamp
-            }
-          }
-        `;
-        const res = await fetch(APPSYNC_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": "da2-5f7oqdwtvnfydbn226e6c2faga",
-          },
-          body: JSON.stringify({ query, variables: { streamId } }),
-        });
-        const json = await res.json();
-        if (json?.data?.getLatestWaypoint?.timestamp) {
-          setWaypointReceived(true);
-          if (pollRef.current) clearInterval(pollRef.current);
-        }
-      } catch {
-        // Polling errors are non-fatal; user can still manually confirm.
-      }
-    };
-
-    pollRef.current = setInterval(poll, 5000);
-  }, []);
+  // Location result from share URL verification
+  const [deviceLocation, setDeviceLocation] = useState<DeviceLocation | null>(null);
 
   // ---------------------------------------------------------------------------
   // Flow actions
@@ -204,64 +108,9 @@ export default function RegisterDevicePage() {
       return;
     }
 
-    // Step 1 – validate share URL
-    setFlowState("validatingUrl");
+    setFlowState("verifying");
     try {
-      if (form.shareUrl) {
-        const result = await validateDeviceShareUrl(
-          form.shareUrl,
-          user.idToken
-        );
-        if (!result.valid) {
-          setErrorMessage(
-            result.message ?? "Share URL is not valid. Please check it and try again."
-          );
-          setFlowState("error");
-          return;
-        }
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setErrorMessage(`Share URL validation failed: ${msg}`);
-      setFlowState("error");
-      return;
-    }
-
-    // Step 2 – start verification
-    setFlowState("startingVerification");
-    try {
-      const sess = await startDeviceVerification(form.imei, user.idToken);
-      setSession(sess);
-      setWaypointReceived(false);
-      startCountdown(sess.verificationExpiresAt);
-      startWaypointPolling(sess.verificationStreamId);
-      setFlowState("verificationPending");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setErrorMessage(`Failed to start verification: ${msg}`);
-      setFlowState("error");
-    }
-  };
-
-  const handleConfirm = async () => {
-    if (!session || !user) return;
-    setFlowState("confirming");
-    try {
-      await confirmDeviceVerification(
-        session.imei,
-        session.verificationSessionId,
-        user.idToken
-      );
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setErrorMessage(`Verification confirmation failed: ${msg}`);
-      setFlowState("error");
-      return;
-    }
-
-    // Step 3 – upsert device (Approach B: verify first, then save)
-    setFlowState("savingDevice");
-    try {
+      // Step 1 – immediately upsert device into the database
       await upsertDevice(
         {
           IMEI: form.imei,
@@ -273,9 +122,14 @@ export default function RegisterDevicePage() {
         },
         user.idToken
       );
-      if (countdownRef.current) clearInterval(countdownRef.current);
-      if (pollRef.current) clearInterval(pollRef.current);
-      setFlowState("success");
+
+      // Step 2 – attempt to fetch current location from share URL
+      let location: DeviceLocation | null = null;
+      if (form.shareUrl) {
+        location = await fetchDeviceLocationFromShareUrl(form.shareUrl);
+      }
+      setDeviceLocation(location);
+      setFlowState("locationConfirm");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setErrorMessage(`Failed to save device: ${msg}`);
@@ -283,50 +137,17 @@ export default function RegisterDevicePage() {
     }
   };
 
-  const handleRestartVerification = async () => {
-    if (!session || !user) return;
-    setFlowState("startingVerification");
-    try {
-      const sess = await startDeviceVerification(form.imei, user.idToken);
-      setSession(sess);
-      setWaypointReceived(false);
-      startCountdown(sess.verificationExpiresAt);
-      startWaypointPolling(sess.verificationStreamId);
-      setFlowState("verificationPending");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setErrorMessage(`Failed to restart verification: ${msg}`);
-      setFlowState("error");
-    }
-  };
-
   const handleReset = () => {
     setFlowState("form");
     setErrorMessage("");
-    setSession(null);
-    setWaypointReceived(false);
-    if (countdownRef.current) clearInterval(countdownRef.current);
-    if (pollRef.current) clearInterval(pollRef.current);
+    setDeviceLocation(null);
   };
-
-  // ---------------------------------------------------------------------------
-  // Derived state
-  // ---------------------------------------------------------------------------
-
-  const isExpired = session
-    ? Date.now() > new Date(session.verificationExpiresAt).getTime()
-    : false;
-
-  const isBusy = [
-    "validatingUrl",
-    "startingVerification",
-    "confirming",
-    "savingDevice",
-  ].includes(flowState);
 
   // ---------------------------------------------------------------------------
   // Render helpers
   // ---------------------------------------------------------------------------
+
+  const isBusy = flowState === "verifying";
 
   const renderForm = () => (
     <div className="space-y-5">
@@ -407,13 +228,7 @@ export default function RegisterDevicePage() {
       </div>
 
       <Button
-        label={
-          flowState === "validatingUrl"
-            ? "Validating URL…"
-            : flowState === "startingVerification"
-              ? "Starting verification…"
-              : "Next — Verify device"
-        }
+        label={isBusy ? "Saving…" : "Next — Save & verify device"}
         icon={isBusy ? "pi pi-spin pi-spinner" : "pi pi-arrow-right"}
         iconPos="right"
         onClick={handleSubmit}
@@ -424,135 +239,80 @@ export default function RegisterDevicePage() {
     </div>
   );
 
-  const renderVerificationPending = () => (
-    <div className="space-y-5">
-      <Message
-        severity="info"
-        text="Send a location update from your device now"
-        className="w-full"
-      />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-            Time remaining
-          </p>
-          <p
-            className={`text-3xl font-mono font-bold ${
-              isExpired
-                ? "text-red-500"
-                : msLeft < 60_000
-                  ? "text-orange-500"
-                  : "text-gray-800 dark:text-gray-100"
-            }`}
-          >
-            {isExpired ? "Expired" : formatCountdown(msLeft)}
-          </p>
-        </div>
-
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-            Waypoint received
-          </p>
-          <p className="text-3xl">
-            {waypointReceived ? (
-              <span className="text-green-500">
-                <i className="pi pi-check-circle" />
-              </span>
-            ) : (
-              <span className="text-gray-400">
-                <i className="pi pi-clock" />
-              </span>
-            )}
-          </p>
-          <p className="text-xs mt-1 text-gray-500 dark:text-gray-400">
-            {waypointReceived ? "Location received!" : "Waiting…"}
-          </p>
-        </div>
-      </div>
-
-      {/* Debug details (collapsible) */}
-      <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <button
-          className="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-          onClick={() => setDebugOpen((o) => !o)}
-          aria-expanded={debugOpen}
-        >
-          <span>Debug details</span>
-          <i
-            className={`pi ${debugOpen ? "pi-chevron-up" : "pi-chevron-down"} text-xs`}
-          />
-        </button>
-        {debugOpen && session && (
-          <div className="px-4 pb-4 space-y-2 text-xs font-mono text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/30">
-            <Divider className="!my-2" />
-            <div>
-              <span className="font-semibold">verificationSessionId:</span>{" "}
-              {session.verificationSessionId}
-            </div>
-            <div>
-              <span className="font-semibold">verificationStreamId:</span>{" "}
-              {session.verificationStreamId}
-            </div>
-            <div>
-              <span className="font-semibold">verificationExpiresAt:</span>{" "}
-              {session.verificationExpiresAt}
-            </div>
-            <div>
-              <span className="font-semibold">status:</span> {session.status}
-            </div>
-            <div>
-              <span className="font-semibold">imei:</span> {session.imei}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-3">
-        {isExpired ? (
-          <Button
-            label="Restart verification"
-            icon="pi pi-refresh"
-            severity="warning"
-            onClick={handleRestartVerification}
-            disabled={flowState === "startingVerification"}
-            loading={flowState === "startingVerification"}
-          />
-        ) : (
-          <Button
-            label={
-              flowState === "confirming"
-                ? "Confirming…"
-                : waypointReceived
-                  ? "Confirm verification"
-                  : "I sent a ping — Confirm anyway"
-            }
-            icon={
-              flowState === "confirming"
-                ? "pi pi-spin pi-spinner"
-                : "pi pi-check"
-            }
-            onClick={handleConfirm}
-            disabled={flowState === "confirming"}
-            loading={flowState === "confirming"}
-          />
-        )}
-        <Button
-          label="Back"
-          icon="pi pi-arrow-left"
-          severity="secondary"
-          outlined
-          onClick={handleReset}
-          disabled={flowState === "confirming"}
-        />
-      </div>
+  const renderVerifying = () => (
+    <div className="flex flex-col items-center gap-4 py-10 text-center">
+      <i className="pi pi-spin pi-spinner text-4xl text-violet-500" />
+      <p className="font-medium">Saving device and verifying location…</p>
     </div>
   );
 
-  const renderSavingDevice = () => (
-    <div className="flex flex-col items-center gap-4 py-10 text-center">
-      <i className="pi pi-spin pi-spinner text-4xl text-violet-500" />
-      <p className="font-medium">Saving your device…</p>
+  const renderLocationConfirm = () => (
+    <div className="space-y-5">
+      <Message
+        severity="success"
+        text={`Device "${form.name}" saved successfully.`}
+        className="w-full"
+      />
+
+      {deviceLocation ? (
+        <>
+          <Message
+            severity="info"
+            text="Live location retrieved from your share URL."
+            className="w-full"
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Latitude</p>
+              <p className="font-mono font-semibold">{deviceLocation.lat.toFixed(6)}</p>
+            </div>
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Longitude</p>
+              <p className="font-mono font-semibold">{deviceLocation.lng.toFixed(6)}</p>
+            </div>
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Last seen</p>
+              <p className="text-sm font-semibold">
+                {new Date(deviceLocation.timestamp).toLocaleString("en-US", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+            <TrackerMap
+              lat={deviceLocation.lat}
+              lng={deviceLocation.lng}
+              profilePicture=""
+              isLive={false}
+            />
+          </div>
+        </>
+      ) : form.shareUrl ? (
+        <Message
+          severity="warn"
+          text="Could not retrieve live location from the share URL. Ensure your device is transmitting and the URL is correct. Your device has been saved and you can update the share URL later."
+          className="w-full"
+        />
+      ) : null}
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Button
+          label="Done — Go to my devices"
+          icon="pi pi-list"
+          onClick={() => setFlowState("success")}
+        />
+        <Button
+          label="Register another"
+          icon="pi pi-plus"
+          severity="secondary"
+          outlined
+          onClick={handleReset}
+        />
+      </div>
     </div>
   );
 
@@ -564,8 +324,8 @@ export default function RegisterDevicePage() {
       <div className="space-y-2">
         <h3 className="text-xl font-bold">Device registered!</h3>
         <p className="text-gray-600 dark:text-gray-400">
-          <strong>{form.name}</strong> has been successfully verified and
-          saved.
+          <strong>{form.name}</strong> has been successfully saved to your
+          account.
         </p>
       </div>
       <div className="flex flex-col sm:flex-row gap-3">
@@ -630,25 +390,10 @@ export default function RegisterDevicePage() {
         />
 
         <Card>
-          {/* Form state */}
-          {(flowState === "form" ||
-            flowState === "validatingUrl" ||
-            flowState === "startingVerification") &&
-            renderForm()}
-
-          {/* Verification pending */}
-          {flowState === "verificationPending" && renderVerificationPending()}
-
-          {/* Confirming */}
-          {flowState === "confirming" && renderVerificationPending()}
-
-          {/* Saving */}
-          {flowState === "savingDevice" && renderSavingDevice()}
-
-          {/* Success */}
+          {flowState === "form" && renderForm()}
+          {flowState === "verifying" && renderVerifying()}
+          {flowState === "locationConfirm" && renderLocationConfirm()}
           {flowState === "success" && renderSuccess()}
-
-          {/* Error */}
           {flowState === "error" && renderError()}
         </Card>
       </div>

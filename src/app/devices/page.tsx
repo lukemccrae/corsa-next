@@ -6,6 +6,7 @@ import { Toast } from "primereact/toast";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Dialog } from "primereact/dialog";
+import { useRouter } from "next/navigation";
 import { useUser } from "@/src/context/UserContext";
 import { Device } from "@/src/generated/schema";
 
@@ -42,6 +43,7 @@ function deviceIcon(make?: string | null) {
 }
 
 export default function DevicesSettingsPage() {
+  const router = useRouter();
   const { user } = useUser();
   const toast = useRef<Toast>(null);
 
@@ -331,9 +333,9 @@ export default function DevicesSettingsPage() {
             <h2 className="text-sm md:text-base font-semibold">My Devices</h2>
             <Button
               icon="pi pi-plus"
-              onClick={handleAddDevice}
-              disabled={!user || isEditing}
-              tooltip="Add device"
+              onClick={() => router.push("/devices/register")}
+              disabled={!user}
+              tooltip="Register device"
               tooltipOptions={{ position: "left" }}
               size="small"
             />
