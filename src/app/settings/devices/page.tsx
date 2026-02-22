@@ -7,9 +7,9 @@ import { Card } from "primereact/card";
 import { Toast } from "primereact/toast";
 import { useUser } from "../../../context/UserContext";
 import { useTheme } from "../../../components/ThemeProvider";
+import { domain } from "../../../context/domain.context";
 
-const APPSYNC_ENDPOINT =
-  "https://tuy3ixkamjcjpc5fzo2oqnnyym.appsync-api.us-west-1.amazonaws.com/graphql";
+const APPSYNC_ENDPOINT = domain.appsync;
 const APPSYNC_API_KEY = "da2-5f7oqdwtvnfydbn226e6c2faga";
 
 interface Device {
@@ -55,8 +55,8 @@ export default function DevicesSettingsPage() {
     setLoading(true);
     try {
       const query = `
-        query GetUserDevices {
-          getUserByUserName(username: "${user?.preferred_username}") {
+        query GetUserDevices($username: String!) {
+          getUserByUserName(username: $username) {
             devices {
               imei
               name
@@ -73,7 +73,7 @@ export default function DevicesSettingsPage() {
           "Content-Type": "application/json",
           "x-api-key": APPSYNC_API_KEY,
         },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, variables: { username: user?.preferred_username } }),
       });
       const result = await response.json();
       const fetched: Device[] =
@@ -140,8 +140,8 @@ export default function DevicesSettingsPage() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {devices.map((d) => (
-              <Card key={d.imei ?? Math.random()} className={`${cardBg} border`}>
+            {devices.map((d, idx) => (
+              <Card key={d.imei ?? idx} className={`${cardBg} border`}>
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center shrink-0">
                     <i
