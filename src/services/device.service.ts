@@ -211,6 +211,70 @@ export async function confirmDeviceVerification(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Location fetching
+// ---------------------------------------------------------------------------
+
+export interface DeviceLocation {
+  lat: number;
+  lng: number;
+  timestamp: string;
+}
+
+/** One day in milliseconds, used to build the Garmin feed lookback window. */
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * Attempts to fetch the latest location from a device share URL.
+ * Currently supports Garmin MapShare (share.garmin.com).
+ * Returns null if the location cannot be fetched (CORS, invalid URL, no data).
+ */
+export async function fetchDeviceLocationFromShareUrl(
+  shareUrl: string
+): Promise<DeviceLocation | null> {
+  try {
+    const url = new URL(shareUrl);
+    if (url.hostname === "share.garmin.com") {
+      const pathParts = url.pathname.split("/").filter(Boolean);
+      if (pathParts.length === 0) return null;
+      const shareId = pathParts[pathParts.length - 1];
+      const d1 = new Date(Date.now() - MS_PER_DAY).toISOString();
+      const feedUrl = `https://share.garmin.com/Feed/Share/${encodeURIComponent(shareId)}?d1=${encodeURIComponent(d1)}`;
+      const res = await fetch(feedUrl, { signal: AbortSignal.timeout(10000) });
+      if (!res.ok) return null;
+      const text = await res.text();
+      return parseGarminKml(text);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function parseGarminKml(kml: string): DeviceLocation | null {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(kml, "text/xml");
+    const placemarks = doc.querySelectorAll("Placemark");
+    if (placemarks.length === 0) return null;
+    const last = placemarks[placemarks.length - 1];
+    const coordEl = last.querySelector("coordinates");
+    const timeEl = last.querySelector("TimeStamp > when") ?? last.querySelector("when");
+    if (!coordEl?.textContent) return null;
+    const [lngStr, latStr] = coordEl.textContent.trim().split(",");
+    const lat = parseFloat(latStr);
+    const lng = parseFloat(lngStr);
+    if (isNaN(lat) || isNaN(lng)) return null;
+    return {
+      lat,
+      lng,
+      timestamp: timeEl?.textContent?.trim() ?? new Date().toISOString(),
+    };
+  } catch {
+    return null;
+  }
+}
+
 /** Upserts a device. This mutation exists in the current schema. */
 export async function upsertDevice(
   input: DeviceUpsertInput,
